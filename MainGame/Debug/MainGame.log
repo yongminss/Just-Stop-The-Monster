@@ -1,0 +1,8 @@
+﻿  MainGame.cpp
+c:\users\user\desktop\수업 자료\졸업 작품\just stop the monster\maingame\maingame.cpp(151): warning C4996: '_wfreopen': This function or variable may be unsafe. Consider using _wfreopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\corecrt_wstdio.h(144): note: '_wfreopen' 선언을 참조하십시오.
+c:\users\user\desktop\수업 자료\졸업 작품\just stop the monster\maingame\maingame.cpp(152): warning C4996: '_wfreopen': This function or variable may be unsafe. Consider using _wfreopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\corecrt_wstdio.h(144): note: '_wfreopen' 선언을 참조하십시오.
+c:\users\user\desktop\수업 자료\졸업 작품\just stop the monster\maingame\maingame.cpp(153): warning C4996: '_wfreopen': This function or variable may be unsafe. Consider using _wfreopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\corecrt_wstdio.h(144): note: '_wfreopen' 선언을 참조하십시오.
+  MainGame.vcxproj -> C:\Users\user\Desktop\수업 자료\졸업 작품\Just Stop The Monster\Debug\MainGame.exe
