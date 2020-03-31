@@ -95,6 +95,7 @@ public:
 private:
 	int					m_nReference = 0;
 
+public:
 	XMFLOAT4			m_Ambient = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
 	XMFLOAT4			m_Diffuse = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
 	XMFLOAT4			m_Specular = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
@@ -103,12 +104,6 @@ private:
 public:
 	void AddRef() { ++m_nReference; }
 	void Release() { if (--m_nReference <= 0) delete this; }
-
-	XMFLOAT4 GetAmbient() { return m_Ambient; }
-	XMFLOAT4 GetDiffuse() { return m_Diffuse; }
-	XMFLOAT4 GetSpecular() { return m_Specular; }
-	XMFLOAT4 GetEmissive() { return m_Emissive; }
-
 };
 
 class Material
@@ -148,6 +143,7 @@ public:
 	void SetStandardShader() { SetShader(m_StandardShader); }
 	void SetSkinnedAnimationShader() { Material::SetShader(m_SkinnedAnimationShader); }
 
+	static void PrepareShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
 	void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList);
 
 	void LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, UINT nType, UINT nRootParameter, _TCHAR *TextureName, Texture **Texture, FILE *InFile, GameObject *Parent, Shader *Shader);

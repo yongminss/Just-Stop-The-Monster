@@ -120,12 +120,19 @@ void Material::SetMaterialColor(MaterialColor *MaterialColor)
 	if (m_MaterialColor) m_MaterialColor->AddRef();
 }
 
+void Material::PrepareShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+{
+	m_StandardShader = new StandardShader();
+	m_StandardShader->CreateShader(Device, CommandList, GraphicsRootSignature);
+
+}
+
 void Material::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
 {
-	CommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_MaterialColor->GetAmbient()), 16);
-	CommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_MaterialColor->GetDiffuse()), 20);
-	CommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_MaterialColor->GetSpecular()), 24);
-	CommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_MaterialColor->GetEmissive()), 28);
+	CommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_MaterialColor), 16);
+	CommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_MaterialColor), 20);
+	CommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_MaterialColor), 24);
+	CommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_MaterialColor), 28);
 
 	for (int i = 0; i < m_nTexture; ++i)
 		if (m_Texture[i]) m_Texture[i]->UpdateShaderVariable(CommandList, 0);
@@ -406,19 +413,19 @@ void GameObject::LoadMaterialInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCo
 		else if (!strcmp(Token, "<GlossyReflection>:"))
 			nRead = (UINT)::fread(&(ObjMaterial->m_GlossyReflection), sizeof(float), 1, InFile);
 		else if (!strcmp(Token, "<AlbedoMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 2, ObjMaterial->m_TextureName[0], &(ObjMaterial->m_Texture[0]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 3, ObjMaterial->m_TextureName[0], &(ObjMaterial->m_Texture[0]), InFile, Parent, Shader);
 		else if (!strcmp(Token, "<SpecularMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_SPECULAR_MAP, 3, ObjMaterial->m_TextureName[1], &(ObjMaterial->m_Texture[1]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_SPECULAR_MAP, 4, ObjMaterial->m_TextureName[1], &(ObjMaterial->m_Texture[1]), InFile, Parent, Shader);
 		else if (!strcmp(Token, "<NormalMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 4, ObjMaterial->m_TextureName[2], &(ObjMaterial->m_Texture[2]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 5, ObjMaterial->m_TextureName[2], &(ObjMaterial->m_Texture[2]), InFile, Parent, Shader);
 		else if (!strcmp(Token, "<MetallicMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 5, ObjMaterial->m_TextureName[3], &(ObjMaterial->m_Texture[3]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 6, ObjMaterial->m_TextureName[3], &(ObjMaterial->m_Texture[3]), InFile, Parent, Shader);
 		else if (!strcmp(Token, "<EmissionMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 6, ObjMaterial->m_TextureName[4], &(ObjMaterial->m_Texture[4]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 7, ObjMaterial->m_TextureName[4], &(ObjMaterial->m_Texture[4]), InFile, Parent, Shader);
 		else if (!strcmp(Token, "<DetailAlbedoMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 7, ObjMaterial->m_TextureName[5], &(ObjMaterial->m_Texture[5]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 8, ObjMaterial->m_TextureName[5], &(ObjMaterial->m_Texture[5]), InFile, Parent, Shader);
 		else if (!strcmp(Token, "<DetailNormalMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 8, ObjMaterial->m_TextureName[6], &(ObjMaterial->m_Texture[6]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 9, ObjMaterial->m_TextureName[6], &(ObjMaterial->m_Texture[6]), InFile, Parent, Shader);
 		else if (!strcmp(Token, "</Materials>"))
 			break;
 	}
@@ -566,7 +573,8 @@ void GameObject::Render(ID3D12GraphicsCommandList *CommandList)
 	if (m_nMaterial > 0) {
 		for (int i = 0; i < m_nMaterial; ++i) {
 			if (m_Material[i]) {
-				m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
+				if (m_Material[i]->m_Shader)
+					m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
 				m_Material[i]->UpdateShaderVariable(CommandList);
 			}
 			m_Mesh->Render(CommandList, i);
@@ -669,8 +677,8 @@ TrapCover::TrapCover(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandLis
 
 	TrapShader *ObjShader = new TrapShader();
 	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
-	ObjShader->CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 1);
-	ObjShader->CreateShaderResourceView(Device, CommandList, ObjTexture, 1, false);
+	//ObjShader->CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 1);
+	ObjShader->CreateShaderResourceView(Device, CommandList, ObjTexture, 2, false);
 
 	Material *ObjMaterial = new Material(1);
 	ObjMaterial->SetTexture(ObjTexture);
@@ -695,5 +703,15 @@ TrapCover::~TrapCover()
 
 void TrapCover::Render(ID3D12GraphicsCommandList *CommandList)
 {
+	UpdateShaderVariable(CommandList, &m_WorldPos);
 
+	if (m_nMaterial > 0) {
+		for (int i = 0; i < m_nMaterial; ++i) {
+			if (m_Material[i]->m_Shader)
+				m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
+			m_Material[i]->UpdateShaderVariable(CommandList);
+			if (m_Mesh)
+				m_Mesh->Render(CommandList);
+		}
+	}
 }

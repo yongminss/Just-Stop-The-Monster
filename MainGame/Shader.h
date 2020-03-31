@@ -44,7 +44,7 @@ public:
 	
 	D3D12_SHADER_BYTECODE				CompileShaderFromFile(WCHAR *FileName, LPCSTR ShaderName, LPCSTR ShaderProfile, ID3DBlob **ShaderBlob);
 
-	void OnPrepareRender(ID3D12GraphicsCommandList *CommandList, int nPipelineState);
+	virtual void OnPrepareRender(ID3D12GraphicsCommandList *CommandList, int nPipelineState);
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
 
 	void CreateCbvSrvDescriptorHeap(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, int nConstantBufferView, int nShaderResourceView);
@@ -77,5 +77,19 @@ public:
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
 	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
 
+	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+};
+
+class StandardShader : public Shader
+{
+public:
+	StandardShader() { }
+	~StandardShader() { }
+
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
+
+	virtual void OnPrepareRender(ID3D12GraphicsCommandList *CommandList, int nPipelineState);
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
 };

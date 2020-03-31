@@ -171,7 +171,6 @@ void Shader::CreateCbvSrvDescriptorHeap(ID3D12Device *Device, ID3D12GraphicsComm
 	m_CbvGPUDescriptorStartHandle = m_CbvSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
 	m_SrvCPUDescriptorStartHandle.ptr = m_CbvCPUDescriptorStartHandle.ptr + (::nCbvSrvDescriptorIncrementSize * nConstantBufferView);
 	m_SrvGPUDescriptorStartHandle.ptr = m_CbvGPUDescriptorStartHandle.ptr + (::nCbvSrvDescriptorIncrementSize * nConstantBufferView);
-
 }
 
 D3D12_SHADER_RESOURCE_VIEW_DESC GetShaderResourceViewDesc(D3D12_RESOURCE_DESC ResourceDesc, UINT nTextureType)
@@ -212,7 +211,6 @@ void Shader::CreateShaderResourceView(ID3D12Device *Device, ID3D12GraphicsComman
 		Texture->SetRootArgument(i, (AutoIncrement) ? (nRootParameterStartIndex + i) : nRootParameterStartIndex, SrvGPUDescriptorHandle);
 		SrvGPUDescriptorHandle.ptr += ::nCbvSrvDescriptorIncrementSize;
 	}
-
 }
 
 
@@ -278,6 +276,50 @@ D3D12_SHADER_BYTECODE TrapShader::CreatePixelShader()
 }
 
 void TrapShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+{
+	m_nPipelineState = 1;
+	m_PipelineStates = new ID3D12PipelineState*[m_nPipelineState];
+
+	Shader::CreateShader(Device, CommandList, GraphicsRootSignature);
+}
+
+
+// 3D 오브젝트에 사용할 쉐이더
+D3D12_INPUT_LAYOUT_DESC StandardShader::CreateInputLayout()
+{
+	UINT nInputElementDescs = 5;
+	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
+
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[2] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 2, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[3] = { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 3, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[4] = { "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 4, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+
+	return(d3dInputLayoutDesc);
+}
+
+D3D12_SHADER_BYTECODE StandardShader::CreateVertexShader()
+{
+	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "VSStandard", "vs_5_1", &m_VertexShaderBlob));
+}
+
+D3D12_SHADER_BYTECODE StandardShader::CreatePixelShader()
+{
+	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "PSStandard", "ps_5_1", &m_PixelShaderBlob));
+}
+
+void StandardShader::OnPrepareRender(ID3D12GraphicsCommandList *CommandList, int nPipelineState)
+{
+	if (m_PipelineStates)
+		CommandList->SetPipelineState(m_PipelineStates[nPipelineState]);
+}
+
+void StandardShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
 {
 	m_nPipelineState = 1;
 	m_PipelineStates = new ID3D12PipelineState*[m_nPipelineState];

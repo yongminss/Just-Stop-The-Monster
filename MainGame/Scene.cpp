@@ -117,10 +117,12 @@ GameScene::~GameScene()
 void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
 {
 	m_GraphicsRootSignature = CreateGraphicsRootSignature(Device);
+	
+	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 2);
+
+	Material::PrepareShader(Device, CommandList, m_GraphicsRootSignature);
 
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
-
-
 }
 
 void GameScene::ReleaseObject()
@@ -133,27 +135,119 @@ ID3D12RootSignature *GameScene::CreateGraphicsRootSignature(ID3D12Device *Device
 	ID3D12RootSignature *GraphicsRootSignature = NULL;
 
 	// 디스크립터 레인지
-	D3D12_DESCRIPTOR_RANGE DescriptorRange;
-	DescriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	DescriptorRange.NumDescriptors = 1;
-	DescriptorRange.BaseShaderRegister = 0;
-	DescriptorRange.RegisterSpace = 0;
-	DescriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	D3D12_DESCRIPTOR_RANGE DescriptorRange[8];
+	DescriptorRange[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	DescriptorRange[0].NumDescriptors = 1;
+	DescriptorRange[0].BaseShaderRegister = 0; // Texture
+	DescriptorRange[0].RegisterSpace = 0;
+	DescriptorRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	DescriptorRange[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	DescriptorRange[1].NumDescriptors = 1;
+	DescriptorRange[1].BaseShaderRegister = 6; // AlbedoTexture
+	DescriptorRange[1].RegisterSpace = 0;
+	DescriptorRange[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	DescriptorRange[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	DescriptorRange[2].NumDescriptors = 1;
+	DescriptorRange[2].BaseShaderRegister = 7; // SpecularTexture
+	DescriptorRange[2].RegisterSpace = 0;
+	DescriptorRange[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	DescriptorRange[3].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	DescriptorRange[3].NumDescriptors = 1;
+	DescriptorRange[3].BaseShaderRegister = 8; // NormalTexture
+	DescriptorRange[3].RegisterSpace = 0;
+	DescriptorRange[3].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	DescriptorRange[4].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	DescriptorRange[4].NumDescriptors = 1;
+	DescriptorRange[4].BaseShaderRegister = 9; // MetallicTexture
+	DescriptorRange[4].RegisterSpace = 0;
+	DescriptorRange[4].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	DescriptorRange[5].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	DescriptorRange[5].NumDescriptors = 1;
+	DescriptorRange[5].BaseShaderRegister = 10; // EmissionTexture
+	DescriptorRange[5].RegisterSpace = 0;
+	DescriptorRange[5].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	DescriptorRange[6].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	DescriptorRange[6].NumDescriptors = 1;
+	DescriptorRange[6].BaseShaderRegister = 11; // DetailAlbedoTexture
+	DescriptorRange[6].RegisterSpace = 0;
+	DescriptorRange[6].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	DescriptorRange[7].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	DescriptorRange[7].NumDescriptors = 1;
+	DescriptorRange[7].BaseShaderRegister = 12; // DetailNormalTexture
+	DescriptorRange[7].RegisterSpace = 0;
+	DescriptorRange[7].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 	// 루트 파라미터
-	D3D12_ROOT_PARAMETER RootParameter[2];
+	D3D12_ROOT_PARAMETER RootParameter[12];
 	RootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	RootParameter[0].Descriptor.ShaderRegister = 1;
+	RootParameter[0].Descriptor.ShaderRegister = 1; // Camera
 	RootParameter[0].Descriptor.RegisterSpace = 0;
 	RootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-	RootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	RootParameter[1].DescriptorTable.NumDescriptorRanges = 1;
-	RootParameter[1].DescriptorTable.pDescriptorRanges = &DescriptorRange;
-	RootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	RootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	RootParameter[1].Constants.Num32BitValues = 33;
+	RootParameter[1].Constants.ShaderRegister = 2; // GameObject
+	RootParameter[1].Constants.RegisterSpace = 0;
+	RootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
+	RootParameter[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	RootParameter[2].DescriptorTable.NumDescriptorRanges = 1;
+	RootParameter[2].DescriptorTable.pDescriptorRanges = &DescriptorRange[0]; // Texture
+	RootParameter[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
+	// bin파일로 로드할 오브젝트의 재질 설정
+	RootParameter[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	RootParameter[3].DescriptorTable.NumDescriptorRanges = 1;
+	RootParameter[3].DescriptorTable.pDescriptorRanges = &(DescriptorRange[1]); // AlbedoTexture
+	RootParameter[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
+	RootParameter[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	RootParameter[4].DescriptorTable.NumDescriptorRanges = 1;
+	RootParameter[4].DescriptorTable.pDescriptorRanges = &(DescriptorRange[2]); // SpecularTexture
+	RootParameter[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	RootParameter[5].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	RootParameter[5].DescriptorTable.NumDescriptorRanges = 1;
+	RootParameter[5].DescriptorTable.pDescriptorRanges = &(DescriptorRange[3]); // NormalTexture
+	RootParameter[5].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	RootParameter[6].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	RootParameter[6].DescriptorTable.NumDescriptorRanges = 1;
+	RootParameter[6].DescriptorTable.pDescriptorRanges = &(DescriptorRange[4]); // MetallicTexture
+	RootParameter[6].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	RootParameter[7].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	RootParameter[7].DescriptorTable.NumDescriptorRanges = 1;
+	RootParameter[7].DescriptorTable.pDescriptorRanges = &(DescriptorRange[5]); // EmissionTexture
+	RootParameter[7].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	RootParameter[8].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	RootParameter[8].DescriptorTable.NumDescriptorRanges = 1;
+	RootParameter[8].DescriptorTable.pDescriptorRanges = &(DescriptorRange[6]); // DetailAlbedoTexture
+	RootParameter[8].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	RootParameter[9].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	RootParameter[9].DescriptorTable.NumDescriptorRanges = 1;
+	RootParameter[9].DescriptorTable.pDescriptorRanges = &(DescriptorRange[7]); // DetailNormalTexture
+	RootParameter[9].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	// 애니메이션에서 사용할 루트 파라미터
+	RootParameter[10].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	RootParameter[10].Descriptor.ShaderRegister = 7; // Skinned Bone Offsets
+	RootParameter[10].Descriptor.RegisterSpace = 0;
+	RootParameter[10].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+	RootParameter[11].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	RootParameter[11].Descriptor.ShaderRegister = 8; // Skinned Bone Transforms
+	RootParameter[11].Descriptor.RegisterSpace = 0;
+	RootParameter[11].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
 	// 샘플러
 	D3D12_STATIC_SAMPLER_DESC SamplerDesc;
@@ -196,6 +290,33 @@ void GameScene::CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommand
 
 }
 
+ID3D12DescriptorHeap *GameScene::m_CbvSrvDescriptorHeap = NULL;
+
+D3D12_CPU_DESCRIPTOR_HANDLE GameScene::m_CbvCPUDescriptorStartHandle;
+D3D12_GPU_DESCRIPTOR_HANDLE GameScene::m_CbvGPUDescriptorStartHandle;
+D3D12_CPU_DESCRIPTOR_HANDLE GameScene::m_SrvCPUDescriptorStartHandle;
+D3D12_GPU_DESCRIPTOR_HANDLE GameScene::m_SrvGPUDescriptorStartHandle;
+
+D3D12_CPU_DESCRIPTOR_HANDLE GameScene::m_CbvCPUDescriptorNextHandle;
+D3D12_GPU_DESCRIPTOR_HANDLE GameScene::m_CbvGPUDescriptorNextHandle;
+D3D12_CPU_DESCRIPTOR_HANDLE GameScene::m_SrvCPUDescriptorNextHandle;
+D3D12_GPU_DESCRIPTOR_HANDLE GameScene::m_SrvGPUDescriptorNextHandle;
+
+void GameScene::CreateCbvSrvDescriptorHeap(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, int nConstantBufferView, int nShaderResourceView)
+{
+	D3D12_DESCRIPTOR_HEAP_DESC DescriptorHeapDesc;
+	DescriptorHeapDesc.NumDescriptors = nConstantBufferView + nShaderResourceView;
+	DescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	DescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	DescriptorHeapDesc.NodeMask = 0;
+	Device->CreateDescriptorHeap(&DescriptorHeapDesc, __uuidof(ID3D12DescriptorHeap), (void**)&m_CbvSrvDescriptorHeap);
+
+	m_CbvCPUDescriptorNextHandle = m_CbvCPUDescriptorStartHandle = m_CbvSrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	m_CbvGPUDescriptorNextHandle = m_CbvGPUDescriptorStartHandle = m_CbvSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+	m_SrvCPUDescriptorNextHandle.ptr = m_SrvCPUDescriptorStartHandle.ptr = m_CbvCPUDescriptorStartHandle.ptr + (::nCbvSrvDescriptorIncrementSize * nConstantBufferView);
+	m_SrvGPUDescriptorNextHandle.ptr = m_SrvGPUDescriptorStartHandle.ptr = m_CbvGPUDescriptorStartHandle.ptr + (::nCbvSrvDescriptorIncrementSize * nConstantBufferView);
+}
+
 void GameScene::Animate(float ElapsedTime)
 {
 	m_Player->Update(ElapsedTime);
@@ -211,7 +332,4 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	m_Player->UpdateCameraSet(CommandList);
 
 	m_Player->Render(CommandList);
-	
-	// 게임에 등장할 오브젝트를 렌더링
-
 }
