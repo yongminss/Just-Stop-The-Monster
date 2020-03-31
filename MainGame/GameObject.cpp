@@ -120,6 +120,7 @@ void Material::SetMaterialColor(MaterialColor *MaterialColor)
 	if (m_MaterialColor) m_MaterialColor->AddRef();
 }
 
+
 void Material::PrepareShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
 {
 	m_StandardShader = new StandardShader();
