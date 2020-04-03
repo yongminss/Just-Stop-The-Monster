@@ -173,46 +173,6 @@ void Shader::CreateCbvSrvDescriptorHeap(ID3D12Device *Device, ID3D12GraphicsComm
 	m_SrvGPUDescriptorStartHandle.ptr = m_CbvGPUDescriptorStartHandle.ptr + (::nCbvSrvDescriptorIncrementSize * nConstantBufferView);
 }
 
-D3D12_SHADER_RESOURCE_VIEW_DESC GetShaderResourceViewDesc(D3D12_RESOURCE_DESC ResourceDesc, UINT nTextureType)
-{
-	D3D12_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc;
-	ShaderResourceViewDesc.Format = ResourceDesc.Format;
-	ShaderResourceViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-
-	switch (nTextureType) {
-	case RESOURCE_TEXTURE2D:
-	case RESOURCE_TEXTURE2D_ARRAY:
-		ShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		ShaderResourceViewDesc.Texture2D.MipLevels = -1;
-		ShaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
-		ShaderResourceViewDesc.Texture2D.PlaneSlice = 0;
-		ShaderResourceViewDesc.Texture2D.ResourceMinLODClamp = 0.f;
-		break;
-
-	}
-	return ShaderResourceViewDesc;
-}
-
-void Shader::CreateShaderResourceView(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, Texture *Texture, UINT nRootParameterStartIndex, bool AutoIncrement)
-{
-	D3D12_CPU_DESCRIPTOR_HANDLE SrvCPUDescriptorHandle = m_SrvCPUDescriptorStartHandle;
-	D3D12_GPU_DESCRIPTOR_HANDLE SrvGPUDescriptorHandle = m_SrvGPUDescriptorStartHandle;
-
-	int nTexture = Texture->GetTextureNum();
-	int nTextureType = Texture->GetTextureType();
-
-	for (int i = 0; i < nTexture; ++i) {
-		ID3D12Resource *ShaderResource = Texture->GetTexture(i);
-		D3D12_RESOURCE_DESC ResourceDesc = ShaderResource->GetDesc();
-		D3D12_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc = GetShaderResourceViewDesc(ResourceDesc, nTextureType);
-		Device->CreateShaderResourceView(ShaderResource, &ShaderResourceViewDesc, SrvCPUDescriptorHandle);
-		SrvCPUDescriptorHandle.ptr += ::nCbvSrvDescriptorIncrementSize;
-
-		Texture->SetRootArgument(i, (AutoIncrement) ? (nRootParameterStartIndex + i) : nRootParameterStartIndex, SrvGPUDescriptorHandle);
-		SrvGPUDescriptorHandle.ptr += ::nCbvSrvDescriptorIncrementSize;
-	}
-}
-
 
 // UI에서 사용할 쉐이더 //
 D3D12_INPUT_LAYOUT_DESC UIShader::CreateInputLayout()
@@ -324,5 +284,21 @@ void StandardShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandLis
 	m_nPipelineState = 1;
 	m_PipelineStates = new ID3D12PipelineState*[m_nPipelineState];
 
-	Shader::CreateShader(Device, CommandList, GraphicsRootSignature);
+	::ZeroMemory(&m_PipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	m_PipelineStateDesc.pRootSignature = GraphicsRootSignature;
+	m_PipelineStateDesc.VS = CreateVertexShader();
+	m_PipelineStateDesc.PS = CreatePixelShader();
+	m_PipelineStateDesc.RasterizerState = CreateRasterizerState();
+	m_PipelineStateDesc.BlendState = CreateBlendState();
+	m_PipelineStateDesc.DepthStencilState = CreateDepthStencilState();
+	m_PipelineStateDesc.InputLayout = CreateInputLayout();
+	m_PipelineStateDesc.SampleMask = UINT_MAX;
+	m_PipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	m_PipelineStateDesc.NumRenderTargets = 1;
+	m_PipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	m_PipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	m_PipelineStateDesc.SampleDesc.Count = 1;
+	m_PipelineStateDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+
+	HRESULT hResult = Device->CreateGraphicsPipelineState(&m_PipelineStateDesc, __uuidof(ID3D12PipelineState), (void **)&m_PipelineStates[0]);
 }

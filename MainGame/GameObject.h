@@ -7,6 +7,9 @@ class Texture;
 
 #define RESOURCE_TEXTURE2D			0x01
 #define RESOURCE_TEXTURE2D_ARRAY	0x02
+#define RESOURCE_TEXTURE2DARRAY		0x03
+#define RESOURCE_TEXTURE_CUBE		0x04
+#define RESOURCE_BUFFER				0x05
 
 #define MATERIAL_ALBEDO_MAP			0x01
 #define MATERIAL_SPECULAR_MAP		0x02
@@ -148,6 +151,7 @@ public:
 
 	void LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, UINT nType, UINT nRootParameter, _TCHAR *TextureName, Texture **Texture, FILE *InFile, GameObject *Parent, Shader *Shader);
 
+	XMFLOAT4 m_Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
 	XMFLOAT4 m_Albedo = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
 	XMFLOAT4 m_Emissive = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
 	XMFLOAT4 m_Specular = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
@@ -261,8 +265,6 @@ public:
 	Trap() { }
 	~Trap() { }
 	
-	virtual void Render(ID3D12GraphicsCommandList *CommandList);
-
 };
 
 class TrapCover : public GameObject

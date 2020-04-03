@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "GameObject.h"
 #include "Shader.h"
+#include "Scene.h"
 
 Texture::Texture(int nTextureResource, UINT ResourceType, int nSampler)
 {
@@ -125,15 +126,14 @@ void Material::PrepareShader(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 {
 	m_StandardShader = new StandardShader();
 	m_StandardShader->CreateShader(Device, CommandList, GraphicsRootSignature);
-
 }
 
 void Material::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
 {
-	CommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_MaterialColor), 16);
-	CommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_MaterialColor), 20);
-	CommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_MaterialColor), 24);
-	CommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_MaterialColor), 28);
+	CommandList->SetGraphicsRoot32BitConstants(1, 4, &m_Ambient, 16);
+	CommandList->SetGraphicsRoot32BitConstants(1, 4, &m_Albedo, 20);
+	CommandList->SetGraphicsRoot32BitConstants(1, 4, &m_Specular, 24);
+	CommandList->SetGraphicsRoot32BitConstants(1, 4, &m_Emissive, 28);
 
 	for (int i = 0; i < m_nTexture; ++i)
 		if (m_Texture[i]) m_Texture[i]->UpdateShaderVariable(CommandList, 0);
@@ -258,9 +258,9 @@ void GameObject::UpdateTransform(XMFLOAT4X4 *Parent)
 
 void GameObject::SetPostion(XMFLOAT3 Position)
 {
-	m_TransformPos._41 = Position.x;
-	m_TransformPos._42 = Position.y;
-	m_TransformPos._43 = Position.z;
+	m_WorldPos._41 = Position.x;
+	m_WorldPos._42 = Position.y;
+	m_WorldPos._43 = Position.z;
 }
 
 // bin 파일을 읽기 위한 코드 //
@@ -550,21 +550,7 @@ void GameObject::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, XM
 
 void GameObject::Animate(float ElapsedTime, XMFLOAT3 Position)
 {
-	XMFLOAT3 Look = Vector3::Subtract(m_Position, Position);
-	Look = Vector3::Normalize(Look);
 
-	m_TransformPos._31 = Look.x;
-	m_TransformPos._32 = Look.y;
-	m_TransformPos._33 = Look.z;
-
-	m_TransformPos._21 = 0.f;
-	m_TransformPos._22 = 1.f;
-	m_TransformPos._23 = 0.f;
-
-	XMFLOAT3 Right = Vector3::CrossProduct(m_Up, Look, true);
-	m_TransformPos._11 = Right.x;
-	m_TransformPos._12 = Right.y;
-	m_TransformPos._13 = Right.z;
 }
 
 void GameObject::Render(ID3D12GraphicsCommandList *CommandList)
@@ -574,7 +560,6 @@ void GameObject::Render(ID3D12GraphicsCommandList *CommandList)
 	if (m_nMaterial > 0) {
 		for (int i = 0; i < m_nMaterial; ++i) {
 			if (m_Material[i]) {
-				if (m_Material[i]->m_Shader)
 					m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
 				m_Material[i]->UpdateShaderVariable(CommandList);
 			}
@@ -610,13 +595,14 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	UIShader *ObjShader = new UIShader();
 	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
 	ObjShader->CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 1);
-	ObjShader->CreateShaderResourceView(Device, CommandList, ObjTexture, 1, false);
+	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 1, false);
+	//ObjShader->CreateShaderResourceView(Device, CommandList, ObjTexture, 1, false);
 
 	Material *ObjMaterial = new Material(1);
 	ObjMaterial->SetTexture(ObjTexture);
-	MATERIALLOADINFO *ObjMaterialInfo = new MATERIALLOADINFO();
-	MaterialColor *ObjMaterialColor = new MaterialColor(ObjMaterialInfo);
-	ObjMaterial->SetMaterialColor(ObjMaterialColor);
+	//MATERIALLOADINFO *ObjMaterialInfo = new MATERIALLOADINFO();
+	//MaterialColor *ObjMaterialColor = new MaterialColor(ObjMaterialInfo);
+	//ObjMaterial->SetMaterialColor(ObjMaterialColor);
 	m_nMaterial = 1;
 
 	m_Material = new Material*();
@@ -648,17 +634,10 @@ void UI::Render(ID3D12GraphicsCommandList *CommandList)
 }
 
 
-// 함정
-void Trap::Render(ID3D12GraphicsCommandList *CommandList)
-{
-
-}
-
-
 // 함정 윗부분
 TrapCover::TrapCover(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, int Type)
 {
-	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 100.f, 100.f, 0.f, 0.f, 0.f, 0.f);
+	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 50.f, 50.f, 0.f, 0.f, 0.f, 0.f);
 	SetMesh(ObjMesh);
 
 	//CreateShaderVariable(Device, CommandList);
@@ -679,7 +658,7 @@ TrapCover::TrapCover(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandLis
 	TrapShader *ObjShader = new TrapShader();
 	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
 	//ObjShader->CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 1);
-	ObjShader->CreateShaderResourceView(Device, CommandList, ObjTexture, 2, false);
+	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 2, false);
 
 	Material *ObjMaterial = new Material(1);
 	ObjMaterial->SetTexture(ObjTexture);

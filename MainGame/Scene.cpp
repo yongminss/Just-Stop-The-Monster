@@ -19,7 +19,7 @@ void TitleScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 	m_Viewport = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.f, 1.f };
 	m_ScissorRect = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT };
 
-	m_UI = new UI(Device, CommandList, m_GraphicsRootSignature);
+	//m_UI = new UI(Device, CommandList, m_GraphicsRootSignature);
 }
 
 void TitleScene::ReleaseObject()
@@ -99,7 +99,7 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 	CommandList->RSSetScissorRects(1, &m_ScissorRect);
 
 	// 씬에 등장할 오브젝트들을 렌더링
-	if (m_UI) m_UI->Render(CommandList);
+	//if (m_UI) m_UI->Render(CommandList);
 }
 
 
@@ -117,17 +117,38 @@ GameScene::~GameScene()
 void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
 {
 	m_GraphicsRootSignature = CreateGraphicsRootSignature(Device);
-	
-	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 2);
+
+	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 10);
 
 	Material::PrepareShader(Device, CommandList, m_GraphicsRootSignature);
 
+	// 함정 오브젝트가 사용할 쉐이더를 생성
+	StandardShader *TrapShader = new StandardShader();
+	TrapShader->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
+
+	m_TrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", TrapShader, false);
+	m_Trap.emplace_back(new Trap());
+	m_Trap.back()->SetChild(m_TrapModel, false);
+	m_Trap.back()->SetPostion(XMFLOAT3(0.f, 0.f, 50.f));
+
+	m_TrapCover.emplace_back(new TrapCover(Device, CommandList, m_GraphicsRootSignature, 0));
+	m_TrapCover.back()->SetPostion(XMFLOAT3(0.f, 50.f, 100.f));
 }
 
 void GameScene::ReleaseObject()
 {
 	if (m_GraphicsRootSignature) m_GraphicsRootSignature->Release();
+}
+
+void GameScene::BuildDefaultLightsAndMaterials()
+{
+	m_nLights = 4;
+	m_Lights = new LIGHT[m_nLights];
+	::ZeroMemory(m_Lights, sizeof(LIGHT) * m_nLights);
+
+	// 만들다 말았음
 }
 
 ID3D12RootSignature *GameScene::CreateGraphicsRootSignature(ID3D12Device *Device)
@@ -205,12 +226,12 @@ ID3D12RootSignature *GameScene::CreateGraphicsRootSignature(ID3D12Device *Device
 	// bin파일로 로드할 오브젝트의 재질 설정
 	RootParameter[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	RootParameter[3].DescriptorTable.NumDescriptorRanges = 1;
-	RootParameter[3].DescriptorTable.pDescriptorRanges = &(DescriptorRange[1]); // AlbedoTexture
+	RootParameter[3].DescriptorTable.pDescriptorRanges = &DescriptorRange[1]; // AlbedoTexture
 	RootParameter[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	RootParameter[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	RootParameter[4].DescriptorTable.NumDescriptorRanges = 1;
-	RootParameter[4].DescriptorTable.pDescriptorRanges = &(DescriptorRange[2]); // SpecularTexture
+	RootParameter[4].DescriptorTable.pDescriptorRanges = &DescriptorRange[2]; // SpecularTexture
 	RootParameter[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	RootParameter[5].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
@@ -317,19 +338,89 @@ void GameScene::CreateCbvSrvDescriptorHeap(ID3D12Device *Device, ID3D12GraphicsC
 	m_SrvGPUDescriptorNextHandle.ptr = m_SrvGPUDescriptorStartHandle.ptr = m_CbvGPUDescriptorStartHandle.ptr + (::nCbvSrvDescriptorIncrementSize * nConstantBufferView);
 }
 
+D3D12_SHADER_RESOURCE_VIEW_DESC GetShaderResourceViewDesc(D3D12_RESOURCE_DESC ResourceDesc, UINT nTextureType)
+{
+	D3D12_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc;
+	ShaderResourceViewDesc.Format = ResourceDesc.Format;
+	ShaderResourceViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+	switch (nTextureType)
+	{
+	case RESOURCE_TEXTURE2D:
+	case RESOURCE_TEXTURE2D_ARRAY:
+		ShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		ShaderResourceViewDesc.Texture2D.MipLevels = -1;
+		ShaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+		ShaderResourceViewDesc.Texture2D.PlaneSlice = 0;
+		ShaderResourceViewDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+		break;
+
+	case RESOURCE_TEXTURE2DARRAY:
+		ShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+		ShaderResourceViewDesc.Texture2DArray.MipLevels = -1;
+		ShaderResourceViewDesc.Texture2DArray.MostDetailedMip = 0;
+		ShaderResourceViewDesc.Texture2DArray.PlaneSlice = 0;
+		ShaderResourceViewDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
+		ShaderResourceViewDesc.Texture2DArray.FirstArraySlice = 0;
+		ShaderResourceViewDesc.Texture2DArray.ArraySize = ResourceDesc.DepthOrArraySize;
+		break;
+
+	case RESOURCE_TEXTURE_CUBE:
+		ShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+		ShaderResourceViewDesc.TextureCube.MipLevels = -1;
+		ShaderResourceViewDesc.TextureCube.MostDetailedMip = 0;
+		ShaderResourceViewDesc.TextureCube.ResourceMinLODClamp = 0.0f;
+		break;
+
+	case RESOURCE_BUFFER:
+		ShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+		ShaderResourceViewDesc.Buffer.FirstElement = 0;
+		ShaderResourceViewDesc.Buffer.NumElements = 0;
+		ShaderResourceViewDesc.Buffer.StructureByteStride = 0;
+		ShaderResourceViewDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+		break;
+	}
+	return ShaderResourceViewDesc;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE GameScene::CreateShaderResourceView(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, Texture *Texture, UINT nRootParameterStartIndex, bool AutoIncrement)
+{
+	if (Texture) {
+		int nTexture = Texture->GetTextureNum();
+		int nTextureType = Texture->GetTextureType();
+		for (int i = 0; i < nTexture; ++i) {
+			ID3D12Resource *ShaderResource = Texture->GetTexture(i);
+			D3D12_RESOURCE_DESC ResourceDesc = ShaderResource->GetDesc();
+			D3D12_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc = GetShaderResourceViewDesc(ResourceDesc, nTextureType);
+			Device->CreateShaderResourceView(ShaderResource, &ShaderResourceViewDesc, m_SrvCPUDescriptorNextHandle);
+			m_SrvCPUDescriptorNextHandle.ptr += ::nCbvSrvDescriptorIncrementSize;
+
+			Texture->SetRootArgument(i, (AutoIncrement) ? (nRootParameterStartIndex + i) : nRootParameterStartIndex, m_SrvGPUDescriptorNextHandle);
+			m_SrvGPUDescriptorNextHandle.ptr += ::nCbvSrvDescriptorIncrementSize;
+		}
+	}
+	return m_SrvGPUDescriptorNextHandle;
+}
+
 void GameScene::Animate(float ElapsedTime)
 {
 	m_Player->Update(ElapsedTime);
-
 }
 
 void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 {
 	// 루트 시그너쳐를 설정
 	CommandList->SetGraphicsRootSignature(m_GraphicsRootSignature);
+	// 디스크립터 힙 설정
+	CommandList->SetDescriptorHeaps(1, &m_CbvSrvDescriptorHeap);
 
 	// 뷰포트와 씨저렉트 영역을 설정 및 쉐이더 변수 갱신
 	m_Player->UpdateCameraSet(CommandList);
 
-	m_Player->Render(CommandList);
+	// 게임 씬에 등장할 오브젝트들을 그림
+	for (auto iter = m_TrapCover.begin(); iter != m_TrapCover.end(); ++iter)
+		(*iter)->Render(CommandList);
+
+	//for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
+	//	(*iter)->Render(CommandList);
 }

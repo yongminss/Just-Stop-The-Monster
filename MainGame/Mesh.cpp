@@ -34,6 +34,8 @@ void Mesh::Render(ID3D12GraphicsCommandList *CommandList)
 
 void Mesh::Render(ID3D12GraphicsCommandList *CommandList, int nSubSet)
 {
+	CommandList->IASetVertexBuffers(m_nSlot, 1, &m_PositionBufferView);
+
 	CommandList->IASetPrimitiveTopology(m_PrimitiveTopology);
 
 	if ((m_nSubMesh > 0) & (nSubSet < m_nSubMesh)) {
