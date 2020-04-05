@@ -492,6 +492,6 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	for (auto iter = m_TrapCover.begin(); iter != m_TrapCover.end(); ++iter)
 		(*iter)->Render(CommandList);
 
-	//for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
-	//	(*iter)->Render(CommandList);
+	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
+		(*iter)->Render(CommandList);
 }
