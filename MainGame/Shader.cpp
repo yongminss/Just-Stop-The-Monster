@@ -284,21 +284,5 @@ void StandardShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandLis
 	m_nPipelineState = 1;
 	m_PipelineStates = new ID3D12PipelineState*[m_nPipelineState];
 
-	::ZeroMemory(&m_PipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-	m_PipelineStateDesc.pRootSignature = GraphicsRootSignature;
-	m_PipelineStateDesc.VS = CreateVertexShader();
-	m_PipelineStateDesc.PS = CreatePixelShader();
-	m_PipelineStateDesc.RasterizerState = CreateRasterizerState();
-	m_PipelineStateDesc.BlendState = CreateBlendState();
-	m_PipelineStateDesc.DepthStencilState = CreateDepthStencilState();
-	m_PipelineStateDesc.InputLayout = CreateInputLayout();
-	m_PipelineStateDesc.SampleMask = UINT_MAX;
-	m_PipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	m_PipelineStateDesc.NumRenderTargets = 1;
-	m_PipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-	m_PipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	m_PipelineStateDesc.SampleDesc.Count = 1;
-	m_PipelineStateDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
-
-	HRESULT hResult = Device->CreateGraphicsPipelineState(&m_PipelineStateDesc, __uuidof(ID3D12PipelineState), (void **)&m_PipelineStates[0]);
+	Shader::CreateShader(Device, CommandList, GraphicsRootSignature);
 }

@@ -71,6 +71,11 @@ private:
 	LIGHT						*m_Lights = NULL;
 	int							m_nLights = 0;
 
+	XMFLOAT4					m_GlobalAmbient;
+
+	ID3D12Resource				*m_cbLight = NULL;
+	LIGHTS						*m_cbMappedLight = NULL;
+
 	Player						*m_Player = NULL;
 
 	GameObject					*m_TrapModel = NULL;
@@ -100,6 +105,7 @@ public:
 	ID3D12RootSignature *CreateGraphicsRootSignature(ID3D12Device *Device);
 
 	void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
+	void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList);
 
 	static void CreateCbvSrvDescriptorHeap(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, int nConstantBufferView, int nShaderResourceView);
 	static D3D12_GPU_DESCRIPTOR_HANDLE CreateShaderResourceView(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, Texture *Texture, UINT nRootParameterStartIndex, bool AutoIncrement);

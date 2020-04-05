@@ -122,19 +122,24 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 
 	Material::PrepareShader(Device, CommandList, m_GraphicsRootSignature);
 
-	// 함정 오브젝트가 사용할 쉐이더를 생성
-	StandardShader *TrapShader = new StandardShader();
-	TrapShader->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	BuildDefaultLightsAndMaterials();
 
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
+	
+	// 함정 오브젝트가 사용할 쉐이더를 생성
+	//StandardShader *TrapShader = new StandardShader();
+	//TrapShader->CreateShader(Device, CommandList, m_GraphicsRootSignature);
 
-	m_TrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", TrapShader, false);
+	m_TrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, false);
 	m_Trap.emplace_back(new Trap());
 	m_Trap.back()->SetChild(m_TrapModel, false);
 	m_Trap.back()->SetPostion(XMFLOAT3(0.f, 0.f, 50.f));
 
-	m_TrapCover.emplace_back(new TrapCover(Device, CommandList, m_GraphicsRootSignature, 0));
-	m_TrapCover.back()->SetPostion(XMFLOAT3(0.f, 50.f, 100.f));
+	for (int i = 0; i < 5; ++i) {
+		m_TrapCover.emplace_back(new TrapCover(Device, CommandList, m_GraphicsRootSignature, 0));
+		m_TrapCover.back()->SetPostion(XMFLOAT3(-30.f + (i * 50), 0.f, 100.f + (i * 50)));
+	}
+	CreateShaderVariable(Device, CommandList);
 }
 
 void GameScene::ReleaseObject()
@@ -148,7 +153,50 @@ void GameScene::BuildDefaultLightsAndMaterials()
 	m_Lights = new LIGHT[m_nLights];
 	::ZeroMemory(m_Lights, sizeof(LIGHT) * m_nLights);
 
-	// 만들다 말았음
+	m_GlobalAmbient = XMFLOAT4(0.15f, 0.15f, 0.15f, 1.f);
+
+	m_Lights[0].m_Enable = true;
+	m_Lights[0].m_nType = POINT_LIGHT;
+	m_Lights[0].m_Range = 1000.f;
+	m_Lights[0].m_Ambient = XMFLOAT4(0.1f, 0.f, 0.f, 1.f);
+	m_Lights[0].m_Diffuse = XMFLOAT4(0.8f, 0.f, 0.f, 1.f);
+	m_Lights[0].m_Specular = XMFLOAT4(0.5f, 0.5f, 0.5f, 0.f);
+	m_Lights[0].m_Position = XMFLOAT3(30.f, 30.f, 30.f);
+	m_Lights[0].m_Direction = XMFLOAT3(0.f, 0.f, 0.f);
+	m_Lights[0].m_Attenuation = XMFLOAT3(1.f, 0.001f, 0.0001f);
+
+	m_Lights[1].m_Enable = true;
+	m_Lights[1].m_nType = SPOT_LIGHT;
+	m_Lights[1].m_Range = 500.f;
+	m_Lights[1].m_Ambient = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.f);
+	m_Lights[1].m_Diffuse = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.f);
+	m_Lights[1].m_Specular = XMFLOAT4(0.3f, 0.3f, 0.3f, 0.f);
+	m_Lights[1].m_Position = XMFLOAT3(-50.f, 20.f, -5.f);
+	m_Lights[1].m_Direction = XMFLOAT3(0.f, 0.f, 1.f);
+	m_Lights[1].m_Attenuation = XMFLOAT3(1.f, 0.001f, 0.0001f);
+	m_Lights[1].m_Falloff = 8.f;
+	m_Lights[1].m_Phi = (float)cos(XMConvertToRadians(40.f));
+	m_Lights[1].m_Theta = (float)cos(XMConvertToRadians(20.f));
+
+	m_Lights[2].m_Enable = true;
+	m_Lights[2].m_nType = DIRECTIONAL_LIGHT;
+	m_Lights[2].m_Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.f);
+	m_Lights[2].m_Diffuse = XMFLOAT4(0.7f, 0.7f, 0.7f, 1.f);
+	m_Lights[2].m_Specular = XMFLOAT4(0.4f, 0.4f, 0.4f, 0.f);
+	m_Lights[2].m_Direction = XMFLOAT3(1.f, 0.f, 0.f);
+
+	m_Lights[3].m_Enable = true;
+	m_Lights[3].m_nType = SPOT_LIGHT;
+	m_Lights[3].m_Range = 600.f;
+	m_Lights[3].m_Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.f);
+	m_Lights[3].m_Diffuse = XMFLOAT4(0.3f, 0.7f, 0.f, 1.f);
+	m_Lights[3].m_Specular = XMFLOAT4(0.3f, 0.3f, 0.3f, 0.f);
+	m_Lights[3].m_Position = XMFLOAT3(50.f, 30.f, 30.f);
+	m_Lights[3].m_Direction = XMFLOAT3(0.f, 1.f, 1.f);
+	m_Lights[3].m_Attenuation = XMFLOAT3(1.f, 0.01f, 0.0001f);
+	m_Lights[3].m_Falloff = 8.f;
+	m_Lights[3].m_Phi = (float)cos(XMConvertToRadians(40.f));
+	m_Lights[3].m_Theta = (float)cos(XMConvertToRadians(30.f));
 }
 
 ID3D12RootSignature *GameScene::CreateGraphicsRootSignature(ID3D12Device *Device)
@@ -206,7 +254,7 @@ ID3D12RootSignature *GameScene::CreateGraphicsRootSignature(ID3D12Device *Device
 	DescriptorRange[7].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 	// 루트 파라미터
-	D3D12_ROOT_PARAMETER RootParameter[12];
+	D3D12_ROOT_PARAMETER RootParameter[13];
 	RootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	RootParameter[0].Descriptor.ShaderRegister = 1; // Camera
 	RootParameter[0].Descriptor.RegisterSpace = 0;
@@ -270,6 +318,12 @@ ID3D12RootSignature *GameScene::CreateGraphicsRootSignature(ID3D12Device *Device
 	RootParameter[11].Descriptor.RegisterSpace = 0;
 	RootParameter[11].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
+	// 조명
+	RootParameter[12].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	RootParameter[12].Descriptor.ShaderRegister = 4;
+	RootParameter[12].Descriptor.RegisterSpace = 0;
+	RootParameter[12].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
 	// 샘플러
 	D3D12_STATIC_SAMPLER_DESC SamplerDesc;
 	::ZeroMemory(&SamplerDesc, sizeof(D3D12_STATIC_SAMPLER_DESC));
@@ -308,7 +362,17 @@ ID3D12RootSignature *GameScene::CreateGraphicsRootSignature(ID3D12Device *Device
 
 void GameScene::CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
 {
+	UINT ncbElementByte = ((sizeof(LIGHT) + 255) & ~255);
+	m_cbLight = ::CreateBufferResource(Device, CommandList, NULL, ncbElementByte, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
 
+	m_cbLight->Map(0, NULL, (void**)&m_cbMappedLight);
+}
+
+void GameScene::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
+{
+	::memcpy(m_cbMappedLight->m_Lights, m_Lights, sizeof(LIGHT) * m_nLights);
+	::memcpy(&m_cbMappedLight->m_GlobalAmbient, &m_GlobalAmbient, sizeof(XMFLOAT4));
+	::memcpy(&m_cbMappedLight->m_nLights, &m_nLights, sizeof(int));
 }
 
 ID3D12DescriptorHeap *GameScene::m_CbvSrvDescriptorHeap = NULL;
@@ -417,7 +481,14 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	// 뷰포트와 씨저렉트 영역을 설정 및 쉐이더 변수 갱신
 	m_Player->UpdateCameraSet(CommandList);
 
+	// 조명을 사용하기 위한 함수 호출
+	UpdateShaderVariable(CommandList);
+
+	D3D12_GPU_VIRTUAL_ADDRESS cbLightGpuVirtualAddress = m_cbLight->GetGPUVirtualAddress();
+	CommandList->SetGraphicsRootConstantBufferView(12, cbLightGpuVirtualAddress);
+
 	// 게임 씬에 등장할 오브젝트들을 그림
+
 	for (auto iter = m_TrapCover.begin(); iter != m_TrapCover.end(); ++iter)
 		(*iter)->Render(CommandList);
 

@@ -560,6 +560,7 @@ void GameObject::Render(ID3D12GraphicsCommandList *CommandList)
 	if (m_nMaterial > 0) {
 		for (int i = 0; i < m_nMaterial; ++i) {
 			if (m_Material[i]) {
+				if (m_Material[i]->m_Shader)
 					m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
 				m_Material[i]->UpdateShaderVariable(CommandList);
 			}
@@ -637,7 +638,7 @@ void UI::Render(ID3D12GraphicsCommandList *CommandList)
 // «‘¡§ ¿≠∫Œ∫–
 TrapCover::TrapCover(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, int Type)
 {
-	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 50.f, 50.f, 0.f, 0.f, 0.f, 0.f);
+	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 30.f, 30.f, 0.f, 0.f, 0.f, 0.f);
 	SetMesh(ObjMesh);
 
 	//CreateShaderVariable(Device, CommandList);
