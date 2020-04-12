@@ -236,8 +236,6 @@ private:
 	int							m_nBonePerVertex = 4;
 
 	int							 m_nSkinningBone = 0;
-	char						(*m_SkinningBoneName)[64];
-	GameObject					**m_SkinningBoneFrameCache = NULL;
 
 	XMFLOAT4X4					*m_BindPoseBoneOffset = NULL;
 
@@ -257,6 +255,10 @@ private:
 
 	ID3D12Resource				*m_BoneTransform = NULL;
 	XMFLOAT4X4					*m_BoneTransformPos = NULL;
+
+public:
+	char						(*m_SkinningBoneName)[64];
+	GameObject					**m_SkinningBoneFrameCache = NULL;
 
 public:
 	int GetSkinningBoneNum() { return m_nSkinningBone; }

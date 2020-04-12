@@ -445,11 +445,12 @@ void GameFramework::FrameAdvance()
 
 void GameFramework::OnProcessingMouseMessage(HWND hwnd, UINT MessageID, WPARAM wParam, LPARAM lParam)
 {
+	if (m_GameScene)
+		m_GameScene->OnProcessingMouseMessage(hwnd, MessageID, wParam, lParam);
+
 	switch (MessageID) {
 	case WM_LBUTTONDOWN:
 	case WM_RBUTTONDOWN:
-		SceneState = ++SceneState % 2;
-		std::cout << SceneState << std::endl;
 		break;
 
 	case WM_LBUTTONUP:
@@ -467,7 +468,23 @@ void GameFramework::OnProcessingMouseMessage(HWND hwnd, UINT MessageID, WPARAM w
 
 void GameFramework::OnProcessingKeyboardMessage(HWND hwnd, UINT MessageID, WPARAM wParam, LPARAM lParam)
 {
+	if (m_GameScene)
+		m_GameScene->OnProcessingKeyboardMessage(hwnd, MessageID, wParam, lParam);
+
 	switch (MessageID) {
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_RETURN:
+			SceneState = ++SceneState % 2;
+			std::cout << SceneState << std::endl;
+			break;
+
+		default:
+			break;
+		}
+		break;
+
 	case WM_KEYUP:
 		switch (wParam) {
 		case VK_ESCAPE:
@@ -487,6 +504,9 @@ void GameFramework::OnProcessingKeyboardMessage(HWND hwnd, UINT MessageID, WPARA
 LRESULT CALLBACK GameFramework::OnProcessingWindowMessage(HWND hwnd, UINT MessageID, WPARAM wParam, LPARAM lParam)
 {
 	switch (MessageID) {
+	case WM_ACTIVATE:
+		break;
+
 	case WM_SIZE:
 		m_nWndClientWidth = LOWORD(lParam);
 		m_nWndClientHeight = HIWORD(lParam);

@@ -125,20 +125,27 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	BuildDefaultLightsAndMaterials();
 
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
-	
-	// 함정 오브젝트가 사용할 쉐이더를 생성
-	//StandardShader *TrapShader = new StandardShader();
-	//TrapShader->CreateShader(Device, CommandList, m_GraphicsRootSignature);
 
-	m_TrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, false);
+	// 함정 오브젝트가 사용할 쉐이더를 생성
+	StandardShader *TrapShader = new StandardShader();
+	TrapShader->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+
+	m_TrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/wolf_rider.bin", NULL, true);
+	//m_MonsterModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, false);
+
 	m_Trap.emplace_back(new Trap());
 	m_Trap.back()->SetChild(m_TrapModel, false);
-	m_Trap.back()->SetPostion(XMFLOAT3(0.f, 0.f, 50.f));
+	m_Trap.back()->SetPostion(XMFLOAT3(0, -50.f, 70.f));
+
+	//m_Moster.emplace_back(new Trap());
+	//m_Moster.back()->SetChild(m_MonsterModel, false);
+	//m_Moster.back()->SetPostion(XMFLOAT3(50.f, 0.f, 70.f));
 
 	for (int i = 0; i < 5; ++i) {
 		m_TrapCover.emplace_back(new TrapCover(Device, CommandList, m_GraphicsRootSignature, 0));
 		m_TrapCover.back()->SetPostion(XMFLOAT3(-30.f + (i * 50), 0.f, 100.f + (i * 50)));
 	}
+
 	CreateShaderVariable(Device, CommandList);
 }
 
@@ -468,7 +475,15 @@ D3D12_GPU_DESCRIPTOR_HANDLE GameScene::CreateShaderResourceView(ID3D12Device *De
 
 void GameScene::Animate(float ElapsedTime)
 {
-	m_Player->Update(ElapsedTime);
+	if (m_Player) {
+		m_Player->UpdateTransform(NULL);
+		m_Player->Update(ElapsedTime);
+	}
+
+	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter) {
+		(*iter)->UpdateTransform(NULL);
+		(*iter)->Animate(ElapsedTime, NULL);
+	}
 }
 
 void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
@@ -487,11 +502,55 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	D3D12_GPU_VIRTUAL_ADDRESS cbLightGpuVirtualAddress = m_cbLight->GetGPUVirtualAddress();
 	CommandList->SetGraphicsRootConstantBufferView(12, cbLightGpuVirtualAddress);
 
-	// 게임 씬에 등장할 오브젝트들을 그림
+	// 플레이어 렌더링
+	m_Player->Render(CommandList);
+
+	// GameScene에 등장할 오브젝트 렌더링
+	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
+		(*iter)->Render(CommandList);
 
 	for (auto iter = m_TrapCover.begin(); iter != m_TrapCover.end(); ++iter)
 		(*iter)->Render(CommandList);
 
-	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
-		(*iter)->Render(CommandList);
+}
+
+bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+{
+	return false;
+}
+
+bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+{
+	switch (nMessageID)
+	{
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case 'w':
+		case 'W':
+			m_Player->MoveForward(100.f);
+			break;
+
+		case 's':
+		case 'S':
+			m_Player->MoveForward(-101.f);
+			break;
+
+		case 'a':
+		case 'A':
+			break;
+
+		case 'd':
+		case 'D':
+			break;
+
+		default:
+			break;
+		}
+		break;
+
+	default:
+		break;
+	}
+	return false;
 }

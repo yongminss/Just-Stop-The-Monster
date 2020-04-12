@@ -17,7 +17,7 @@ public:
 	void CreateCameraSet(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 	void UpdateCameraSet(ID3D12GraphicsCommandList *CommandList);
 
-	void Update(float ElapsedTime);
+	virtual void Update(float ElapsedTime);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 };
 

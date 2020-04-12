@@ -81,6 +81,9 @@ private:
 	GameObject					*m_TrapModel = NULL;
 	list<Trap*>					m_Trap;
 
+	GameObject					*m_MonsterModel = NULL;
+	list<Trap*>					m_Moster;
+
 	list<TrapCover*>			m_TrapCover;
 
 	// 디스크립터 힙을 게임 씬에서 만듬
@@ -112,4 +115,7 @@ public:
 
 	void Animate(float ElapsedTime);
 	void Render(ID3D12GraphicsCommandList *CommandList);
+
+	bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
+	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 };

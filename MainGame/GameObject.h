@@ -89,26 +89,6 @@ struct MATERIALSLOADINFO
 	MATERIALLOADINFO	*m_Material = NULL;
 };
 
-class MaterialColor
-{
-public:
-	MaterialColor(MATERIALLOADINFO *MaterialInfo);
-	~MaterialColor();
-
-private:
-	int					m_nReference = 0;
-
-public:
-	XMFLOAT4			m_Ambient = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
-	XMFLOAT4			m_Diffuse = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
-	XMFLOAT4			m_Specular = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
-	XMFLOAT4			m_Emissive = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
-
-public:
-	void AddRef() { ++m_nReference; }
-	void Release() { if (--m_nReference <= 0) delete this; }
-};
-
 class Material
 {
 public:
@@ -116,7 +96,6 @@ public:
 	~Material();
 
 private:
-	MaterialColor	*m_MaterialColor = NULL;
 
 	int				m_nTexture = 0;
 
@@ -140,7 +119,6 @@ public:
 	void SetTexture(Texture *Texture, UINT nTexture = 0);
 	void SetShader(Shader *Shader);
 	void SetType(UINT nType) { m_nType |= nType; }
-	void SetMaterialColor(MaterialColor *MaterialColor);
 	
 	void SetIlluminatedShader() { SetShader(m_IlluminatedShader); }
 	void SetStandardShader() { SetShader(m_StandardShader); }
@@ -161,9 +139,90 @@ public:
 	float	 m_SpecularHighlight = 0.f;
 	float	 m_GlossyReflection = 0.f;
 
-	//Texture **GetTexture() { return m_Texture; }
-	//Shader *GetShader() { return m_Shader; }
 	int GetTextureNum() { return m_nTexture; }
+};
+
+
+// 애니메이션
+#define ANIMATION_TYPE_ONCE			0
+#define ANIMATION_TYPE_LOOP			1
+#define ANIMATION_TYPE_PINGPONG		2
+
+#define _WITH_ANIMATION_INTERPOLATION
+
+class AnimationSet
+{
+public:
+	AnimationSet() { }
+	~AnimationSet() { }
+
+public:
+	char			m_strName[64];
+
+	float			m_Length = 0.f;
+	int				m_nFramePerSecond = 0;
+
+	int				m_nKeyFrameTransform = 0;
+	float			*m_KeyFrameTransformTime = NULL;
+	XMFLOAT4X4		**m_KeyFrameTransform = NULL;
+
+	float			m_Speed = 1.f;
+	float			m_Position = 0.f;
+
+	int				m_nType = ANIMATION_TYPE_LOOP;
+
+	int				m_nCurrentKey = -1;
+
+public:
+	XMFLOAT4X4 GetSRT(int nFrame, float Position);
+
+	float GetPosition(float Position);
+	void *GetCallback(float Position) { return NULL; }
+};
+
+class AnimationTrack
+{
+public:
+	AnimationTrack() { }
+	~AnimationTrack() { }
+
+public:
+	AnimationSet	*m_AnimationSet = NULL;
+
+	BOOL			m_Enable = false;
+	float			m_Speed = 1.f;
+	float			m_Position = 0.f;
+	float			m_Weight = 1.f;
+};
+
+class AnimationCallbackHandler
+{
+public:
+	virtual void HandleCallback(void *CallbackData) { }
+};
+
+class AnimationController
+{
+public:
+	AnimationController(int nAnimationTrack = 1);
+	~AnimationController() { }
+
+public:
+	float				m_Time = 0.f;
+
+	int					m_nAnimationTrack = 0;
+	AnimationTrack		*m_AnimationTrack = NULL;
+
+	int					m_nAnimationSet = 0;
+	AnimationSet		*m_AnimationSet = NULL;
+
+	int					m_nAnimationBoneFrame = 0;
+	GameObject			**m_AnimationBoneFrameCache = NULL;
+
+public:
+	void SetAnimationSet(int nAnimationSet);
+
+	void AdvanceTime(float ElapsedTime, AnimationCallbackHandler *CallbackHandler);
 };
 
 
@@ -181,7 +240,10 @@ protected:
 	Material						**m_Material = NULL;
 	int								m_nMaterial = 0;
 
+public:
 	XMFLOAT4X4						m_TransformPos;
+
+protected:
 	XMFLOAT4X4						m_WorldPos;
 
 	D3D12_GPU_DESCRIPTOR_HANDLE		m_CbvGPUDescriptorHandle;
@@ -207,6 +269,8 @@ protected:
 
 public:
 	GameObject						*m_Parent = NULL;
+	
+	AnimationController				*m_AnimationController = NULL;
 
 public:
 	void AddRef();
@@ -226,10 +290,12 @@ public:
 
 	UINT GetMeshType() { return (m_Mesh) ? m_Mesh->GetType() : 0; }
 
-	XMFLOAT3 GetRight() { return m_Right; }
-	XMFLOAT3 GetUp() { return m_Up; }
-	XMFLOAT3 GetLook() { return m_Look; }
-	XMFLOAT3 GetPosition() { return m_Position; }
+	XMFLOAT3 GetRight() { return XMFLOAT3(m_WorldPos._11, m_WorldPos._12, m_WorldPos._13); }
+	XMFLOAT3 GetUp() { return XMFLOAT3(m_WorldPos._21, m_WorldPos._22, m_WorldPos._23); }
+	XMFLOAT3 GetLook() { return XMFLOAT3(m_WorldPos._31, m_WorldPos._32, m_WorldPos._33); }
+	XMFLOAT3 GetPosition() { return XMFLOAT3(m_WorldPos._41, m_WorldPos._42, m_WorldPos._43); }
+
+	void MoveForward(float Distance);
 
 	static MeshLoadInfo *LoadMeshInfoFromFile(FILE *InFile);
 	void LoadMaterialInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile, GameObject *Parent, Shader *Shader);
@@ -237,16 +303,19 @@ public:
 	static GameObject *LoadFrameHierarchyFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, FILE *InFile, GameObject *Parent, Shader *Shader);
 	static GameObject *LoadGeometryAndAnimationFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, char *FileName, Shader *Shader, bool Animation);
 
+	GameObject *FindFrame(char *FrameName);
+
 	Texture *FindReplicatedTexture(_TCHAR *TextureName);
 
 	virtual void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, XMFLOAT4X4 *WorldPos);
 
-	virtual void Animate(float ElapsedTime, XMFLOAT3 Position);
+	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 
 	// 애니메이션
 	void CacheSkinningBoneFrame(GameObject *RootFrame);
+	void LoadAnimationFromFile(FILE *InFile);
 };
 
 class UI : public GameObject

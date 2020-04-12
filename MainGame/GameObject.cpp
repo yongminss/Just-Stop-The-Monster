@@ -65,19 +65,6 @@ void Texture::LoadTextureFromFile(ID3D12Device *Device, ID3D12GraphicsCommandLis
 }
 
 
-MaterialColor::MaterialColor(MATERIALLOADINFO *MaterialInfo)
-{
-	m_Diffuse = MaterialInfo->m_AlbedoColor;
-	m_Specular = MaterialInfo->m_SpecularColor;
-	m_Specular.w = MaterialInfo->m_Glossiness*255.f;
-	m_Emissive = MaterialInfo->m_EmissiveColor;
-}
-
-MaterialColor::~MaterialColor()
-{
-
-}
-
 Shader *Material::m_IlluminatedShader = NULL;
 Shader *Material::m_StandardShader = NULL;
 Shader *Material::m_SkinnedAnimationShader = NULL;
@@ -113,14 +100,6 @@ void Material::SetShader(Shader *Shader)
 	m_Shader = Shader;
 	if (m_Shader) m_Shader->AddRef();
 }
-
-void Material::SetMaterialColor(MaterialColor *MaterialColor)
-{
-	if (m_MaterialColor) m_MaterialColor->Release();
-	m_MaterialColor = MaterialColor;
-	if (m_MaterialColor) m_MaterialColor->AddRef();
-}
-
 
 void Material::PrepareShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
 {
@@ -173,7 +152,8 @@ void Material::LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandLi
 			*ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
 			(*ObjTexture)->LoadTextureFromFile(Device, CommandList, TextureName, 0);
 			if (*ObjTexture) (*ObjTexture)->AddRef();
-			//GameScene
+			
+			GameScene::CreateShaderResourceView(Device, CommandList, *ObjTexture, nRootParameter, false);
 		}
 		else {
 			if (Parent) {
@@ -184,6 +164,87 @@ void Material::LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandLi
 				GameObject *RootGameObj = Parent;
 				*ObjTexture = RootGameObj->FindReplicatedTexture(TextureName);
 				if (*ObjTexture) (*ObjTexture)->AddRef();
+			}
+		}
+	}
+}
+
+
+// Animation //
+float AnimationSet::GetPosition(float Position)
+{
+	float GetPosition = Position;
+
+	switch (m_nType) {
+	case ANIMATION_TYPE_LOOP:
+		GetPosition = Position - int(Position / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]) * m_KeyFrameTransformTime[m_nKeyFrameTransform - 1];
+		break;
+
+	case ANIMATION_TYPE_ONCE:
+		break;
+
+	case ANIMATION_TYPE_PINGPONG:
+		break;
+	}
+	return GetPosition;
+}
+
+XMFLOAT4X4 AnimationSet::GetSRT(int nFrame, float Position)
+{
+	XMFLOAT4X4 Transform = Matrix4x4::Identity();
+
+	for (int i = 0; i < m_nKeyFrameTransform - 1; ++i) {
+		if ((m_KeyFrameTransformTime[i] <= Position) && (Position <= m_KeyFrameTransformTime[i + 1])) {
+			float t = (Position - m_KeyFrameTransformTime[i]) / (m_KeyFrameTransformTime[i + 1] - m_KeyFrameTransformTime[i]);
+			XMVECTOR S0, R0, T0, S1, R1, T1;
+			XMMatrixDecompose(&S0, &R0, &T0, XMLoadFloat4x4(&m_KeyFrameTransform[i][nFrame]));
+			XMMatrixDecompose(&S1, &R1, &T1, XMLoadFloat4x4(&m_KeyFrameTransform[i + 1][nFrame]));
+			XMVECTOR S = XMVectorLerp(S0, S1, t);
+			XMVECTOR T = XMVectorLerp(T0, T1, t);
+			XMVECTOR R = XMQuaternionSlerp(R0, R1, t);
+			XMStoreFloat4x4(&Transform, XMMatrixAffineTransformation(S, XMVectorZero(), R, T));
+			break;
+		}
+	}
+
+	return Transform;
+}
+
+AnimationController::AnimationController(int nAnimationTrack)
+{
+	m_nAnimationTrack = nAnimationTrack;
+	m_AnimationTrack = new AnimationTrack[nAnimationTrack];
+}
+
+void AnimationController::SetAnimationSet(int nAnimationSet)
+{
+	if (m_AnimationSet) {
+		for (int i = 0; i < m_nAnimationTrack; ++i)
+			m_AnimationTrack[i].m_AnimationSet = &m_AnimationSet[i];
+	}
+	m_AnimationTrack[nAnimationSet].m_Enable = true;
+}
+
+void AnimationController::AdvanceTime(float ElapsedTime, AnimationCallbackHandler *CallbackHandler)
+{
+	m_Time += ElapsedTime;
+
+	if (m_AnimationSet) {
+		for (int i = 0; i < m_nAnimationTrack; ++i) {
+			if (m_AnimationTrack[i].m_Enable) {
+				m_AnimationTrack[i].m_Position += (ElapsedTime * m_AnimationTrack[i].m_Speed);
+
+				AnimationSet *ObjAnimationSet = m_AnimationTrack[i].m_AnimationSet;
+				ObjAnimationSet->m_Position += (ElapsedTime * ObjAnimationSet->m_Speed);
+
+				if (CallbackHandler) {
+					void *CallbackData = ObjAnimationSet->GetCallback(ObjAnimationSet->m_Position);
+					if (CallbackData) CallbackHandler->HandleCallback(CallbackData);
+				}
+
+				float Position = ObjAnimationSet->GetPosition(ObjAnimationSet->m_Position);
+				for (int i = 0; i < m_nAnimationBoneFrame; ++i)
+					m_AnimationBoneFrameCache[i]->m_TransformPos = ObjAnimationSet->GetSRT(i, Position);
 			}
 		}
 	}
@@ -258,9 +319,11 @@ void GameObject::UpdateTransform(XMFLOAT4X4 *Parent)
 
 void GameObject::SetPostion(XMFLOAT3 Position)
 {
-	m_WorldPos._41 = Position.x;
-	m_WorldPos._42 = Position.y;
-	m_WorldPos._43 = Position.z;
+	m_TransformPos._41 = Position.x;
+	m_TransformPos._42 = Position.y;
+	m_TransformPos._43 = Position.z;
+
+	UpdateTransform(NULL);
 }
 
 // bin 파일을 읽기 위한 코드 //
@@ -283,6 +346,14 @@ BYTE ReadStringFromFile(FILE *File, char* Token)
 	Token[nStrLength] = '\0';
 
 	return nStrLength;
+}
+
+void GameObject::MoveForward(float Distance)
+{
+	XMFLOAT3 Position = GetPosition();
+	XMFLOAT3 Look = GetLook();
+	Position = Vector3::Add(Position, Look, Distance);
+	GameObject::SetPostion(Position);
 }
 
 // ------------------------- //
@@ -504,13 +575,27 @@ GameObject *GameObject::LoadGeometryAndAnimationFromFile(ID3D12Device *Device, I
 
 	GameObject *GameObj = GameObject::LoadFrameHierarchyFromFile(Device, CommandList, GraphicsRootSignature, File, NULL, Shader);
 
-	//GameObj->CacheSkinningBoneFrame(GameObj);
+	GameObj->CacheSkinningBoneFrame(GameObj);
 
 	if (Animation) {
-
+		GameObj->m_AnimationController = new AnimationController(8);
+		GameObj->LoadAnimationFromFile(File);
+		GameObj->m_AnimationController->SetAnimationSet(0);
 	}
 
 	return GameObj;
+}
+
+GameObject *GameObject::FindFrame(char *FrameName)
+{
+	GameObject *FrameObject = NULL;
+
+	if (!strncmp(m_FrameName, FrameName, strlen(FrameName))) return this;
+
+	if (m_Sibling) if (FrameObject = m_Sibling->FindFrame(FrameName)) return FrameObject;
+	if (m_Child) if (FrameObject = m_Child->FindFrame(FrameName)) return FrameObject;
+
+	return NULL;
 }
 
 Texture *GameObject::FindReplicatedTexture(_TCHAR *TextureName)
@@ -548,9 +633,12 @@ void GameObject::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, XM
 	CommandList->SetGraphicsRoot32BitConstants(1, 16, &World, 0);
 }
 
-void GameObject::Animate(float ElapsedTime, XMFLOAT3 Position)
+void GameObject::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
 {
+	if (m_AnimationController) m_AnimationController->AdvanceTime(ElapsedTime, NULL);
 
+	if (m_Sibling) m_Sibling->Animate(ElapsedTime, Parent);
+	if (m_Child) m_Child->Animate(ElapsedTime, &m_WorldPos);
 }
 
 void GameObject::Render(ID3D12GraphicsCommandList *CommandList)
@@ -574,15 +662,81 @@ void GameObject::Render(ID3D12GraphicsCommandList *CommandList)
 void GameObject::CacheSkinningBoneFrame(GameObject *RootFrame)
 {
 	if (m_Mesh && (m_Mesh->GetType() & VERTEXT_BONE_INDEX_WEIGHT)) {
-		
-		SkinnedMesh *ObjMesh = (SkinnedMesh *)m_Mesh;
-		
-		for (int i = 0; i < ObjMesh->GetSkinningBoneNum(); ++i) {
 
-		}
+		SkinnedMesh *ObjMesh = (SkinnedMesh *)m_Mesh;
+
+		for (int i = 0; i < ObjMesh->GetSkinningBoneNum(); ++i)
+			ObjMesh->m_SkinningBoneFrameCache[i] = RootFrame->FindFrame(ObjMesh->m_SkinningBoneName[i]);
 	}
+	
+	if (m_Sibling) m_Sibling->CacheSkinningBoneFrame(RootFrame);
+	if (m_Child) m_Child->CacheSkinningBoneFrame(RootFrame);
 }
 
+void GameObject::LoadAnimationFromFile(FILE *InFile)
+{
+	char Token[64] = { '\0' };
+
+	BYTE nStrLength = 0;
+	UINT nRead = 0;
+
+	for (; ;) {
+		nRead = (UINT)::fread(&nStrLength, sizeof(BYTE), 1, InFile);
+		nRead = (UINT)::fread(Token, sizeof(char), nStrLength, InFile);
+		Token[nStrLength] = '\0';
+
+		if (!strcmp(Token, "<AnimationSets>:")) {
+			nRead = (UINT)::fread(&m_AnimationController->m_nAnimationSet, sizeof(int), 1, InFile);
+			m_AnimationController->m_AnimationSet = new AnimationSet[m_AnimationController->m_nAnimationSet];
+		}
+		else if (!strcmp(Token, "<FrameNames>:")) {
+			nRead = (UINT)::fread(&m_AnimationController->m_nAnimationBoneFrame, sizeof(int), 1, InFile);
+			m_AnimationController->m_AnimationBoneFrameCache = new GameObject*[m_AnimationController->m_nAnimationBoneFrame];
+
+			for (int i = 0; i < m_AnimationController->m_nAnimationBoneFrame; ++i) {
+				nRead = (UINT)::fread(&nStrLength, sizeof(BYTE), 1, InFile);
+				nRead = (UINT)::fread(Token, sizeof(char), nStrLength, InFile);
+				Token[nStrLength] = '\0';
+
+				m_AnimationController->m_AnimationBoneFrameCache[i] = FindFrame(Token);
+			}
+		}
+		else if (!strcmp(Token, "<AnimationSet>:")) {
+			int nAnimationSet = 0;
+			nRead = (UINT)::fread(&nAnimationSet, sizeof(int), 1, InFile);
+			AnimationSet *ObjAnimationSet = &m_AnimationController->m_AnimationSet[nAnimationSet];
+
+			nRead = (UINT)::fread(&nStrLength, sizeof(BYTE), 1, InFile);
+			nRead = (UINT)::fread(ObjAnimationSet->m_strName, sizeof(char), nStrLength, InFile);
+			ObjAnimationSet->m_strName[nStrLength] = '\0';
+
+			nRead = (UINT)::fread(&ObjAnimationSet->m_Length, sizeof(float), 1, InFile);
+			nRead = (UINT)::fread(&ObjAnimationSet->m_nFramePerSecond, sizeof(int), 1, InFile);
+
+			nRead = (UINT)::fread(&ObjAnimationSet->m_nKeyFrameTransform, sizeof(int), 1, InFile);
+			ObjAnimationSet->m_KeyFrameTransformTime = new float[ObjAnimationSet->m_nKeyFrameTransform];
+			ObjAnimationSet->m_KeyFrameTransform = new XMFLOAT4X4*[ObjAnimationSet->m_nKeyFrameTransform];
+			for (int i = 0; i < ObjAnimationSet->m_nKeyFrameTransform; ++i)
+				ObjAnimationSet->m_KeyFrameTransform[i] = new XMFLOAT4X4[m_AnimationController->m_nAnimationBoneFrame];
+
+			for (int i = 0; i < ObjAnimationSet->m_nKeyFrameTransform; ++i) {
+				nRead = (UINT)::fread(&nStrLength, sizeof(BYTE), 1, InFile);
+				nRead = (UINT)::fread(Token, sizeof(char), nStrLength, InFile);
+				Token[nStrLength] = '\0';
+
+				if (!strcmp(Token, "<Transforms>:")) {
+					int nKeyFrame = 0;
+					nRead = (UINT)::fread(&nKeyFrame, sizeof(int), 1, InFile);
+
+					nRead = (UINT)::fread(&ObjAnimationSet->m_KeyFrameTransformTime[i], sizeof(float), 1, InFile);
+					nRead = (UINT)::fread(ObjAnimationSet->m_KeyFrameTransform[i], sizeof(float), 16 * m_AnimationController->m_nAnimationBoneFrame, InFile);
+				}
+			}
+		}
+		else if (!strcmp(Token, "</AnimationSets>"))
+			break;
+	}
+}
 
 // UI
 UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
@@ -597,13 +751,9 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
 	ObjShader->CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 1);
 	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 1, false);
-	//ObjShader->CreateShaderResourceView(Device, CommandList, ObjTexture, 1, false);
 
 	Material *ObjMaterial = new Material(1);
 	ObjMaterial->SetTexture(ObjTexture);
-	//MATERIALLOADINFO *ObjMaterialInfo = new MATERIALLOADINFO();
-	//MaterialColor *ObjMaterialColor = new MaterialColor(ObjMaterialInfo);
-	//ObjMaterial->SetMaterialColor(ObjMaterialColor);
 	m_nMaterial = 1;
 
 	m_Material = new Material*();
@@ -613,7 +763,6 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	SetShader(0, ObjShader);
 	
 	ObjMaterial = NULL;
-
 }
 
 UI::~UI()
@@ -641,8 +790,6 @@ TrapCover::TrapCover(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandLis
 	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 30.f, 30.f, 0.f, 0.f, 0.f, 0.f);
 	SetMesh(ObjMesh);
 
-	//CreateShaderVariable(Device, CommandList);
-
 	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
 	
 	// 함정 윗부분의 타입에 맞는 이미지를 로드
@@ -658,14 +805,10 @@ TrapCover::TrapCover(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandLis
 
 	TrapShader *ObjShader = new TrapShader();
 	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
-	//ObjShader->CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 1);
 	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 2, false);
 
 	Material *ObjMaterial = new Material(1);
 	ObjMaterial->SetTexture(ObjTexture);
-	MATERIALLOADINFO *ObjMaterialInfo = new MATERIALLOADINFO();
-	MaterialColor *ObjMaterialColor = new MaterialColor(ObjMaterialInfo);
-	ObjMaterial->SetMaterialColor(ObjMaterialColor);
 	m_nMaterial = 1;
 
 	m_Material = new Material*();
