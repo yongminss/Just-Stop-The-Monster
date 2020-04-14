@@ -3,6 +3,7 @@
 #include "Timer.h"
 #include "Scene.h"
 #include "Camera.h"
+#include "network_manager.h"
 
 class GameFramework
 {
@@ -12,6 +13,7 @@ public:
 
 public:
 	SOCKET m_socket;
+	network_manager * m_NetworkManager = NULL;
 
 private:
 	HINSTANCE					m_hInstance;

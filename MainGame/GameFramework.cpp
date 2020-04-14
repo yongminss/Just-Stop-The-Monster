@@ -399,6 +399,7 @@ void GameFramework::FrameAdvance()
 			if (m_GameScene == NULL) {
 				m_GameScene = new GameScene();
 				m_GameScene->m_socket = m_socket;
+				m_GameScene->m_NetworkManager = m_NetworkManager;
 				m_GameScene->BuildObject(m_Device, m_CommandList);
 			}
 		}

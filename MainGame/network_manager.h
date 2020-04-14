@@ -6,7 +6,8 @@
 struct PLAYER_INFO
 {
 	int id;
-	short x, y;
+	bool is_connect;
+	XMFLOAT4X4 Transform;
 };
 
 struct OVER_EX {
@@ -38,5 +39,9 @@ public:
 	char m_buffer[MAX_BUFFER];
 
 	PLAYER_INFO m_my_info;
+	PLAYER_INFO m_OtherInfo;
+
+public:
+	bool IsConnect() { return m_OtherInfo.is_connect; }
 };
 

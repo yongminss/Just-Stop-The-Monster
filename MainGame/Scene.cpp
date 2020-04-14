@@ -116,6 +116,7 @@ GameScene::~GameScene()
 
 void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
 {
+	// 서버 정보
 	m_GraphicsRootSignature = CreateGraphicsRootSignature(Device);
 
 	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 10);
@@ -125,25 +126,26 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	BuildDefaultLightsAndMaterials();
 
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
-
-	// 함정 오브젝트가 사용할 쉐이더를 생성
-	StandardShader *TrapShader = new StandardShader();
-	TrapShader->CreateShader(Device, CommandList, m_GraphicsRootSignature);
-
-	m_TrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/wolf_rider.bin", NULL, true);
+	
+	//m_TrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/wolf_rider.bin", NULL, true);
 	//m_MonsterModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, false);
 
-	m_Trap.emplace_back(new Trap());
-	m_Trap.back()->SetChild(m_TrapModel, false);
-	m_Trap.back()->SetPostion(XMFLOAT3(0, -50.f, 70.f));
+	//m_Trap.emplace_back(new Trap());
+	//m_Trap.back()->SetChild(m_TrapModel, false);
+	//m_Trap.back()->SetPostion(XMFLOAT3(0, -50.f, 70.f));
 
 	//m_Moster.emplace_back(new Trap());
 	//m_Moster.back()->SetChild(m_MonsterModel, false);
 	//m_Moster.back()->SetPostion(XMFLOAT3(50.f, 0.f, 70.f));
 
-	for (int i = 0; i < 5; ++i) {
+	/*for (int i = 0; i < 5; ++i) {
 		m_TrapCover.emplace_back(new TrapCover(Device, CommandList, m_GraphicsRootSignature, 0));
 		m_TrapCover.back()->SetPostion(XMFLOAT3(-30.f + (i * 50), 0.f, 100.f + (i * 50)));
+	}*/
+
+	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
+		m_OtherPlayerModel = new TrapCover(Device, CommandList, m_GraphicsRootSignature, 0);
+		//m_OtherPlayerModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/wolf_rider.bin", NULL, true);
 	}
 
 	CreateShaderVariable(Device, CommandList);
@@ -479,11 +481,16 @@ void GameScene::Animate(float ElapsedTime)
 		m_Player->UpdateTransform(NULL);
 		m_Player->Update(ElapsedTime);
 	}
-
-	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter) {
+	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
+		m_OtherPlayerModel->UpdateTransform(NULL);
+		m_OtherPlayerModel->SetPostion(XMFLOAT3(m_NetworkManager->m_OtherInfo.Transform._41, m_NetworkManager->m_OtherInfo.Transform._42, m_NetworkManager->m_OtherInfo.Transform._43));
+	}
+	/*for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter) {
 		(*iter)->UpdateTransform(NULL);
 		(*iter)->Animate(ElapsedTime, NULL);
-	}
+	}*/
+	/*m_OtherPlayerModel->UpdateTransform(NULL);
+	m_OtherPlayerModel->Animate(ElapsedTime);*/
 }
 
 void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
@@ -506,11 +513,15 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	m_Player->Render(CommandList);
 
 	// GameScene에 등장할 오브젝트 렌더링
-	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
-		(*iter)->Render(CommandList);
+	/*for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
+		(*iter)->Render(CommandList);*/
 
 	for (auto iter = m_TrapCover.begin(); iter != m_TrapCover.end(); ++iter)
 		(*iter)->Render(CommandList);
+
+	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
+		m_OtherPlayerModel->Render(CommandList);
+	}
 
 }
 
@@ -529,18 +540,33 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 'w':
 		case 'W': {
 			m_Player->MoveForward(100.f);
-			cs_packet_test packet;
+			/*cs_packet_test packet;
 			packet.size = sizeof(packet);
 			packet.type = CS_TEST;
+			send(m_socket, (char*)&packet, sizeof(packet), 0);*/
+
+			cs_packet_pos packet;
+			packet.id = m_NetworkManager->m_my_info.id;
+			packet.size = sizeof(packet);
+			packet.type = CS_POS;
+			packet.player_world_pos = m_Player->GetTransform();
 			send(m_socket, (char*)&packet, sizeof(packet), 0);
 			break;
 		}
 			
 
 		case 's':
-		case 'S':
+		case 'S': {
 			m_Player->MoveForward(-101.f);
+
+			cs_packet_pos packet;
+			packet.id = m_NetworkManager->m_my_info.id;
+			packet.size = sizeof(packet);
+			packet.type = CS_POS;
+			packet.player_world_pos = m_Player->GetTransform();
+			send(m_socket, (char*)&packet, sizeof(packet), 0);
 			break;
+		}
 
 		case 'a':
 		case 'A':

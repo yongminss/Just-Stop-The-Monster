@@ -18,6 +18,13 @@ void network_manager::init_socket()
 
 	m_recv_buf.len = MAX_BUFFER;
 	m_recv_buf.buf = m_buffer;
+
+	/*m_my_info.Transform._11 = 1.f, m_my_info.Transform._12 = 0.f, m_my_info.Transform._13 = 0.f, m_my_info.Transform._14 = 0.f;
+	m_my_info.Transform._21 = 0.f, m_my_info.Transform._22 = 1.f, m_my_info.Transform._23 = 0.f, m_my_info.Transform._24 = 0.f;
+	m_my_info.Transform._31 = 0.f, m_my_info.Transform._32 = 0.f, m_my_info.Transform._33 = 1.f, m_my_info.Transform._34 = 0.f;
+	m_my_info.Transform._41 = 0.f, m_my_info.Transform._42 = 0.f, m_my_info.Transform._43 = 0.f, m_my_info.Transform._44 = 1.f;*/
+
+	m_OtherInfo.is_connect = false;
 }
 
 SOCKET network_manager::rq_connect_server(const char * server_ip)
@@ -73,14 +80,40 @@ void network_manager::PacketProccess(void * buf)
 	{
 		sc_packet_send_id *send_id_packet = reinterpret_cast<sc_packet_send_id*>(buf);
 		m_my_info.id = send_id_packet->id;
+		cout << "id받기 확인"<< m_my_info.id << endl;
 		break;
 	}
 	case SC_POS:
 	{
 		sc_packet_pos *pos_packet = reinterpret_cast<sc_packet_pos*>(buf);
-		m_my_info.x = pos_packet->x;
-		m_my_info.y = pos_packet->y;
+		cout << "id: " << pos_packet->id << endl;
+		if (pos_packet->mover_id == m_my_info.id) { // 자기자신 위치
+			m_my_info.Transform = pos_packet->world_pos;
+			cout << "내 위치 받기 확인" << endl;
+		}
+		else { // 다른 플레이어 위치
+			m_OtherInfo.Transform = pos_packet->world_pos;
+			cout << "다른 플레이어 위치 받기 확인" << endl;
+		}
 		break;
 	}
+	case SC_PUT_PLAYER: {
+		sc_packet_put_player *put_player_packet = reinterpret_cast<sc_packet_put_player*>(buf);
+		int new_id = put_player_packet->new_player_id;
+		if (new_id != m_my_info.id) {
+			m_OtherInfo.is_connect = true;
+			cout << "다른 플레이어 풋 확인" << endl;
+		}
+		break;
+	}
+	case SC_REMOVE_PLAYER: {
+		sc_packet_remove_player *remove_player_packet = reinterpret_cast<sc_packet_remove_player*>(buf);
+		if (remove_player_packet->leave_player_id != m_my_info.id) {
+			m_OtherInfo.is_connect = false;
+		}
+
+		break;
+	}
+		
 	}
 }

@@ -3,6 +3,7 @@
 #include "GameObject.h"
 #include "Player.h"
 #include "Shader.h"
+#include "network_manager.h"
 
 class TitleScene
 {
@@ -69,6 +70,7 @@ public:
 
 public:
 	SOCKET m_socket;
+	network_manager *m_NetworkManager = NULL;
 
 private:
 	ID3D12RootSignature			*m_GraphicsRootSignature = NULL;
@@ -90,6 +92,9 @@ private:
 	list<Trap*>					m_Moster;
 
 	list<TrapCover*>			m_TrapCover;
+
+	// 다른 플레이어
+	TrapCover					*m_OtherPlayerModel = NULL;
 
 	// 디스크립터 힙을 게임 씬에서 만듬
 	static ID3D12DescriptorHeap	*m_CbvSrvDescriptorHeap;

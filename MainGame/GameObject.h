@@ -294,6 +294,7 @@ public:
 	XMFLOAT3 GetUp() { return XMFLOAT3(m_WorldPos._21, m_WorldPos._22, m_WorldPos._23); }
 	XMFLOAT3 GetLook() { return XMFLOAT3(m_WorldPos._31, m_WorldPos._32, m_WorldPos._33); }
 	XMFLOAT3 GetPosition() { return XMFLOAT3(m_WorldPos._41, m_WorldPos._42, m_WorldPos._43); }
+	XMFLOAT4X4 GetTransform() { return m_TransformPos; }
 
 	void MoveForward(float Distance);
 
