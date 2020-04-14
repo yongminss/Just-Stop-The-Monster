@@ -154,6 +154,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="MainGame.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="network_manager.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Scene.h" />
@@ -169,6 +170,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="MainGame.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="network_manager.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />

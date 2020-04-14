@@ -10,6 +10,9 @@ public:
 	GameFramework();
 	~GameFramework();
 
+public:
+	SOCKET m_socket;
+
 private:
 	HINSTANCE					m_hInstance;
 	HWND						m_hwnd;

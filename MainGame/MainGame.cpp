@@ -4,6 +4,9 @@
 #include "stdafx.h"
 #include "MainGame.h"
 #include "GameFramework.h"
+#include "network_manager.h"
+
+
 
 #define MAX_LOADSTRING 100
 
@@ -11,6 +14,11 @@
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
+
+// 비동기io
+#define	WM_SOCKET			WM_USER + 1
+network_manager net_manager;
+SOCKET serverSocket;
 
 // 게임을 진행하기 위한 프레임워크 생성
 GameFramework m_GameFramework;
@@ -114,6 +122,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    if (!hWnd) return FALSE;
    
+   net_manager.init_socket();
+   //g_serverScoket = new SOCKET;
+   serverSocket = net_manager.rq_connect_server("127.0.0.1");
+   //g_serverScoket = serverSocket;
+   WSAAsyncSelect(serverSocket, hWnd, WM_SOCKET, FD_READ || FD_CLOSE);
+   m_GameFramework.m_socket = serverSocket;
    m_GameFramework.OnCreate(hInstance, hWnd);
 
    ShowWindow(hWnd, nCmdShow);
@@ -145,6 +159,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_KEYDOWN:
 	case WM_KEYUP:
 		m_GameFramework.OnProcessingWindowMessage(hWnd, message, wParam, lParam);
+
 		// 콘솔창
 		AllocConsole();
 		SetConsoleTitle(TEXT("테스트용 콘솔"));
@@ -178,6 +193,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hWnd, &ps);
         }
         break;
+	case WM_SOCKET:
+		if (WSAGETASYNCERROR(lParam)) {
+			closesocket((SOCKET)wParam);
+		}
+		switch (WSAGETSELECTEVENT(lParam))
+		{
+		case FD_READ:
+			net_manager.ReadBuffer((SOCKET)wParam);
+			break;
+
+		default:
+			break;
+		}
+		InvalidateRgn(hWnd, NULL, FALSE);
+		break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;

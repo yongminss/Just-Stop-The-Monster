@@ -527,9 +527,15 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		switch (wParam)
 		{
 		case 'w':
-		case 'W':
+		case 'W': {
 			m_Player->MoveForward(100.f);
+			cs_packet_test packet;
+			packet.size = sizeof(packet);
+			packet.type = CS_TEST;
+			send(m_socket, (char*)&packet, sizeof(packet), 0);
 			break;
+		}
+			
 
 		case 's':
 		case 'S':

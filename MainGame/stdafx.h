@@ -11,6 +11,13 @@
 // Windows 헤더 파일
 #include <windows.h>
 
+// server
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <stdio.h> 
+#include <WS2tcpip.h> 
+#pragma comment(lib, "Ws2_32.lib") //소켓2버젼 라이브러리
+#include "..\..\JSTMserver\jstm_server\jstm_server\protocol.h"
+
 // C 런타임 헤더 파일입니다.
 #include <stdlib.h>
 #include <malloc.h>
@@ -55,6 +62,16 @@ extern ID3D12Resource *CreateBufferResource(ID3D12Device *Device, ID3D12Graphics
 extern ID3D12Resource *CreateTextureResourceFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, wchar_t *FileName, ID3D12Resource **UploadBuffer, D3D12_RESOURCE_STATES ResourceState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 #define EPSILON					1.0e-10f
+
+//static SOCKET g_serverScoket;
+
+
+
+
+
+
+
+
 
 inline bool IsZero(float fValue) { return((fabsf(fValue) < EPSILON)); }
 inline bool IsEqual(float fA, float fB) { return(::IsZero(fA - fB)); }

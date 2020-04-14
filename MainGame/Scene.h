@@ -9,6 +9,8 @@ class TitleScene
 public:
 	TitleScene();
 	~TitleScene();
+public:
+	SOCKET m_socket;
 
 private:
 	ID3D12RootSignature			*m_GraphicsRootSignature = NULL;
@@ -64,6 +66,9 @@ class GameScene
 public:
 	GameScene();
 	~GameScene();
+
+public:
+	SOCKET m_socket;
 
 private:
 	ID3D12RootSignature			*m_GraphicsRootSignature = NULL;
