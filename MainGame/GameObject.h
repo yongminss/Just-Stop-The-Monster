@@ -326,15 +326,6 @@ public:
 	~UI();
 
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
-
-};
-
-class Trap : public GameObject
-{
-public:
-	Trap() { }
-	~Trap() { }
-	
 };
 
 class TrapCover : public GameObject
@@ -344,4 +335,12 @@ public:
 	~TrapCover();
 
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
+};
+
+// 3D ¸ðµ¨
+class Monster : public GameObject
+{
+public:
+	Monster() { }
+	~Monster() { }
 };

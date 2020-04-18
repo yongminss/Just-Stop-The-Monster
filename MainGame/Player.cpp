@@ -3,8 +3,8 @@
 
 Player::Player(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
 {
-	GameObject* Model = LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, false);
-	SetChild(Model, false);
+	//GameObject* Model = LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, false);
+	//SetChild(Model, false);
 	
 	m_Right = XMFLOAT3(1.f, 0.f, 0.f);
 	m_Up = XMFLOAT3(0.f, 1.f, 0.f);
@@ -48,5 +48,5 @@ void Player::Update(float ElapsedTime)
 
 void Player::Render(ID3D12GraphicsCommandList *CommandList)
 {
-	GameObject::Render(CommandList);
+	//GameObject::Render(CommandList);
 }

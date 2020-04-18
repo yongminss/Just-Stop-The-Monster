@@ -105,6 +105,9 @@ void Material::PrepareShader(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 {
 	m_StandardShader = new StandardShader();
 	m_StandardShader->CreateShader(Device, CommandList, GraphicsRootSignature);
+
+	m_SkinnedAnimationShader = new SkinnedAnimationShader();
+	//m_SkinnedAnimationShader->CreateShader(Device, CommandList, GraphicsRootSignature);
 }
 
 void Material::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
@@ -466,6 +469,8 @@ void GameObject::LoadMaterialInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCo
 					else
 						ObjMaterial->SetStandardShader();
 			}
+			else
+				SetShader(0, Shader);
 			SetMaterial(nMaterial, ObjMaterial);
 		}
 		else if (!strcmp(Token, "<AlbedoColor>:"))

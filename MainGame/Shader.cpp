@@ -284,5 +284,47 @@ void StandardShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandLis
 	m_nPipelineState = 1;
 	m_PipelineStates = new ID3D12PipelineState*[m_nPipelineState];
 
-	Shader::CreateShader(Device, CommandList, GraphicsRootSignature);
+	::ZeroMemory(&m_PipelineStateDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+	m_PipelineStateDesc.pRootSignature = GraphicsRootSignature;
+	m_PipelineStateDesc.VS = CreateVertexShader();
+	m_PipelineStateDesc.PS = CreatePixelShader();
+	m_PipelineStateDesc.RasterizerState = CreateRasterizerState();
+	m_PipelineStateDesc.BlendState = CreateBlendState();
+	m_PipelineStateDesc.DepthStencilState = CreateDepthStencilState();
+	m_PipelineStateDesc.InputLayout = CreateInputLayout();
+	m_PipelineStateDesc.SampleMask = UINT_MAX;
+	m_PipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	m_PipelineStateDesc.NumRenderTargets = 1;
+	m_PipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	m_PipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	m_PipelineStateDesc.SampleDesc.Count = 1;
+	m_PipelineStateDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+
+	HRESULT hResult = Device->CreateGraphicsPipelineState(&m_PipelineStateDesc, __uuidof(ID3D12PipelineState), (void **)&m_PipelineStates[0]);
+}
+
+// 애니메이션을 하는 3D 오브젝트에서 사용할 쉐이더
+D3D12_INPUT_LAYOUT_DESC SkinnedAnimationShader::CreateInputLayout()
+{
+	UINT nInputElementDescs = 7;
+	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
+
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[2] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 2, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[3] = { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 3, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[4] = { "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 4, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[5] = { "BONEINDEX", 0, DXGI_FORMAT_R32G32B32A32_UINT, 5, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[6] = { "BONEWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 6, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+
+	return d3dInputLayoutDesc;
+}
+
+D3D12_SHADER_BYTECODE SkinnedAnimationShader::CreateVertexShader()
+{
+	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "VSSkinnedAnimationStandard", "vs_5_1", &m_VertexShaderBlob));
 }

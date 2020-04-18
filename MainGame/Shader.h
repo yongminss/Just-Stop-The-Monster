@@ -79,16 +79,29 @@ public:
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
 };
 
+
 class StandardShader : public Shader
 {
 public:
 	StandardShader() { }
 	~StandardShader() { }
 
+public:
 	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
 	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
 
 	virtual void OnPrepareRender(ID3D12GraphicsCommandList *CommandList, int nPipelineState);
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+};
+
+class SkinnedAnimationShader : public StandardShader
+{
+public:
+	SkinnedAnimationShader() { }
+	~SkinnedAnimationShader() { }
+
+public:
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
 };
