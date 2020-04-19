@@ -85,15 +85,13 @@ private:
 
 	Player						*m_Player = NULL;
 
-	GameObject					*m_TrapModel = NULL;
-	list<Trap*>					m_Trap;
-
 	GameObject					*m_MonsterModel = NULL;
-	list<Trap*>					m_Moster;
+	list<Monster*>				m_Moster;
 
 	list<TrapCover*>			m_TrapCover;
 
 	// 다른 플레이어
+	//GameObject					*m_OtherPlayerModel = NULL;
 	TrapCover					*m_OtherPlayerModel = NULL;
 
 	// 디스크립터 힙을 게임 씬에서 만듬

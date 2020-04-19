@@ -162,11 +162,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		m_GameFramework.OnProcessingWindowMessage(hWnd, message, wParam, lParam);
 
 		// 콘솔창
-		AllocConsole();
-		SetConsoleTitle(TEXT("테스트용 콘솔"));
-		_tfreopen(_T("CONOUT$"), _T("w"), stdout);
-		_tfreopen(_T("CONIN$"), _T("r"), stdin);
-		_tfreopen(_T("CONERR$"), _T("w"), stderr);
+		//AllocConsole();
+		//SetConsoleTitle(TEXT("테스트용 콘솔"));
+		//_tfreopen(_T("CONOUT$"), _T("w"), stdout);
+		//_tfreopen(_T("CONIN$"), _T("r"), stdin);
+		//_tfreopen(_T("CONERR$"), _T("w"), stderr);
 		break;
 
     case WM_COMMAND:

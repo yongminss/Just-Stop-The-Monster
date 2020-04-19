@@ -42,16 +42,11 @@ ID3D12RootSignature *TitleScene::CreateGraphicsRootSignature(ID3D12Device *Devic
 	DescriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 	// 루트 파라미터
-	D3D12_ROOT_PARAMETER RootParameter[2];
-	RootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	RootParameter[0].Descriptor.ShaderRegister = 1;
-	RootParameter[0].Descriptor.RegisterSpace = 0;
-	RootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
-	RootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	RootParameter[1].DescriptorTable.NumDescriptorRanges = 1;
-	RootParameter[1].DescriptorTable.pDescriptorRanges = &DescriptorRange;
-	RootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	D3D12_ROOT_PARAMETER RootParameter[1];
+	RootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	RootParameter[0].DescriptorTable.NumDescriptorRanges = 1;
+	RootParameter[0].DescriptorTable.pDescriptorRanges = &DescriptorRange;
+	RootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	// 샘플러
 	D3D12_STATIC_SAMPLER_DESC SamplerDesc;
@@ -118,7 +113,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 {
 	m_GraphicsRootSignature = CreateGraphicsRootSignature(Device);
 
-	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 100);
+	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 10);
 
 	Material::PrepareShader(Device, CommandList, m_GraphicsRootSignature);
 
@@ -129,26 +124,17 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	StandardShader *MonsterShader = new StandardShader();
 	MonsterShader->CreateShader(Device, CommandList, m_GraphicsRootSignature);
 
-	//m_TrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/wolf_rider.bin", NULL, true);
-	m_MonsterModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/wolf_rider.bin", NULL, true);
+	m_MonsterModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/wolf_rider.bin", MonsterShader, false);
+	m_MonsterModel->SetPostion(XMFLOAT3(0.f, -50.f, 300.f));
 
-	//m_Trap.emplace_back(new Trap());
-	//m_Trap.back()->SetChild(m_TrapModel, false);
-	//m_Trap.back()->SetPostion(XMFLOAT3(0, -50.f, 70.f));
-
-	for (int i = 0; i < 5; ++i) {
-		m_Moster.emplace_back(new Monster());
-		m_Moster.back()->SetChild(m_MonsterModel, true);
-		m_Moster.back()->SetPostion(XMFLOAT3(-250.f + (i * 50), -50.f, 100.f)); 
-	}
-	for (int i = 0; i < 5; ++i) {
+	/*for (int i = 0; i < 5; ++i) {
 		m_TrapCover.emplace_back(new TrapCover(Device, CommandList, m_GraphicsRootSignature, 0));
 		m_TrapCover.back()->SetPostion(XMFLOAT3(-30.f + (i * 50), 0.f, 100.f + (i * 50)));
-	}
+	}*/
 
 	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
+		//m_OtherPlayerModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/weak_infantry", MonsterShader, false);
 		m_OtherPlayerModel = new TrapCover(Device, CommandList, m_GraphicsRootSignature, 0);
-		//m_OtherPlayerModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/wolf_rider.bin", NULL, true);
 	}
 
 	CreateShaderVariable(Device, CommandList);
@@ -485,11 +471,9 @@ void GameScene::Animate(float ElapsedTime)
 		m_Player->Update(ElapsedTime);
 	}
 
-	for (auto iter = m_Moster.begin(); iter != m_Moster.end(); ++iter) {
-		(*iter)->UpdateTransform(NULL);
-		(*iter)->Animate(ElapsedTime, NULL);
-	}
-
+	//m_MonsterModel->UpdateTransform(NULL);
+	//m_MonsterModel->Animate(NULL);
+	
 	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
 		m_OtherPlayerModel->UpdateTransform(NULL);
 		m_OtherPlayerModel->SetPostion(XMFLOAT3(m_NetworkManager->m_OtherInfo.Transform._41, m_NetworkManager->m_OtherInfo.Transform._42, m_NetworkManager->m_OtherInfo.Transform._43));
@@ -519,8 +503,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	for (auto iter = m_TrapCover.begin(); iter != m_TrapCover.end(); ++iter)
 		(*iter)->Render(CommandList);
 
-	for (auto iter = m_Moster.begin(); iter != m_Moster.end(); ++iter)
-		(*iter)->Render(CommandList);
+	m_MonsterModel->Render(CommandList);
 
 	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
 		m_OtherPlayerModel->Render(CommandList);

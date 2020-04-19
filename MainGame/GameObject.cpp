@@ -106,7 +106,7 @@ void Material::PrepareShader(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 	m_StandardShader = new StandardShader();
 	m_StandardShader->CreateShader(Device, CommandList, GraphicsRootSignature);
 
-	m_SkinnedAnimationShader = new SkinnedAnimationShader();
+	//m_SkinnedAnimationShader = new SkinnedAnimationShader();
 	//m_SkinnedAnimationShader->CreateShader(Device, CommandList, GraphicsRootSignature);
 }
 
@@ -121,7 +121,7 @@ void Material::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
 		if (m_Texture[i]) m_Texture[i]->UpdateShaderVariable(CommandList, 0);
 }
 
-void Material::LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, UINT nType, UINT nRootParameter, _TCHAR *TextureName, Texture **ObjTexture, FILE *InFile, GameObject *Parent, Shader *Shader)
+void Material::LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, UINT nType, UINT nRootParameter, _TCHAR *TextureName, Texture **ObjTexture, FILE *InFile, GameObject *Parent, Shader *Shader, Material *ObjMaterial)
 {
 	char strTextureName[64] = { '\0' };
 
@@ -164,9 +164,9 @@ void Material::LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandLi
 					if (!Parent->m_Parent) break;
 					Parent = Parent->m_Parent;
 				}
+				if (*ObjTexture) (*ObjTexture)->AddRef();
 				GameObject *RootGameObj = Parent;
 				*ObjTexture = RootGameObj->FindReplicatedTexture(TextureName);
-				if (*ObjTexture) (*ObjTexture)->AddRef();
 			}
 		}
 	}
@@ -490,19 +490,19 @@ void GameObject::LoadMaterialInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCo
 		else if (!strcmp(Token, "<GlossyReflection>:"))
 			nRead = (UINT)::fread(&(ObjMaterial->m_GlossyReflection), sizeof(float), 1, InFile);
 		else if (!strcmp(Token, "<AlbedoMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 3, ObjMaterial->m_TextureName[0], &(ObjMaterial->m_Texture[0]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 3, ObjMaterial->m_TextureName[0], &(ObjMaterial->m_Texture[0]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "<SpecularMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_SPECULAR_MAP, 4, ObjMaterial->m_TextureName[1], &(ObjMaterial->m_Texture[1]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_SPECULAR_MAP, 4, ObjMaterial->m_TextureName[1], &(ObjMaterial->m_Texture[1]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "<NormalMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 5, ObjMaterial->m_TextureName[2], &(ObjMaterial->m_Texture[2]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 5, ObjMaterial->m_TextureName[2], &(ObjMaterial->m_Texture[2]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "<MetallicMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 6, ObjMaterial->m_TextureName[3], &(ObjMaterial->m_Texture[3]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 6, ObjMaterial->m_TextureName[3], &(ObjMaterial->m_Texture[3]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "<EmissionMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 7, ObjMaterial->m_TextureName[4], &(ObjMaterial->m_Texture[4]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 7, ObjMaterial->m_TextureName[4], &(ObjMaterial->m_Texture[4]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "<DetailAlbedoMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 8, ObjMaterial->m_TextureName[5], &(ObjMaterial->m_Texture[5]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 8, ObjMaterial->m_TextureName[5], &(ObjMaterial->m_Texture[5]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "<DetailNormalMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 9, ObjMaterial->m_TextureName[6], &(ObjMaterial->m_Texture[6]), InFile, Parent, Shader);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 9, ObjMaterial->m_TextureName[6], &(ObjMaterial->m_Texture[6]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "</Materials>"))
 			break;
 	}
@@ -755,7 +755,7 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	UIShader *ObjShader = new UIShader();
 	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
 	ObjShader->CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 1);
-	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 1, false);
+	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 0, false);
 
 	Material *ObjMaterial = new Material(1);
 	ObjMaterial->SetTexture(ObjTexture);
