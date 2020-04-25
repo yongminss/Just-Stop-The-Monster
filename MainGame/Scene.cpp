@@ -113,27 +113,45 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 {
 	m_GraphicsRootSignature = CreateGraphicsRootSignature(Device);
 
-	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 10);
+	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 100);
 
 	Material::PrepareShader(Device, CommandList, m_GraphicsRootSignature);
 
 	BuildDefaultLightsAndMaterials();
 
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
-	
-	StandardShader *MonsterShader = new StandardShader();
-	MonsterShader->CreateShader(Device, CommandList, m_GraphicsRootSignature);
 
-	m_MonsterModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/wolf_rider.bin", MonsterShader, false);
-	m_MonsterModel->SetPostion(XMFLOAT3(0.f, -50.f, 300.f));
+	// 몬스터 모델
+	m_OrcModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/weak_infantry.bin", NULL, true);
+	m_ShamanModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/shaman.bin", NULL, true);
+	m_WolfRiderModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/wolf_rider.bin", NULL, true);
 
-	/*for (int i = 0; i < 5; ++i) {
-		m_TrapCover.emplace_back(new TrapCover(Device, CommandList, m_GraphicsRootSignature, 0));
-		m_TrapCover.back()->SetPostion(XMFLOAT3(-30.f + (i * 50), 0.f, 100.f + (i * 50)));
-	}*/
+	// 스테이지
+	m_StageModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/allfloor.bin", NULL, false);
+
+	m_StageModel->SetPostion(XMFLOAT3(2500.f, -50.f, 0.f));
+	m_StageModel->SetScale(100.f, 100.f, 100.f);
+
+	// 기본 오크
+	m_Orc.emplace_back(new Monster());
+	m_Orc.back()->SetChild(m_OrcModel, true);
+	m_Orc.back()->SetScale(1.5f, 1.5f, 1.5f);
+	m_Orc.back()->SetRotate(0.f, 150.f, 0.f);
+	m_Orc.back()->SetPostion(XMFLOAT3(-200.f, -20.f, 150.f));
+
+	// 마법사 오크
+	m_Shaman.emplace_back(new Monster());
+	m_Shaman.back()->SetChild(m_ShamanModel, true);
+	m_Shaman.back()->SetRotate(0.f, 150.f, 0.f);
+	m_Shaman.back()->SetPostion(XMFLOAT3(0.f, -50.f, 150.f));
+
+	// 늑대 오크
+	m_Shaman.emplace_back(new Monster());
+	m_Shaman.back()->SetChild(m_WolfRiderModel, true);
+	m_Shaman.back()->SetRotate(0.f, 150.f, 0.f);
+	m_Shaman.back()->SetPostion(XMFLOAT3(200.f, -50.f, 150.f));
 
 	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
-		//m_OtherPlayerModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/weak_infantry", MonsterShader, false);
 		m_OtherPlayerModel = new TrapCover(Device, CommandList, m_GraphicsRootSignature, 0);
 	}
 
@@ -152,7 +170,7 @@ void GameScene::BuildDefaultLightsAndMaterials()
 	::ZeroMemory(m_Lights, sizeof(LIGHT) * m_nLights);
 
 	m_GlobalAmbient = XMFLOAT4(0.15f, 0.15f, 0.15f, 1.f);
-
+	/*
 	m_Lights[0].m_Enable = true;
 	m_Lights[0].m_nType = POINT_LIGHT;
 	m_Lights[0].m_Range = 1000.f;
@@ -194,7 +212,7 @@ void GameScene::BuildDefaultLightsAndMaterials()
 	m_Lights[3].m_Attenuation = XMFLOAT3(1.f, 0.01f, 0.0001f);
 	m_Lights[3].m_Falloff = 8.f;
 	m_Lights[3].m_Phi = (float)cos(XMConvertToRadians(40.f));
-	m_Lights[3].m_Theta = (float)cos(XMConvertToRadians(30.f));
+	m_Lights[3].m_Theta = (float)cos(XMConvertToRadians(30.f));*/
 }
 
 ID3D12RootSignature *GameScene::CreateGraphicsRootSignature(ID3D12Device *Device)
@@ -371,6 +389,9 @@ void GameScene::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
 	::memcpy(m_cbMappedLight->m_Lights, m_Lights, sizeof(LIGHT) * m_nLights);
 	::memcpy(&m_cbMappedLight->m_GlobalAmbient, &m_GlobalAmbient, sizeof(XMFLOAT4));
 	::memcpy(&m_cbMappedLight->m_nLights, &m_nLights, sizeof(int));
+
+	D3D12_GPU_VIRTUAL_ADDRESS cbLightGpuVirtualAddress = m_cbLight->GetGPUVirtualAddress();
+	CommandList->SetGraphicsRootConstantBufferView(12, cbLightGpuVirtualAddress);
 }
 
 ID3D12DescriptorHeap *GameScene::m_CbvSrvDescriptorHeap = NULL;
@@ -466,14 +487,31 @@ D3D12_GPU_DESCRIPTOR_HANDLE GameScene::CreateShaderResourceView(ID3D12Device *De
 
 void GameScene::Animate(float ElapsedTime)
 {
+	m_ElasedTime = ElapsedTime;
+
 	if (m_Player) {
 		m_Player->UpdateTransform(NULL);
 		m_Player->Update(ElapsedTime);
 	}
 
-	//m_MonsterModel->UpdateTransform(NULL);
-	//m_MonsterModel->Animate(NULL);
-	
+	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
+		if (*iter) {
+			(*iter)->UpdateTransform(NULL);
+			(*iter)->Animate(ElapsedTime, NULL);
+		}
+
+	for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
+		if (*iter) {
+			(*iter)->UpdateTransform(NULL);
+			(*iter)->Animate(ElapsedTime, NULL);
+		}
+
+	for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
+		if (*iter) {
+			(*iter)->UpdateTransform(NULL);
+			(*iter)->Animate(ElapsedTime, NULL);
+		}
+
 	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
 		m_OtherPlayerModel->UpdateTransform(NULL);
 		m_OtherPlayerModel->SetPostion(XMFLOAT3(m_NetworkManager->m_OtherInfo.Transform._41, m_NetworkManager->m_OtherInfo.Transform._42, m_NetworkManager->m_OtherInfo.Transform._43));
@@ -493,17 +531,21 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	// 조명을 사용하기 위한 함수 호출
 	UpdateShaderVariable(CommandList);
 
-	D3D12_GPU_VIRTUAL_ADDRESS cbLightGpuVirtualAddress = m_cbLight->GetGPUVirtualAddress();
-	CommandList->SetGraphicsRootConstantBufferView(12, cbLightGpuVirtualAddress);
-
 	// 플레이어 렌더링
-	m_Player->Render(CommandList);
+	if (m_Player) m_Player->Render(CommandList);
 
 	// GameScene에 등장할 오브젝트 렌더링
-	for (auto iter = m_TrapCover.begin(); iter != m_TrapCover.end(); ++iter)
+	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
 		(*iter)->Render(CommandList);
 
-	m_MonsterModel->Render(CommandList);
+	for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
+		(*iter)->Render(CommandList);
+
+	for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
+		(*iter)->Render(CommandList);
+
+	if (m_StageModel)
+		m_StageModel->Render(CommandList);
 
 	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
 		m_OtherPlayerModel->Render(CommandList);
@@ -513,6 +555,18 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
+	switch (nMessageID)
+	{
+	case WM_LBUTTONDOWN:
+		break;
+
+	case WM_LBUTTONUP:
+		break;
+
+	default:
+		break;
+	}
+
 	return false;
 }
 
@@ -524,13 +578,11 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		switch (wParam)
 		{
 		case 'w':
-		case 'W': {
-			m_Player->MoveForward(100.f);
-			/*cs_packet_test packet;
-			packet.size = sizeof(packet);
-			packet.type = CS_TEST;
-			send(m_socket, (char*)&packet, sizeof(packet), 0);*/
-
+		case 'W':
+		{
+			m_Player->SetDirection(1);
+			m_Player->SetEnable(2);
+			// Send to Server
 			cs_packet_pos packet;
 			packet.id = m_NetworkManager->m_my_info.id;
 			packet.size = sizeof(packet);
@@ -539,12 +591,13 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			send(m_socket, (char*)&packet, sizeof(packet), 0);
 			break;
 		}
-			
 
 		case 's':
-		case 'S': {
-			m_Player->MoveForward(-101.f);
-
+		case 'S':
+		{
+			m_Player->SetDirection(2);
+			m_Player->SetEnable(2);
+			// Send to Server
 			cs_packet_pos packet;
 			packet.id = m_NetworkManager->m_my_info.id;
 			packet.size = sizeof(packet);
@@ -556,14 +609,33 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 
 		case 'a':
 		case 'A':
-			break;
+		{
+			m_Player->SetDirection(3);
+			m_Player->SetEnable(2);
+		}
+		break;
 
 		case 'd':
 		case 'D':
-			break;
+		{
+			m_Player->SetDirection(4);
+			m_Player->SetEnable(2);
+		}
+		break;
 
 		default:
 			break;
+		}
+		break;
+
+	case WM_KEYUP:
+		switch (wParam) {
+		default:
+		{
+			m_Player->SetDirection(0);
+			m_Player->SetEnable(0);
+		}
+		break;
 		}
 		break;
 

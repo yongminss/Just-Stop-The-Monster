@@ -221,6 +221,7 @@ public:
 
 public:
 	void SetAnimationSet(int nAnimationSet);
+	void SetAnimationEnable(int nAnimationSet);
 
 	void AdvanceTime(float ElapsedTime, AnimationCallbackHandler *CallbackHandler);
 };
@@ -230,6 +231,7 @@ class GameObject
 {
 public:
 	GameObject();
+	GameObject(int nMaterial);
 	~GameObject();
 	
 protected:
@@ -241,10 +243,10 @@ protected:
 	int								m_nMaterial = 0;
 
 public:
+	XMFLOAT4X4						m_WorldPos;
 	XMFLOAT4X4						m_TransformPos;
 
 protected:
-	XMFLOAT4X4						m_WorldPos;
 
 	D3D12_GPU_DESCRIPTOR_HANDLE		m_CbvGPUDescriptorHandle;
 
@@ -285,18 +287,21 @@ public:
 	void UpdateTransform(XMFLOAT4X4 *Parent);
 
 	void SetPostion(XMFLOAT3 Position);
+	void SetScale(float x, float y, float z);
+	virtual void SetRotate(float Pitch, float Yaw, float Roll);
 
 	void SetCbvGPUDescriptorHandle(D3D12_GPU_DESCRIPTOR_HANDLE CbvGPUDescriptorHandle) { m_CbvGPUDescriptorHandle = CbvGPUDescriptorHandle; }
 
 	UINT GetMeshType() { return (m_Mesh) ? m_Mesh->GetType() : 0; }
 
-	XMFLOAT3 GetRight() { return XMFLOAT3(m_WorldPos._11, m_WorldPos._12, m_WorldPos._13); }
-	XMFLOAT3 GetUp() { return XMFLOAT3(m_WorldPos._21, m_WorldPos._22, m_WorldPos._23); }
-	XMFLOAT3 GetLook() { return XMFLOAT3(m_WorldPos._31, m_WorldPos._32, m_WorldPos._33); }
-	XMFLOAT3 GetPosition() { return XMFLOAT3(m_WorldPos._41, m_WorldPos._42, m_WorldPos._43); }
+	XMFLOAT3 GetRight() { return XMFLOAT3(m_TransformPos._11, m_TransformPos._12, m_TransformPos._13); }
+	XMFLOAT3 GetUp() { return XMFLOAT3(m_TransformPos._21, m_TransformPos._22, m_TransformPos._23); }
+	XMFLOAT3 GetLook() { return XMFLOAT3(m_TransformPos._31, m_TransformPos._32, m_TransformPos._33); }
+	XMFLOAT3 GetPosition() { return XMFLOAT3(m_TransformPos._41, m_TransformPos._42, m_TransformPos._43); }
 	XMFLOAT4X4 GetTransform() { return m_TransformPos; }
 
 	void MoveForward(float Distance);
+	void MoveRight(float Distance);
 
 	static MeshLoadInfo *LoadMeshInfoFromFile(FILE *InFile);
 	void LoadMaterialInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile, GameObject *Parent, Shader *Shader);
@@ -310,6 +315,8 @@ public:
 
 	virtual void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, XMFLOAT4X4 *WorldPos);
+
+	void SetEnable(int nAnimationSet);
 
 	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);

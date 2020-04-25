@@ -62,6 +62,12 @@ public:
 	void SetCameraOption();
 
 	void SetPlayer(Player *Player) { m_Player = Player; }
+	
+	void SetOffset(XMFLOAT3 Offset) { m_Offset = Offset; }
+	void SetPosition(XMFLOAT3 Position) { m_Position = Position; }
+	void SetRotate(float Pitch, float Yaw, float Roll);
+
+	XMFLOAT3& GetOffset() { return m_Offset; }
 
 	void Update(XMFLOAT3& LookAt, float ElapsedTime);
 };

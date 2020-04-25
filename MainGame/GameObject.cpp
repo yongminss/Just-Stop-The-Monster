@@ -61,7 +61,7 @@ void Texture::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, int I
 
 void Texture::LoadTextureFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, wchar_t *FileName, UINT Index)
 {
-	m_Texture[Index] = ::CreateTextureResourceFromFile(Device, CommandList, FileName, &m_TextureUploadBuffer[Index], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	m_Texture[Index] = ::CreateTextureResourceFromFile(Device, CommandList, FileName, &(m_TextureUploadBuffer[Index]), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 
 
@@ -106,8 +106,8 @@ void Material::PrepareShader(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 	m_StandardShader = new StandardShader();
 	m_StandardShader->CreateShader(Device, CommandList, GraphicsRootSignature);
 
-	//m_SkinnedAnimationShader = new SkinnedAnimationShader();
-	//m_SkinnedAnimationShader->CreateShader(Device, CommandList, GraphicsRootSignature);
+	m_SkinnedAnimationShader = new SkinnedAnimationShader();
+	m_SkinnedAnimationShader->CreateShader(Device, CommandList, GraphicsRootSignature);
 }
 
 void Material::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
@@ -117,8 +117,10 @@ void Material::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
 	CommandList->SetGraphicsRoot32BitConstants(1, 4, &m_Specular, 24);
 	CommandList->SetGraphicsRoot32BitConstants(1, 4, &m_Emissive, 28);
 
+	CommandList->SetGraphicsRoot32BitConstants(1, 1, &m_nType, 32);
+
 	for (int i = 0; i < m_nTexture; ++i)
-		if (m_Texture[i]) m_Texture[i]->UpdateShaderVariable(CommandList, 0);
+		if (m_Texture[i]) m_Texture[i]->UpdateShaderVariable(CommandList, i);
 }
 
 void Material::LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, UINT nType, UINT nRootParameter, _TCHAR *TextureName, Texture **ObjTexture, FILE *InFile, GameObject *Parent, Shader *Shader, Material *ObjMaterial)
@@ -228,6 +230,15 @@ void AnimationController::SetAnimationSet(int nAnimationSet)
 	m_AnimationTrack[nAnimationSet].m_Enable = true;
 }
 
+void AnimationController::SetAnimationEnable(int nAnimationSet)
+{
+	if (m_AnimationTrack) {
+		for (int i = 0; i < m_nAnimationTrack; ++i)
+			m_AnimationTrack[i].m_Enable = false;
+		m_AnimationTrack[nAnimationSet].m_Enable = true;
+	}
+}
+
 void AnimationController::AdvanceTime(float ElapsedTime, AnimationCallbackHandler *CallbackHandler)
 {
 	m_Time += ElapsedTime;
@@ -258,6 +269,15 @@ GameObject::GameObject()
 {
 	m_TransformPos = Matrix4x4::Identity();
 	m_WorldPos = Matrix4x4::Identity();
+}
+
+GameObject::GameObject(int nMaterial) : GameObject()
+{
+	m_nMaterial = nMaterial;
+	if (m_nMaterial > 0) {
+		m_Material = new Material*[m_nMaterial];
+		for (int i = 0; i < m_nMaterial; ++i) m_Material[i] = NULL;
+	}
 }
 
 GameObject::~GameObject()
@@ -329,6 +349,22 @@ void GameObject::SetPostion(XMFLOAT3 Position)
 	UpdateTransform(NULL);
 }
 
+void GameObject::SetScale(float x, float y, float z)
+{
+	XMMATRIX Scale = XMMatrixScaling(x, y, z);
+	m_TransformPos = Matrix4x4::Multiply(Scale, m_TransformPos);
+	
+	UpdateTransform(NULL);
+}
+
+void GameObject::SetRotate(float Pitch, float Yaw, float Roll)
+{
+	XMMATRIX Rotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(Pitch), XMConvertToRadians(Yaw), XMConvertToRadians(Roll));
+	m_TransformPos = Matrix4x4::Multiply(Rotate, m_TransformPos);
+
+	UpdateTransform(NULL);
+}
+
 // bin 파일을 읽기 위한 코드 //
 
 int ReadIntegerFromFile(FILE* File)
@@ -356,6 +392,14 @@ void GameObject::MoveForward(float Distance)
 	XMFLOAT3 Position = GetPosition();
 	XMFLOAT3 Look = GetLook();
 	Position = Vector3::Add(Position, Look, Distance);
+	GameObject::SetPostion(Position);
+}
+
+void GameObject::MoveRight(float Distance)
+{
+	XMFLOAT3 Position = GetPosition();
+	XMFLOAT3 Right = GetRight();
+	Position = Vector3::Add(Position, Right, Distance);
 	GameObject::SetPostion(Position);
 }
 
@@ -471,6 +515,7 @@ void GameObject::LoadMaterialInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCo
 			}
 			else
 				SetShader(0, Shader);
+
 			SetMaterial(nMaterial, ObjMaterial);
 		}
 		else if (!strcmp(Token, "<AlbedoColor>:"))
@@ -638,6 +683,14 @@ void GameObject::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, XM
 	CommandList->SetGraphicsRoot32BitConstants(1, 16, &World, 0);
 }
 
+void GameObject::SetEnable(int nAnimationSet)
+{
+	if (m_AnimationController) m_AnimationController->SetAnimationEnable(nAnimationSet);
+
+	if (m_Sibling) m_Sibling->SetEnable(nAnimationSet);
+	if (m_Child) m_Child->SetEnable(nAnimationSet);
+}
+
 void GameObject::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
 {
 	if (m_AnimationController) m_AnimationController->AdvanceTime(ElapsedTime, NULL);
@@ -754,7 +807,7 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 
 	UIShader *ObjShader = new UIShader();
 	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
-	ObjShader->CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 1);
+	//ObjShader->CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 1);
 	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 0, false);
 
 	Material *ObjMaterial = new Material(1);

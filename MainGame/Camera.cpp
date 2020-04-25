@@ -8,10 +8,10 @@ Camera::Camera()
 	m_Projection = Matrix4x4::Identity();
 	m_Viewport = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.f, 1.f };
 	m_ScissorRect = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT };
-	m_Position = XMFLOAT3(0.f, 0.f, 0.f);
 	m_Right = XMFLOAT3(1.f, 0.f, 0.f);
 	m_Up = XMFLOAT3(0.f, 1.f, 0.f);
 	m_Look = XMFLOAT3(0.f, 0.f, 1.f);
+	m_Position = XMFLOAT3(0.f, 0.f, 0.f);
 	m_Pitch = 0.f;
 	m_Yaw = 0.f;
 	m_Roll = 0.f;
@@ -108,12 +108,20 @@ void Camera::SetCameraOption()
 	GenerateProjectionMatrix(1.01f, 5000.f, ASPECT_RATIO, 60.f);
 	SetViewport(0.f, 0.f, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.f, 1.f);
 	SetScissorRect(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
+	SetOffset(XMFLOAT3(0.f, 50.f, -150.f));
+}
+
+void Camera::SetRotate(float Pitch, float Yaw, float Roll)
+{
+	XMMATRIX Rotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(Pitch), XMConvertToRadians(Yaw), XMConvertToRadians(Roll));
+	m_Projection = Matrix4x4::Multiply(Rotate, m_Projection);
 }
 
 void Camera::Update(XMFLOAT3& LookAt, float ElapsedTime)
 {
 	if (m_Player) {
 		XMFLOAT4X4 Rotate = Matrix4x4::Identity();
+
 		XMFLOAT3 Right = m_Player->GetRight();
 		XMFLOAT3 Up = m_Player->GetUp();
 		XMFLOAT3 Look = m_Player->GetLook();
@@ -134,7 +142,6 @@ void Camera::Update(XMFLOAT3& LookAt, float ElapsedTime)
 		if (Length < 0.01f) Distance = Length;
 		if (Distance > 0.f) {
 			m_Position = Vector3::Add(m_Position, Direction, Distance);
-			SetLookAt(LookAt);
 		}
 	}
 }

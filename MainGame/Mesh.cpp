@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Mesh.h"
+#include "GameObject.h"
 
 Mesh::Mesh()
 {
@@ -34,11 +35,13 @@ void Mesh::Render(ID3D12GraphicsCommandList *CommandList)
 
 void Mesh::Render(ID3D12GraphicsCommandList *CommandList, int nSubSet)
 {
-	CommandList->IASetVertexBuffers(m_nSlot, 1, &m_PositionBufferView);
+	UpdateShaderVariable(CommandList);
+
+	OnPreRender(CommandList, NULL);
 
 	CommandList->IASetPrimitiveTopology(m_PrimitiveTopology);
 
-	if ((m_nSubMesh > 0) & (nSubSet < m_nSubMesh)) {
+	if ((m_nSubMesh > 0) && (nSubSet < m_nSubMesh)) {
 		CommandList->IASetIndexBuffer(&(m_SubSetIndexBufferView[nSubSet]));
 		CommandList->DrawIndexedInstanced(m_pnSubSetIndices[nSubSet], 1, 0, 0, 0);
 	}
@@ -91,91 +94,6 @@ MeshLoadInfo::~MeshLoadInfo()
 	if (m_pnSubSetIndices) delete m_pnSubSetIndices;
 }
 
-MeshFromFile::MeshFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, MeshLoadInfo *MeshInfo)
-{
-	m_nVertices = MeshInfo->m_nVertices;
-	m_nType = MeshInfo->m_nType;
-
-	m_PositionBuffer = ::CreateBufferResource(Device, CommandList, MeshInfo->m_Position, sizeof(XMFLOAT3)*m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_PositionUploadBuffer);
-
-	m_PositionBufferView.BufferLocation = m_PositionBuffer->GetGPUVirtualAddress();
-	m_PositionBufferView.StrideInBytes = sizeof(XMFLOAT3);
-	m_PositionBufferView.SizeInBytes = sizeof(XMFLOAT3)*m_nVertices;
-
-	m_nSubMesh = MeshInfo->m_nSubMeshes;
-
-	if (m_nSubMesh > 0) {
-		m_SubSetIndexBuffer = new ID3D12Resource*[m_nSubMesh];
-		m_SubSetIndexUploadBuffer = new ID3D12Resource*[m_nSubMesh];
-		m_SubSetIndexBufferView = new D3D12_INDEX_BUFFER_VIEW[m_nSubMesh];
-
-		m_nSubSetIndices = new int[m_nSubMesh];
-
-		for (int i = 0; i < m_nSubMesh; ++i) {
-			m_nSubSetIndices[i] = MeshInfo->m_nSubSetIndices[i];
-			m_SubSetIndexBuffer[i] = ::CreateBufferResource(Device, CommandList, MeshInfo->m_pnSubSetIndices[i], sizeof(UINT) * m_nSubSetIndices[i], D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDEX_BUFFER, &m_SubSetIndexBuffer[i]);
-
-			m_SubSetIndexBufferView[i].BufferLocation = m_SubSetIndexBuffer[i]->GetGPUVirtualAddress();
-			m_SubSetIndexBufferView[i].Format = DXGI_FORMAT_R32_UINT;
-			m_SubSetIndexBufferView->SizeInBytes = sizeof(UINT) * MeshInfo->m_nSubSetIndices[i];
-		}
-	}
-}
-
-MeshFromFile::~MeshFromFile()
-{
-	if (m_PositionBuffer) m_PositionBuffer->Release();
-
-	if (m_nSubMesh > 0) {
-		for (int i = 0; i < m_nSubMesh; ++i)
-			if (m_SubSetIndexBuffer[i]) m_SubSetIndexBuffer[i]->Release();
-		if (m_SubSetIndexBuffer) delete[] m_SubSetIndexBuffer;
-		if (m_SubSetIndexBufferView) delete[] m_SubSetIndexBufferView;
-		if (m_nSubSetIndices) delete[] m_nSubSetIndices;
-	}
-}
-
-void MeshFromFile::Render(ID3D12GraphicsCommandList *CommandList, int nSubSet) 
-{
-	CommandList->IASetPrimitiveTopology(m_PrimitiveTopology);
-	CommandList->IASetVertexBuffers(m_nSlot, 1, &m_PositionBufferView);
-
-	if ((m_nSubMesh > 0) && (nSubSet < m_nSubMesh)) {
-		CommandList->IASetIndexBuffer(&(m_SubSetIndexBufferView[nSubSet]));
-		CommandList->DrawIndexedInstanced(m_nSubSetIndices[nSubSet], 1, 0, 0, 0);
-	}
-	else
-		CommandList->DrawInstanced(m_nVertices, 1, m_nOffset, 0);
-}
-
-MeshIlluminatedFromFile::MeshIlluminatedFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, MeshLoadInfo *MeshInfo) : ::MeshFromFile(Device, CommandList, MeshInfo)
-{
-	m_NormalBuffer = ::CreateBufferResource(Device, CommandList, MeshInfo->m_Normal, sizeof(XMFLOAT3) * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_NormalUploadBuffer);
-
-	m_NormalBufferView.BufferLocation = m_NormalBuffer->GetGPUVirtualAddress();
-	m_NormalBufferView.StrideInBytes = sizeof(XMFLOAT3);
-	m_NormalBufferView.SizeInBytes = sizeof(XMFLOAT3)*m_nVertices;
-}
-
-MeshIlluminatedFromFile::~MeshIlluminatedFromFile()
-{
-	if (m_NormalBuffer) m_NormalBuffer->Release();
-}
-
-void MeshIlluminatedFromFile::Render(ID3D12GraphicsCommandList *CommandList, int nSubSet)
-{
-	CommandList->IASetPrimitiveTopology(m_PrimitiveTopology);
-	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[2] = { m_PositionBufferView, m_NormalBufferView };
-	CommandList->IASetVertexBuffers(m_nSlot, 2, VertexBufferView);
-
-	if ((m_nSubMesh > 0) && (nSubSet < m_nSubMesh)) {
-		CommandList->IASetIndexBuffer(&(m_SubSetIndexBufferView[nSubSet]));
-		CommandList->DrawIndexedInstanced(m_nSubSetIndices[nSubSet], 1, 0, 0, 0);
-	}
-	else
-		CommandList->DrawInstanced(m_nVertices, 1, m_nOffset, 0);
-}
-
 // 애니메이션을 할 3D 모델에 사용할 메쉬
 StandardMesh::StandardMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList) : Mesh(Device, CommandList)
 {
@@ -185,6 +103,12 @@ StandardMesh::StandardMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comm
 StandardMesh::~StandardMesh()
 {
 
+}
+
+void StandardMesh::OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context)
+{
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[5] = { m_PositionBufferView, m_TextureCoord0BufferView, m_NormalBufferView, m_TangentBufferView, m_BiTangentBufferView };
+	CommandList->IASetVertexBuffers(m_nSlot, 5, VertexBufferView);
 }
 
 void StandardMesh::LoadMeshFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile)
@@ -350,11 +274,32 @@ SkinnedMesh::~SkinnedMesh()
 void SkinnedMesh::CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
 {
 	UINT nElementByte = (((sizeof(XMFLOAT4X4) * SKINNED_ANIMATION_BONES) + 255) & ~255);
-	m_BoneOffset = ::CreateBufferResource(Device, CommandList, NULL, nElementByte, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
-	m_BoneOffset->Map(0, NULL, (void **)&m_BoneOffsetPos);
+	m_cbBoneOffset = ::CreateBufferResource(Device, CommandList, NULL, nElementByte, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
+	m_cbBoneOffset->Map(0, NULL, (void **)&m_BoneOffsetPos);
 
-	m_BoneTransform = ::CreateBufferResource(Device, CommandList, NULL, nElementByte, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
-	m_BoneTransform->Map(0, NULL, (void **)&m_BoneTransformPos);
+	m_cbBoneTransform = ::CreateBufferResource(Device, CommandList, NULL, nElementByte, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
+	m_cbBoneTransform->Map(0, NULL, (void **)&m_BoneTransformPos);
+}
+
+void SkinnedMesh::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
+{
+	if (m_cbBoneOffset && m_cbBoneTransform) {
+		D3D12_GPU_VIRTUAL_ADDRESS cbBoneOffsetGpuVirtualAddress = m_cbBoneOffset->GetGPUVirtualAddress();
+		CommandList->SetGraphicsRootConstantBufferView(10, cbBoneOffsetGpuVirtualAddress);
+		D3D12_GPU_VIRTUAL_ADDRESS cbBoneTransformGpuVirtualAddress = m_cbBoneTransform->GetGPUVirtualAddress();
+		CommandList->SetGraphicsRootConstantBufferView(11, cbBoneTransformGpuVirtualAddress);
+
+		for (int i = 0; i < m_nSkinningBone; ++i) {
+			XMStoreFloat4x4(&m_BoneOffsetPos[i], XMMatrixTranspose(XMLoadFloat4x4(&m_BindPoseBoneOffset[i])));
+			XMStoreFloat4x4(&m_BoneTransformPos[i], XMMatrixTranspose(XMLoadFloat4x4(&m_SkinningBoneFrameCache[i]->m_WorldPos)));
+		}
+	}
+}
+
+void SkinnedMesh::OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context)
+{
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[7] = { m_PositionBufferView, m_TextureCoord0BufferView, m_NormalBufferView, m_TangentBufferView, m_BiTangentBufferView,m_BoneIndexBufferView , m_BoneWeightBufferView };
+	CommandList->IASetVertexBuffers(m_nSlot, 7, VertexBufferView);
 }
 
 void SkinnedMesh::LoadSkinInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile)

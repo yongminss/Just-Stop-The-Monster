@@ -102,7 +102,12 @@ public:
 	void Release() { if (--m_nReferences <= 0) delete this; }
 
 	UINT GetType() { return m_nType; }
+	
+	virtual void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList) { }
+	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList) { }
 
+	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context) { }
+	
 	void Render(ID3D12GraphicsCommandList *CommandList);
 	void Render(ID3D12GraphicsCommandList *CommandList, int nSubSet);
 };
@@ -141,46 +146,6 @@ public:
 	int				m_nSubMeshes = 0;
 	int				*m_nSubSetIndices = NULL;
 	UINT			**m_pnSubSetIndices = NULL;
-
-};
-
-class MeshFromFile : public Mesh
-{
-public:
-	MeshFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, MeshLoadInfo *MeshInfo);
-	virtual ~MeshFromFile();
-
-protected:
-	int							m_nSubMesh = 0;
-	int							*m_nSubSetIndices = NULL;
-
-	ID3D12Resource				*m_PositionBuffer = NULL;
-	ID3D12Resource				*m_PositionUploadBuffer = NULL;
-	D3D12_VERTEX_BUFFER_VIEW	m_PositionBufferView;
-
-	ID3D12Resource				**m_SubSetIndexBuffer = NULL;
-	ID3D12Resource				**m_SubSetIndexUploadBuffer = NULL;
-	D3D12_INDEX_BUFFER_VIEW		*m_SubSetIndexBufferView = NULL;
-
-public:
-	virtual void Render(ID3D12GraphicsCommandList *CommandList, int nSubSet);
-
-};
-
-class MeshIlluminatedFromFile : public MeshFromFile
-{
-public:
-	MeshIlluminatedFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, MeshLoadInfo *MeshInfo);
-	virtual ~MeshIlluminatedFromFile();
-
-private:
-	ID3D12Resource				*m_NormalBuffer = NULL;
-	ID3D12Resource				*m_NormalUploadBuffer = NULL;
-	D3D12_VERTEX_BUFFER_VIEW	m_NormalBufferView;
-
-public:
-	virtual void Render(ID3D12GraphicsCommandList *CommandList, int nSubSet);
-
 };
 
 
@@ -190,7 +155,7 @@ public:
 	StandardMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 	virtual ~StandardMesh();
 
-private:
+protected:
 	XMFLOAT4					*m_Color = NULL;
 	XMFLOAT2					*m_TextureCoord0 = NULL;
 	XMFLOAT2					*m_TextureCoord1 = NULL;
@@ -220,6 +185,8 @@ private:
 
 public:
 	void LoadMeshFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile);
+
+	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context);
 };
 
 #define SKINNED_ANIMATION_BONES 128
@@ -250,10 +217,10 @@ private:
 	ID3D12Resource				*m_BoneWeightUploadBuffer = NULL;
 	D3D12_VERTEX_BUFFER_VIEW	m_BoneWeightBufferView;
 
-	ID3D12Resource				*m_BoneOffset = NULL;
+	ID3D12Resource				*m_cbBoneOffset = NULL;
 	XMFLOAT4X4					*m_BoneOffsetPos = NULL;
 
-	ID3D12Resource				*m_BoneTransform = NULL;
+	ID3D12Resource				*m_cbBoneTransform = NULL;
 	XMFLOAT4X4					*m_BoneTransformPos = NULL;
 
 public:
@@ -263,7 +230,10 @@ public:
 public:
 	int GetSkinningBoneNum() { return m_nSkinningBone; }
 
-	void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
+	virtual void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
+	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList);
+
+	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context);
 
 	void LoadSkinInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile);
 };

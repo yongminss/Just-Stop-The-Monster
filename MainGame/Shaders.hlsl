@@ -197,7 +197,7 @@ float4 PSStandard(VS_STANDARD_OUTPUT input) : SV_TARGET
     }
     float4 cIllumination = Lighting(input.positionW, normalW);
     
-    return cIllumination;
+    return (lerp(cColor, cIllumination, 0.5f));
 
 }
 
@@ -234,6 +234,7 @@ VS_STANDARD_OUTPUT VSSkinnedAnimationStandard(VS_SKINNED_STANDARD_INPUT input)
     output.tangentW = float3(0.0f, 0.0f, 0.0f);
     output.bitangentW = float3(0.0f, 0.0f, 0.0f);
     matrix mtxVertexToBoneWorld;
+    
     for (int i = 0; i < MAX_VERTEX_INFLUENCES; i++)
     {
         mtxVertexToBoneWorld = mul(gpmtxBoneOffsets[input.indices[i]], gpmtxBoneTransforms[input.indices[i]]);

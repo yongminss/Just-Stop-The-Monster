@@ -85,13 +85,18 @@ private:
 
 	Player						*m_Player = NULL;
 
-	GameObject					*m_MonsterModel = NULL;
-	list<Monster*>				m_Moster;
+	GameObject					*m_OrcModel = NULL;
+	list<Monster*>				m_Orc;
 
-	list<TrapCover*>			m_TrapCover;
+	GameObject					*m_ShamanModel = NULL;
+	list<Monster*>				m_Shaman;
+
+	GameObject					*m_WolfRiderModel = NULL;
+	list<Monster*>				m_WolfRider;
+
+	GameObject					*m_StageModel = NULL;
 
 	// 다른 플레이어
-	//GameObject					*m_OtherPlayerModel = NULL;
 	TrapCover					*m_OtherPlayerModel = NULL;
 
 	// 디스크립터 힙을 게임 씬에서 만듬
@@ -106,6 +111,10 @@ private:
 	static D3D12_GPU_DESCRIPTOR_HANDLE m_CbvGPUDescriptorNextHandle;
 	static D3D12_CPU_DESCRIPTOR_HANDLE m_SrvCPUDescriptorNextHandle;
 	static D3D12_GPU_DESCRIPTOR_HANDLE m_SrvGPUDescriptorNextHandle;
+
+	float m_ElasedTime = 0.f;
+	// 마우스 입력
+	POINT m_OldCursourPos;
 
 public:
 	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
