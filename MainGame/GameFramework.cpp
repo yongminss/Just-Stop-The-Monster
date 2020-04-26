@@ -318,6 +318,7 @@ void GameFramework::Animate()
 {
 	float ElapsedTime = m_Timer.GetTimeElapsed();
 
+	if (m_GameScene) m_GameScene->ProcessInput(m_hwnd);
 	if (m_GameScene) m_GameScene->Animate(ElapsedTime);
 }
 

@@ -116,7 +116,7 @@ public:
 class TextureMesh : public Mesh
 {
 public:
-	TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, float width, float height, float depth, float x, float y, float z);
+	TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, float width, float height, float depth, float x, float y, float z, int type);
 	~TextureMesh() { }
 
 };

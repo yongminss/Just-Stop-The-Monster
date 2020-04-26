@@ -17,7 +17,7 @@ Camera::Camera()
 	m_Roll = 0.f;
 	m_LookAtWorld = XMFLOAT3(0.f, 0.f, 0.f);
 	m_Offset = XMFLOAT3(0.f, 0.f, 0.f);
-	m_TimeLeg = 0.f;
+	m_TimeLeg = 0.05f;
 	m_Player = NULL;
 }
 

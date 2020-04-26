@@ -85,6 +85,8 @@ private:
 
 	Player						*m_Player = NULL;
 
+	SkyBox						*m_SkyBox = NULL;
+
 	GameObject					*m_OrcModel = NULL;
 	list<Monster*>				m_Orc;
 
@@ -132,6 +134,8 @@ public:
 
 	void Animate(float ElapsedTime);
 	void Render(ID3D12GraphicsCommandList *CommandList);
+
+	void ProcessInput(HWND hWnd);
 
 	bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);

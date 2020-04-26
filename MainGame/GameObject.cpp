@@ -701,6 +701,7 @@ void GameObject::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
 
 void GameObject::Render(ID3D12GraphicsCommandList *CommandList)
 {
+	OnPrepareRender();
 	UpdateShaderVariable(CommandList, &m_WorldPos);
 	
 	if (m_nMaterial > 0) {
@@ -799,7 +800,7 @@ void GameObject::LoadAnimationFromFile(FILE *InFile)
 // UI
 UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
 {
-	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 1.f, 1.f, 0.f, 0.f, 0.f, 0.f);
+	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 1.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0);
 	SetMesh(ObjMesh);
 
 	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
@@ -845,7 +846,7 @@ void UI::Render(ID3D12GraphicsCommandList *CommandList)
 // ÇÔÁ¤ À­ºÎºÐ
 TrapCover::TrapCover(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, int Type)
 {
-	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 30.f, 30.f, 0.f, 0.f, 0.f, 0.f);
+	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 30.f, 30.f, 0.f, 0.f, 0.f, 0.f, 0);
 	SetMesh(ObjMesh);
 
 	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
@@ -894,6 +895,82 @@ void TrapCover::Render(ID3D12GraphicsCommandList *CommandList)
 			m_Material[i]->UpdateShaderVariable(CommandList);
 			if (m_Mesh)
 				m_Mesh->Render(CommandList);
+		}
+	}
+}
+
+
+SkyBox::SkyBox(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+{
+	m_SkyBoxMesh = new Mesh *[6];
+	for (int i = 0; i < 6; ++i) m_SkyBoxMesh[i] = NULL;
+
+	TextureMesh *ObjMesh = NULL;
+	ObjMesh = new TextureMesh(Device, CommandList, 500.f, 500.f, 500.f, 0.f, 0.f, 0.f, 0);
+	SetMesh(0, ObjMesh);
+	ObjMesh = new TextureMesh(Device, CommandList, 500.f, 500.f, -500.f, 0.f, 0.f, 0.f, 1);
+	SetMesh(1, ObjMesh);
+	ObjMesh = new TextureMesh(Device, CommandList, -500.f, 500.f, 500.f, 0.f, 0.f, 0.f, 2);
+	SetMesh(2, ObjMesh);
+	ObjMesh = new TextureMesh(Device, CommandList, 500.f, 500.f, 500.f, 0.f, 0.f, 0.f, 3);
+	SetMesh(3, ObjMesh);
+	ObjMesh = new TextureMesh(Device, CommandList, 500.f, 500.f, 500.f, 0.f, 0.f, 0.f, 4);
+	SetMesh(4, ObjMesh);
+	ObjMesh = new TextureMesh(Device, CommandList, 500.f, -500.f, 500.f, 0.f, 0.f, 0.f, 5);
+	SetMesh(5, ObjMesh);
+
+	CreateShaderVariable(Device, CommandList);
+
+	Texture *ObjTexture = new Texture(6, RESOURCE_TEXTURE2D, 0);
+	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_front.dds", 0);
+	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_back.dds", 1);
+	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_left.dds", 2);
+	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/JSTM_Title.dds", 3);
+	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_up.dds", 4);
+	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_down.dds", 5);
+
+	SkyBoxShader *ObjShader = new SkyBoxShader();
+	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
+	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 2, false);
+
+	Material *ObjMaterial = new Material(6);
+	ObjMaterial->SetTexture(ObjTexture);
+	m_nMaterial = 1;
+
+	m_Material = new Material*();
+	m_Material[0] = NULL;
+	SetMaterial(0, ObjMaterial);
+	SetCbvGPUDescriptorHandle(ObjShader->GetGPUCbvDescriptorStartHandle());
+	SetShader(0, ObjShader);
+
+	ObjMaterial = NULL;
+}
+
+void SkyBox::SetMesh(int Index, Mesh *Mesh)
+{
+	if (m_SkyBoxMesh) m_SkyBoxMesh[Index] = Mesh;
+	if (Mesh) Mesh->AddRef();
+}
+
+void SkyBox::Animate(XMFLOAT3 Position)
+{
+	SetPostion(Position);
+
+	UpdateTransform(NULL);
+}
+
+void SkyBox::Render(ID3D12GraphicsCommandList *CommandList)
+{
+	UpdateShaderVariable(CommandList, &m_WorldPos);
+
+	if (m_nMaterial > 0) {
+		for (int i = 0; i < m_nMaterial; ++i) {
+			if (m_Material[i]->m_Shader)
+				m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
+			m_Material[i]->UpdateShaderVariable(CommandList);
+			
+			for (int j = 0; j < 6; ++j)
+				m_SkyBoxMesh[j]->Render(CommandList);
 		}
 	}
 }

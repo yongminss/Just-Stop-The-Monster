@@ -300,8 +300,8 @@ public:
 	XMFLOAT3 GetPosition() { return XMFLOAT3(m_TransformPos._41, m_TransformPos._42, m_TransformPos._43); }
 	XMFLOAT4X4 GetTransform() { return m_TransformPos; }
 
-	void MoveForward(float Distance);
-	void MoveRight(float Distance);
+	virtual void MoveForward(float Distance);
+	virtual void MoveRight(float Distance);
 
 	static MeshLoadInfo *LoadMeshInfoFromFile(FILE *InFile);
 	void LoadMaterialInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile, GameObject *Parent, Shader *Shader);
@@ -317,6 +317,8 @@ public:
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, XMFLOAT4X4 *WorldPos);
 
 	void SetEnable(int nAnimationSet);
+
+	virtual void OnPrepareRender() { }
 
 	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
@@ -341,6 +343,22 @@ public:
 	TrapCover(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, int Type);
 	~TrapCover();
 
+	virtual void Render(ID3D12GraphicsCommandList *CommandList);
+};
+
+class SkyBox : public GameObject
+{
+public:
+	SkyBox(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+	~SkyBox() { }
+
+public:
+	Mesh		**m_SkyBoxMesh = NULL;
+
+public:
+	void SetMesh(int Index, Mesh *Mesh);
+
+	void Animate(XMFLOAT3 Position);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 };
 

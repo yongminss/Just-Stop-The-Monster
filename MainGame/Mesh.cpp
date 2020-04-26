@@ -50,7 +50,7 @@ void Mesh::Render(ID3D12GraphicsCommandList *CommandList, int nSubSet)
 }
 
 // 텍스쳐 맵핑을 진행할 메쉬
-TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, float width, float height, float depth, float x, float y, float z)
+TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, float width, float height, float depth, float x, float y, float z, int type)
 {
 	m_nVertices = 6;
 	m_nStride = sizeof(TextureVertex);
@@ -62,13 +62,83 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 	float objY = height + y;
 	float objZ = depth + z;
 
-	Vertices[0] = TextureVertex(XMFLOAT3(+objX, +objY, objZ), XMFLOAT2(1.0f, 0.0f));
-	Vertices[1] = TextureVertex(XMFLOAT3(+objX, -objY, objZ), XMFLOAT2(1.0f, 1.0f));
-	Vertices[2] = TextureVertex(XMFLOAT3(-objX, -objY, objZ), XMFLOAT2(0.0f, 1.0f));
+	switch (type)
+	{
+	case 0: // 앞
+	{
+		Vertices[0] = TextureVertex(XMFLOAT3(+objX, +objY, objZ), XMFLOAT2(1.0f, 0.0f));
+		Vertices[1] = TextureVertex(XMFLOAT3(+objX, -objY, objZ), XMFLOAT2(1.0f, 1.0f));
+		Vertices[2] = TextureVertex(XMFLOAT3(-objX, -objY, objZ), XMFLOAT2(0.0f, 1.0f));
 
-	Vertices[3] = TextureVertex(XMFLOAT3(-objX, -objY, objZ), XMFLOAT2(0.0f, 1.0f));
-	Vertices[4] = TextureVertex(XMFLOAT3(-objX, +objY, objZ), XMFLOAT2(0.0f, 0.0f));
-	Vertices[5] = TextureVertex(XMFLOAT3(+objX, +objY, objZ), XMFLOAT2(1.0f, 0.0f));
+		Vertices[3] = TextureVertex(XMFLOAT3(-objX, -objY, objZ), XMFLOAT2(0.0f, 1.0f));
+		Vertices[4] = TextureVertex(XMFLOAT3(-objX, +objY, objZ), XMFLOAT2(0.0f, 0.0f));
+		Vertices[5] = TextureVertex(XMFLOAT3(+objX, +objY, objZ), XMFLOAT2(1.0f, 0.0f));
+	}
+	break;
+
+	case 1: // 뒤
+	{
+		Vertices[0] = TextureVertex(XMFLOAT3(-objX, +objY, objZ), XMFLOAT2(1.0f, 0.0f));
+		Vertices[1] = TextureVertex(XMFLOAT3(-objX, -objY, objZ), XMFLOAT2(1.0f, 1.0f));
+		Vertices[2] = TextureVertex(XMFLOAT3(+objX, -objY, objZ), XMFLOAT2(0.0f, 1.0f));
+
+		Vertices[3] = TextureVertex(XMFLOAT3(+objX, -objY, objZ), XMFLOAT2(0.0f, 1.0f));
+		Vertices[4] = TextureVertex(XMFLOAT3(+objX, +objY, objZ), XMFLOAT2(0.0f, 0.0f));
+		Vertices[5] = TextureVertex(XMFLOAT3(-objX, +objY, objZ), XMFLOAT2(1.0f, 0.0f));
+	}
+	break;
+
+	case 2: // 왼쪽
+	{
+		Vertices[0] = TextureVertex(XMFLOAT3(objX, +objY, +objZ), XMFLOAT2(1.0f, 0.0f));
+		Vertices[1] = TextureVertex(XMFLOAT3(objX, -objY, +objZ), XMFLOAT2(1.0f, 1.0f));
+		Vertices[2] = TextureVertex(XMFLOAT3(objX, -objY, -objZ), XMFLOAT2(0.0f, 1.0f));
+
+		Vertices[3] = TextureVertex(XMFLOAT3(objX, -objY, -objZ), XMFLOAT2(0.0f, 1.0f));
+		Vertices[4] = TextureVertex(XMFLOAT3(objX, +objY, -objZ), XMFLOAT2(0.0f, 0.0f));
+		Vertices[5] = TextureVertex(XMFLOAT3(objX, +objY, +objZ), XMFLOAT2(1.0f, 0.0f));
+	}
+	break;
+
+	case 3: // 오른쪽
+	{
+		Vertices[0] = TextureVertex(XMFLOAT3(objX, +objY, -objZ), XMFLOAT2(1.0f, 0.0f));
+		Vertices[1] = TextureVertex(XMFLOAT3(objX, -objY, -objZ), XMFLOAT2(1.0f, 1.0f));
+		Vertices[2] = TextureVertex(XMFLOAT3(objX, -objY, +objZ), XMFLOAT2(0.0f, 1.0f));
+
+		Vertices[3] = TextureVertex(XMFLOAT3(objX, -objY, +objZ), XMFLOAT2(0.0f, 1.0f));
+		Vertices[4] = TextureVertex(XMFLOAT3(objX, +objY, +objZ), XMFLOAT2(0.0f, 0.0f));
+		Vertices[5] = TextureVertex(XMFLOAT3(objX, +objY, -objZ), XMFLOAT2(1.0f, 0.0f));
+	}
+	break;
+
+	case 4: // 위
+	{
+		Vertices[0] = TextureVertex(XMFLOAT3(+objX, objY, -objZ), XMFLOAT2(1.0f, 0.0f));
+		Vertices[1] = TextureVertex(XMFLOAT3(+objX, objY, +objZ), XMFLOAT2(1.0f, 1.0f));
+		Vertices[2] = TextureVertex(XMFLOAT3(-objX, objY, +objZ), XMFLOAT2(0.0f, 1.0f));
+
+		Vertices[3] = TextureVertex(XMFLOAT3(-objX, objY, +objZ), XMFLOAT2(0.0f, 1.0f));
+		Vertices[4] = TextureVertex(XMFLOAT3(-objX, objY, -objZ), XMFLOAT2(0.0f, 0.0f));
+		Vertices[5] = TextureVertex(XMFLOAT3(+objX, objY, -objZ), XMFLOAT2(1.0f, 0.0f));
+	}
+	break;
+
+	case 5: // 아래
+	{
+		Vertices[0] = TextureVertex(XMFLOAT3(+objX, objY, +objZ), XMFLOAT2(1.0f, 0.0f));
+		Vertices[1] = TextureVertex(XMFLOAT3(+objX, objY, -objZ), XMFLOAT2(1.0f, 1.0f));
+		Vertices[2] = TextureVertex(XMFLOAT3(-objX, objY, -objZ), XMFLOAT2(0.0f, 1.0f));
+
+		Vertices[3] = TextureVertex(XMFLOAT3(-objX, objY, -objZ), XMFLOAT2(0.0f, 1.0f));
+		Vertices[4] = TextureVertex(XMFLOAT3(-objX, objY, +objZ), XMFLOAT2(0.0f, 0.0f));
+		Vertices[5] = TextureVertex(XMFLOAT3(+objX, objY, +objZ), XMFLOAT2(1.0f, 0.0f));
+	}
+	break;
+
+	default:
+		break;
+	}
 
 	m_VertexBuffer = CreateBufferResource(Device, CommandList, Vertices, m_nStride*m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_VertexUploadBuffer);
 	

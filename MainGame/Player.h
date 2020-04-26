@@ -25,7 +25,12 @@ public:
 	
 	virtual void SetRotate(float Pitch, float Yaw, float Roll);
 
+	virtual void MoveForward(float Distance);
+	virtual void MoveRight(float Distance);
+
 	void Move(float ElapsedTime);
+
+	virtual void OnPrepareRender();
 
 	virtual void Update(float ElapsedTime);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);

@@ -40,34 +40,63 @@ void Player::UpdateCameraSet(ID3D12GraphicsCommandList *CommandList)
 
 void Player::SetRotate(float Pitch, float Yaw, float Roll)
 {
-	XMMATRIX Rotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(Pitch), XMConvertToRadians(Yaw), XMConvertToRadians(Roll));
-	m_TransformPos = Matrix4x4::Multiply(Rotate, m_TransformPos);
+	if (Yaw != 0.f) {
+		XMMATRIX Rotate = XMMatrixRotationAxis(XMLoadFloat3(&m_Up), XMConvertToRadians(Yaw));
+		m_Look = Vector3::TransformNormal(m_Look, Rotate);
+		m_Right = Vector3::TransformNormal(m_Right, Rotate);
 
-	UpdateTransform(NULL);
+		m_Camera->SetRotate(-Pitch, -Yaw, -Roll);
+	}
+}
+
+void Player::MoveForward(float Distance)
+{
+	XMFLOAT3 Shift = XMFLOAT3(0.f, 0.f, 0.f);
+	Shift = Vector3::Add(Shift, m_Look, Distance);
+
+	m_Position = Vector3::Add(m_Position, Shift);
+}
+
+void Player::MoveRight(float Distance)
+{
+	XMFLOAT3 Shift = XMFLOAT3(0.f, 0.f, 0.f);
+	Shift = Vector3::Add(Shift, m_Right, Distance);
+
+	m_Position = Vector3::Add(m_Position, Shift);
 }
 
 void Player::Move(float ElapsedTime)
 {
 	switch (m_Direction) {
 	case 1:
-		GameObject::MoveForward(250.f * ElapsedTime);
+		MoveForward(250.f * ElapsedTime);
 		break;
 
 	case 2:
-		GameObject::MoveForward(-(250.f * ElapsedTime));
+		MoveForward(-(250.f * ElapsedTime));
 		break;
 
 	case 3:
-		GameObject::MoveRight(-(250.f * ElapsedTime));
+		MoveRight(-(250.f * ElapsedTime));
 		break;
 
 	case 4:
-		GameObject::MoveRight(250.f * ElapsedTime);
+		MoveRight(250.f * ElapsedTime);
 		break;
 
 	default:
 		break;
 	}
+}
+
+void Player::OnPrepareRender()
+{
+	m_TransformPos._11 = m_Right.x, m_TransformPos._12 = m_Right.y, m_TransformPos._13 = m_Right.z;
+	m_TransformPos._21 = m_Up.x, m_TransformPos._22 = m_Up.y, m_TransformPos._23 = m_Up.z;
+	m_TransformPos._31 = m_Look.x, m_TransformPos._32 = m_Look.y, m_TransformPos._33 = m_Look.z;
+	m_TransformPos._41 = m_Position.x, m_TransformPos._42 = m_Position.y, m_TransformPos._43 = m_Position.z;
+
+	UpdateTransform(NULL);
 }
 
 void Player::Update(float ElapsedTime)

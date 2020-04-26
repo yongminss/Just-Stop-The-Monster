@@ -244,6 +244,63 @@ void TrapShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *C
 }
 
 
+// 스카이박스에 사용할 쉐이더 //
+D3D12_INPUT_LAYOUT_DESC SkyBoxShader::CreateInputLayout()
+{
+	UINT nInputElementDesc = 2;
+	D3D12_INPUT_ELEMENT_DESC *InputElementDesc = new D3D12_INPUT_ELEMENT_DESC[nInputElementDesc];
+
+	InputElementDesc[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	InputElementDesc[1] = { "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	D3D12_INPUT_LAYOUT_DESC InputLayoutDesc;
+	InputLayoutDesc.pInputElementDescs = InputElementDesc;
+	InputLayoutDesc.NumElements = nInputElementDesc;
+
+	return InputLayoutDesc;
+}
+
+D3D12_SHADER_BYTECODE SkyBoxShader::CreateVertexShader()
+{
+	return Shader::CompileShaderFromFile(L"Shaders.hlsl", "VSTrap", "vs_5_1", &m_VertexShaderBlob);
+}
+
+D3D12_SHADER_BYTECODE SkyBoxShader::CreatePixelShader()
+{
+	return Shader::CompileShaderFromFile(L"Shaders.hlsl", "PSPictureColor", "ps_5_1", &m_PixelShaderBlob);
+}
+
+D3D12_DEPTH_STENCIL_DESC SkyBoxShader::CreateDepthStencilState()
+{
+	D3D12_DEPTH_STENCIL_DESC DepthStencilDesc;
+	::ZeroMemory(&DepthStencilDesc, sizeof(D3D12_DEPTH_STENCIL_DESC));
+	DepthStencilDesc.DepthEnable = FALSE;
+	DepthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+	DepthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	DepthStencilDesc.StencilEnable = FALSE;
+	DepthStencilDesc.StencilReadMask = 0x00;
+	DepthStencilDesc.StencilWriteMask = 0x00;
+	DepthStencilDesc.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+	DepthStencilDesc.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+	DepthStencilDesc.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+	DepthStencilDesc.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_NEVER;
+	DepthStencilDesc.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+	DepthStencilDesc.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+	DepthStencilDesc.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+	DepthStencilDesc.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_NEVER;
+
+	return DepthStencilDesc;
+}
+
+void SkyBoxShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+{
+	m_nPipelineState = 1;
+	m_PipelineStates = new ID3D12PipelineState*[m_nPipelineState];
+
+	Shader::CreateShader(Device, CommandList, GraphicsRootSignature);
+}
+
+
 // 3D 오브젝트에 사용할 쉐이더
 D3D12_INPUT_LAYOUT_DESC StandardShader::CreateInputLayout()
 {

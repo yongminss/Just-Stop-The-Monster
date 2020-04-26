@@ -121,6 +121,9 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
 
+	// 스카이박스
+	m_SkyBox = new SkyBox(Device, CommandList, m_GraphicsRootSignature);
+
 	// 몬스터 모델
 	m_OrcModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/weak_infantry.bin", NULL, true);
 	m_ShamanModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/shaman.bin", NULL, true);
@@ -489,6 +492,8 @@ void GameScene::Animate(float ElapsedTime)
 {
 	m_ElasedTime = ElapsedTime;
 
+	if (m_SkyBox) m_SkyBox->Animate(m_Player->GetPosition());
+
 	if (m_Player) {
 		m_Player->UpdateTransform(NULL);
 		m_Player->Update(ElapsedTime);
@@ -531,6 +536,9 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	// 조명을 사용하기 위한 함수 호출
 	UpdateShaderVariable(CommandList);
 
+	// 스카이박스 렌더링
+	if (m_SkyBox) m_SkyBox->Render(CommandList);
+
 	// 플레이어 렌더링
 	if (m_Player) m_Player->Render(CommandList);
 
@@ -544,11 +552,30 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
 		(*iter)->Render(CommandList);
 
-	if (m_StageModel)
-		m_StageModel->Render(CommandList);
+	if (m_StageModel) m_StageModel->Render(CommandList);
 
 	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
 		m_OtherPlayerModel->Render(CommandList);
+	}
+
+}
+
+void GameScene::ProcessInput(HWND hWnd)
+{
+	float xDelta = 0.f, yDelta = 0.f;
+	POINT CursourPos;
+
+	if (GetCapture() == hWnd) {
+		SetCursor(NULL);
+		GetCursorPos(&CursourPos);
+		xDelta = (float)(CursourPos.x - m_OldCursourPos.x) / 10.0f;
+		yDelta = (float)(CursourPos.y - m_OldCursourPos.y) / 10.0f;
+		SetCursorPos(m_OldCursourPos.x, m_OldCursourPos.y);
+	}
+
+	if (xDelta != 0.f || yDelta != 0.f) {
+		if (xDelta || yDelta)
+			m_Player->SetRotate(0.f, xDelta, 0.f);
 	}
 
 }
@@ -558,9 +585,14 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 	switch (nMessageID)
 	{
 	case WM_LBUTTONDOWN:
+		::SetCapture(hWnd);
+		::GetCursorPos(&m_OldCursourPos);
+		m_Player->SetEnable(4);
 		break;
 
 	case WM_LBUTTONUP:
+		m_Player->SetEnable(0);
+		//::ReleaseCapture();
 		break;
 
 	default:

@@ -79,6 +79,22 @@ public:
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
 };
 
+class SkyBoxShader : public Shader
+{
+public:
+	SkyBoxShader() { }
+	~SkyBoxShader() { }
+	
+public:
+	virtual D3D12_INPUT_LAYOUT_DESC		CreateInputLayout();
+	virtual D3D12_SHADER_BYTECODE		CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE		CreatePixelShader();
+
+	virtual D3D12_DEPTH_STENCIL_DESC	CreateDepthStencilState();
+
+	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+};
+
 
 class StandardShader : public Shader
 {
