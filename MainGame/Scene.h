@@ -66,7 +66,7 @@ public:
 	GameScene();
 	~GameScene();
 
-	SOCKET m_socket = NULL;
+	SOCKET m_socket;
 
 private:
 	ID3D12RootSignature			*m_GraphicsRootSignature = NULL;

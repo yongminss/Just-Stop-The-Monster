@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Scene.h"
+class network_manager;
 
 // 게임 시작 시, 등장할 타이틀 화면의 클래스
 TitleScene::TitleScene()
@@ -99,6 +100,7 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 
 // 싱글 및 멀티와 캐릭터, 함정 등을 선택 후, 게임을 진행하는 게임 씬
+
 GameScene::GameScene()
 {
 	m_socket = network_manager::GetInst()->m_serverSocket;

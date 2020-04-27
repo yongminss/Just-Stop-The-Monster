@@ -17,7 +17,7 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름�
 
 // 비동기io
 #define	WM_SOCKET			WM_USER + 1
-network_manager * net_manager;
+network_manager *net_manager;
 
 // 게임을 진행하기 위한 프레임워크 생성
 GameFramework m_GameFramework;
@@ -121,9 +121,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    if (!hWnd) return FALSE;
    net_manager = new network_manager;
-   net_manager->init_socket();
-   net_manager->rq_connect_server("127.0.0.1");
-   WSAAsyncSelect(net_manager->m_serverSocket, hWnd, WM_SOCKET, FD_READ || FD_CLOSE);
+   network_manager::GetInst()->init_socket();
+   network_manager::GetInst()->rq_connect_server("127.0.0.1");
+   WSAAsyncSelect(network_manager::GetInst()->m_serverSocket, hWnd, WM_SOCKET, FD_READ || FD_CLOSE);
    m_GameFramework.OnCreate(hInstance, hWnd);
 
    ShowWindow(hWnd, nCmdShow);
@@ -196,7 +196,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		switch (WSAGETSELECTEVENT(lParam))
 		{
 		case FD_READ:
-			net_manager->ReadBuffer((SOCKET)wParam);
+			network_manager::GetInst()->ReadBuffer((SOCKET)wParam);
 			break;
 
 		default:

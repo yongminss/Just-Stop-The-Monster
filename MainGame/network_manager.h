@@ -22,7 +22,10 @@ class network_manager
 public:
 	network_manager();
 	~network_manager();
+private:
+	static network_manager* Inst;
 
+public:
 	void init_socket();
 	void rq_connect_server(const char * server_ip);
 	void ReadBuffer(SOCKET sock);
@@ -43,8 +46,7 @@ public:
 
 public:
 	bool IsConnect() { return m_OtherInfo.is_connect; }
-private:
-	static network_manager* Inst;
+
 public:
 	static network_manager* GetInst() {
 		if (Inst == NULL)
