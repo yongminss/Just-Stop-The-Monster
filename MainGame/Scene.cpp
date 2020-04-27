@@ -101,7 +101,7 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 // 싱글 및 멀티와 캐릭터, 함정 등을 선택 후, 게임을 진행하는 게임 씬
 GameScene::GameScene()
 {
-
+	m_socket = network_manager::GetInst()->m_serverSocket;
 }
 
 GameScene::~GameScene()
@@ -153,10 +153,6 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_Shaman.back()->SetChild(m_WolfRiderModel, true);
 	m_Shaman.back()->SetRotate(0.f, 150.f, 0.f);
 	m_Shaman.back()->SetPostion(XMFLOAT3(200.f, -50.f, 150.f));
-
-	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
-		m_OtherPlayerModel = new TrapCover(Device, CommandList, m_GraphicsRootSignature, 0);
-	}
 
 	CreateShaderVariable(Device, CommandList);
 }
@@ -517,10 +513,6 @@ void GameScene::Animate(float ElapsedTime)
 			(*iter)->Animate(ElapsedTime, NULL);
 		}
 
-	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
-		m_OtherPlayerModel->UpdateTransform(NULL);
-		m_OtherPlayerModel->SetPostion(XMFLOAT3(m_NetworkManager->m_OtherInfo.Transform._41, m_NetworkManager->m_OtherInfo.Transform._42, m_NetworkManager->m_OtherInfo.Transform._43));
-	}
 }
 
 void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
@@ -553,11 +545,6 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		(*iter)->Render(CommandList);
 
 	if (m_StageModel) m_StageModel->Render(CommandList);
-
-	if (m_NetworkManager->m_OtherInfo.is_connect == true) {
-		m_OtherPlayerModel->Render(CommandList);
-	}
-
 }
 
 void GameScene::ProcessInput(HWND hWnd)
@@ -616,7 +603,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_Player->SetEnable(2);
 			// Send to Server
 			cs_packet_pos packet;
-			packet.id = m_NetworkManager->m_my_info.id;
+			packet.id = network_manager::GetInst()->m_my_info.id;
 			packet.size = sizeof(packet);
 			packet.type = CS_POS;
 			packet.player_world_pos = m_Player->GetTransform();
@@ -631,7 +618,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_Player->SetEnable(2);
 			// Send to Server
 			cs_packet_pos packet;
-			packet.id = m_NetworkManager->m_my_info.id;
+			packet.id = network_manager::GetInst()->m_my_info.id;
 			packet.size = sizeof(packet);
 			packet.type = CS_POS;
 			packet.player_world_pos = m_Player->GetTransform();

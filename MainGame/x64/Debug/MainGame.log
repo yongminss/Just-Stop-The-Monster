@@ -1,2 +1,15 @@
-﻿  Player.cpp
+﻿  GameFramework.cpp
+c:\users\user\desktop\수업 자료\졸업 작품\just-stop-the-monster\maingame\gameframework.cpp(340): warning C4244: '초기화 중': 'UINT64'에서 'UINT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  GameObject.cpp
+  MainGame.cpp
+c:\users\user\desktop\수업 자료\졸업 작품\just-stop-the-monster\maingame\maingame.cpp(162): warning C4996: '_wfreopen': This function or variable may be unsafe. Consider using _wfreopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\corecrt_wstdio.h(144): note: '_wfreopen' 선언을 참조하십시오.
+c:\users\user\desktop\수업 자료\졸업 작품\just-stop-the-monster\maingame\maingame.cpp(163): warning C4996: '_wfreopen': This function or variable may be unsafe. Consider using _wfreopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\corecrt_wstdio.h(144): note: '_wfreopen' 선언을 참조하십시오.
+c:\users\user\desktop\수업 자료\졸업 작품\just-stop-the-monster\maingame\maingame.cpp(164): warning C4996: '_wfreopen': This function or variable may be unsafe. Consider using _wfreopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\corecrt_wstdio.h(144): note: '_wfreopen' 선언을 참조하십시오.
+  Scene.cpp
+c:\users\user\desktop\수업 자료\졸업 작품\just-stop-the-monster\maingame\scene.cpp(658): warning C4065: switch문에 'default'가 있으나 'case' 레이블이 없습니다.
+  코드를 생성하고 있습니다...
+c:\users\user\desktop\수업 자료\졸업 작품\just-stop-the-monster\maingame\gameobject.cpp(669): warning C4715: 'GameObject::FindReplicatedTexture': 모든 제어 경로에서 값을 반환하지는 않습니다.
   MainGame.vcxproj -> C:\Users\user\Desktop\수업 자료\졸업 작품\Just-Stop-The-Monster\x64\Debug\MainGame.exe

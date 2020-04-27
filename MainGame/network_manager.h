@@ -24,7 +24,7 @@ public:
 	~network_manager();
 
 	void init_socket();
-	SOCKET rq_connect_server(const char * server_ip);
+	void rq_connect_server(const char * server_ip);
 	void ReadBuffer(SOCKET sock);
 
 	void PacketProccess(void * buf);
@@ -43,5 +43,21 @@ public:
 
 public:
 	bool IsConnect() { return m_OtherInfo.is_connect; }
+private:
+	static network_manager* Inst;
+public:
+	static network_manager* GetInst() {
+		if (Inst == NULL)
+			Inst = new network_manager;
+
+		return Inst;
+	}
+
+	static void DestroyInst() {
+		if (Inst) {
+			delete Inst;
+			Inst = nullptr;
+		}
+	}
 };
 

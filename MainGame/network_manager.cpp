@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "network_manager.h"
 
+network_manager* network_manager::Inst = NULL;
 
 network_manager::network_manager()
 {
@@ -27,14 +28,14 @@ void network_manager::init_socket()
 	m_OtherInfo.is_connect = false;
 }
 
-SOCKET network_manager::rq_connect_server(const char * server_ip)
+void network_manager::rq_connect_server(const char * server_ip)
 {
 	memset(&m_serverAddr, 0, sizeof(SOCKADDR_IN));
 	m_serverAddr.sin_family = AF_INET;
 	m_serverAddr.sin_port = htons(SERVER_PORT);
 	inet_pton(AF_INET, server_ip, &m_serverAddr.sin_addr);// ipv4에서 ipv6로 변환	
 	connect(m_serverSocket, (struct sockaddr *)&m_serverAddr, sizeof(m_serverAddr));
-	return m_serverSocket;
+	//return m_serverSocket;
 }
 
 void network_manager::ReadBuffer(SOCKET sock)
@@ -80,13 +81,13 @@ void network_manager::PacketProccess(void * buf)
 	{
 		sc_packet_send_id *send_id_packet = reinterpret_cast<sc_packet_send_id*>(buf);
 		m_my_info.id = send_id_packet->id;
-		cout << "id받기 확인"<< m_my_info.id << endl;
+		cout << "id받기 확인" << m_my_info.id << endl;
 		break;
 	}
 	case SC_POS:
 	{
 		sc_packet_pos *pos_packet = reinterpret_cast<sc_packet_pos*>(buf);
-		cout << "id: " << pos_packet->id << endl;
+		//cout << "id: " << pos_packet->id << endl;
 		if (pos_packet->mover_id == m_my_info.id) { // 자기자신 위치
 			m_my_info.Transform = pos_packet->world_pos;
 			cout << "내 위치 받기 확인" << endl;
@@ -114,6 +115,6 @@ void network_manager::PacketProccess(void * buf)
 
 		break;
 	}
-		
+
 	}
 }

@@ -11,10 +11,6 @@ public:
 	GameFramework();
 	~GameFramework();
 
-public:
-	SOCKET m_socket;
-	network_manager * m_NetworkManager = NULL;
-
 private:
 	HINSTANCE					m_hInstance;
 	HWND						m_hwnd;
