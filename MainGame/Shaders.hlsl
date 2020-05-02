@@ -109,6 +109,7 @@ VS_TEXTURED_OUTPUT VSTrap(VS_TEXTURED_INPUT input)
 float4 PSPictureColor(VS_TEXTURED_OUTPUT input) : SV_TARGET
 {
     float4 Color = gtxtTexture.Sample(gSamplerState, input.uv);
+    clip(Color.a - 1.f);
     
     return Color;
 }

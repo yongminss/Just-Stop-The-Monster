@@ -404,86 +404,6 @@ void GameObject::MoveRight(float Distance)
 }
 
 // ------------------------- //
-
-MeshLoadInfo *GameObject::LoadMeshInfoFromFile(FILE *InFile)
-{
-	char Token[64] = { '\0' };
-	UINT nRead = 0;
-
-	int nPosition = 0, nColor = 0, nNormal = 0, nIndices = 0, nSubMeshes = 0, nSubIndices = 0;
-
-	MeshLoadInfo *MeshInfo = new MeshLoadInfo;
-
-	MeshInfo->m_nVertices = ::ReadIntegerFromFile(InFile);
-	::ReadStringFromFile(InFile, MeshInfo->m_MeshName);
-
-	for (; ;) {
-		::ReadStringFromFile(InFile, Token);
-
-		if (!strcmp(Token, "<Bounds>:")) {
-			nRead = (UINT)::fread(&(MeshInfo->m_AABBCenter), sizeof(XMFLOAT3), 1, InFile);
-			nRead = (UINT)::fread(&(MeshInfo->m_AABBExtent), sizeof(XMFLOAT3), 1, InFile);
-		}
-		else if (!strcmp(Token, "<Positions>:")) {
-			nPosition = ::ReadIntegerFromFile(InFile);
-			if (nPosition > 0) {
-				MeshInfo->m_nType |= VERTEXT_POSITION;
-				MeshInfo->m_Position = new XMFLOAT3[nPosition];
-				nRead = (UINT)::fread(MeshInfo->m_Position, sizeof(XMFLOAT3), nPosition, InFile);
-			}
-		}
-		else if (!strcmp(Token, "<Colors>:")) {
-			nColor = ::ReadIntegerFromFile(InFile);
-			if (nColor > 0) {
-				MeshInfo->m_nType |= VERTEXT_COLOR;
-				MeshInfo->m_Color = new XMFLOAT4[nColor];
-				nRead = (UINT)::fread(MeshInfo->m_Color, sizeof(XMFLOAT4), nColor, InFile);
-			}
-		}
-		else if (!strcmp(Token, "<Normals>:")) {
-			nNormal = ::ReadIntegerFromFile(InFile);
-			if (nNormal > 0) {
-				MeshInfo->m_nType |= VERTEXT_NORMAL;
-				MeshInfo->m_Normal = new XMFLOAT3[nNormal];
-				nRead = (UINT)::fread(MeshInfo->m_Normal, sizeof(XMFLOAT3), nNormal, InFile);
-			}
-		}
-		else if (!strcmp(Token, "<Indices>:")) {
-			nIndices = ::ReadIntegerFromFile(InFile);
-			if (nIndices > 0) {
-				MeshInfo->m_pnIndices = new UINT[nIndices];
-				nRead = (UINT)::fread(MeshInfo->m_pnIndices, sizeof(UINT), nIndices, InFile);
-			}
-		}
-		else if (!strcmp(Token, "<SubMeshes>:")) {
-			MeshInfo->m_nSubMeshes = ::ReadIntegerFromFile(InFile);
-
-			if (MeshInfo->m_nSubMeshes > 0) {
-				MeshInfo->m_nSubSetIndices = new int[MeshInfo->m_nSubMeshes];
-				MeshInfo->m_pnSubSetIndices = new UINT*[MeshInfo->m_nSubMeshes];
-
-				for (int i = 0; i < MeshInfo->m_nSubMeshes; ++i) {
-					::ReadStringFromFile(InFile, Token);
-
-					if (!strcmp(Token, "<SubMesh>:")) {
-						int nIndex = ::ReadIntegerFromFile(InFile);
-						MeshInfo->m_nSubSetIndices[i] = ::ReadIntegerFromFile(InFile);
-
-						if (MeshInfo->m_nSubSetIndices[i] > 0) {
-							MeshInfo->m_pnSubSetIndices[i] = new UINT[MeshInfo->m_nSubSetIndices[i]];
-							nRead = (UINT)::fread(MeshInfo->m_pnSubSetIndices[i], sizeof(int), MeshInfo->m_nSubSetIndices[i], InFile);
-						}
-					}
-				}
-			}
-		}
-		else if (!strcmp(Token, "</Mesh>"))
-			break;
-	}
-
-	return MeshInfo;
-}
-
 void GameObject::LoadMaterialInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile, GameObject *Parent, Shader *Shader)
 {
 	char Token[64] = { '\0' };
@@ -798,18 +718,28 @@ void GameObject::LoadAnimationFromFile(FILE *InFile)
 }
 
 // UI
-UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, float x, float y, int Type)
 {
-	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 1.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0);
+	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, x, y, 0.f, 0.f, 0.f, 0.f, 0);
 	SetMesh(ObjMesh);
 
 	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
-	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/JSTM_Title.dds", 0);
 
+	switch (Type) {
+	case 0:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/JSTM_Title.dds", 0);
+		break;
+
+	case 1:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/select.dds", 0);
+		break;
+
+	default:
+		break;
+	}
 	UIShader *ObjShader = new UIShader();
 	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
-	//ObjShader->CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 1);
-	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 0, false);
+	TitleScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 1, false);
 
 	Material *ObjMaterial = new Material(1);
 	ObjMaterial->SetTexture(ObjTexture);
@@ -820,13 +750,18 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	SetMaterial(0, ObjMaterial);
 	SetCbvGPUDescriptorHandle(ObjShader->GetGPUCbvDescriptorStartHandle());
 	SetShader(0, ObjShader);
-	
+
 	ObjMaterial = NULL;
 }
 
 UI::~UI()
 {
 
+}
+
+void UI::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
+{
+	//m_Mesh
 }
 
 void UI::Render(ID3D12GraphicsCommandList *CommandList)

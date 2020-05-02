@@ -2,6 +2,18 @@
 #include "Scene.h"
 class network_manager;
 
+ID3D12DescriptorHeap *TitleScene::m_CbvSrvDescriptorHeap = NULL;
+
+D3D12_CPU_DESCRIPTOR_HANDLE TitleScene::m_CbvCPUDescriptorStartHandle;
+D3D12_GPU_DESCRIPTOR_HANDLE TitleScene::m_CbvGPUDescriptorStartHandle;
+D3D12_CPU_DESCRIPTOR_HANDLE TitleScene::m_SrvCPUDescriptorStartHandle;
+D3D12_GPU_DESCRIPTOR_HANDLE TitleScene::m_SrvGPUDescriptorStartHandle;
+
+D3D12_CPU_DESCRIPTOR_HANDLE TitleScene::m_CbvCPUDescriptorNextHandle;
+D3D12_GPU_DESCRIPTOR_HANDLE TitleScene::m_CbvGPUDescriptorNextHandle;
+D3D12_CPU_DESCRIPTOR_HANDLE TitleScene::m_SrvCPUDescriptorNextHandle;
+D3D12_GPU_DESCRIPTOR_HANDLE TitleScene::m_SrvGPUDescriptorNextHandle;
+
 // 게임 시작 시, 등장할 타이틀 화면의 클래스
 TitleScene::TitleScene()
 {
@@ -17,17 +29,22 @@ void TitleScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 {
 	m_GraphicsRootSignature = CreateGraphicsRootSignature(Device);
 
+	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 2);
+
 	m_Viewport = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.f, 1.f };
 	m_ScissorRect = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT };
 
-	//m_UI = new UI(Device, CommandList, m_GraphicsRootSignature);
+	// TitleScene 에서 Redering 될 Objects
+	m_Background = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, 0);
+	m_Select = new UI(Device, CommandList, m_GraphicsRootSignature, 0.3f, 0.125f, 1);
 }
 
 void TitleScene::ReleaseObject()
 {
 	if (m_GraphicsRootSignature) m_GraphicsRootSignature->Release();
 
-	if (m_UI) delete m_UI;
+	if (m_Background) delete m_Background;
+	if (m_Select) delete m_Select;
 }
 
 ID3D12RootSignature *TitleScene::CreateGraphicsRootSignature(ID3D12Device *Device)
@@ -43,11 +60,18 @@ ID3D12RootSignature *TitleScene::CreateGraphicsRootSignature(ID3D12Device *Devic
 	DescriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 	// 루트 파라미터
-	D3D12_ROOT_PARAMETER RootParameter[1];
-	RootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	RootParameter[0].DescriptorTable.NumDescriptorRanges = 1;
-	RootParameter[0].DescriptorTable.pDescriptorRanges = &DescriptorRange;
-	RootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	D3D12_ROOT_PARAMETER RootParameter[2];
+	RootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	RootParameter[0].Descriptor.ShaderRegister = 1; // Camera
+	RootParameter[0].Descriptor.RegisterSpace = 0;
+	RootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+	// TitleScene에선 이 루트 파라미터만 사용하지만
+	// Render 시에 Root32BitConstants에 넘겨주는 값 때문에 0번 파라미터에 필요 없는 값 생성
+	RootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	RootParameter[1].DescriptorTable.NumDescriptorRanges = 1;
+	RootParameter[1].DescriptorTable.pDescriptorRanges = &DescriptorRange;
+	RootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	// 샘플러
 	D3D12_STATIC_SAMPLER_DESC SamplerDesc;
@@ -85,22 +109,103 @@ ID3D12RootSignature *TitleScene::CreateGraphicsRootSignature(ID3D12Device *Devic
 	return GraphicsRootSignature;
 }
 
+void TitleScene::CreateCbvSrvDescriptorHeap(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, int nConstantBufferView, int nShaderResourceView)
+{
+	D3D12_DESCRIPTOR_HEAP_DESC DescriptorHeapDesc;
+	DescriptorHeapDesc.NumDescriptors = nConstantBufferView + nShaderResourceView;
+	DescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	DescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	DescriptorHeapDesc.NodeMask = 0;
+	Device->CreateDescriptorHeap(&DescriptorHeapDesc, __uuidof(ID3D12DescriptorHeap), (void**)&m_CbvSrvDescriptorHeap);
+
+	m_CbvCPUDescriptorNextHandle = m_CbvCPUDescriptorStartHandle = m_CbvSrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	m_CbvGPUDescriptorNextHandle = m_CbvGPUDescriptorStartHandle = m_CbvSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+	m_SrvCPUDescriptorNextHandle.ptr = m_SrvCPUDescriptorStartHandle.ptr = m_CbvCPUDescriptorStartHandle.ptr + (::nCbvSrvDescriptorIncrementSize * nConstantBufferView);
+	m_SrvGPUDescriptorNextHandle.ptr = m_SrvGPUDescriptorStartHandle.ptr = m_CbvGPUDescriptorStartHandle.ptr + (::nCbvSrvDescriptorIncrementSize * nConstantBufferView);
+}
+
+D3D12_SHADER_RESOURCE_VIEW_DESC GetTitleSceneShaderResourceViewDesc(D3D12_RESOURCE_DESC ResourceDesc, UINT nTextureType)
+{
+	D3D12_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc;
+	ShaderResourceViewDesc.Format = ResourceDesc.Format;
+	ShaderResourceViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+	switch (nTextureType)
+	{
+	case RESOURCE_TEXTURE2D:
+	case RESOURCE_TEXTURE2D_ARRAY:
+		ShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		ShaderResourceViewDesc.Texture2D.MipLevels = -1;
+		ShaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+		ShaderResourceViewDesc.Texture2D.PlaneSlice = 0;
+		ShaderResourceViewDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+		break;
+
+	case RESOURCE_TEXTURE2DARRAY:
+		ShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+		ShaderResourceViewDesc.Texture2DArray.MipLevels = -1;
+		ShaderResourceViewDesc.Texture2DArray.MostDetailedMip = 0;
+		ShaderResourceViewDesc.Texture2DArray.PlaneSlice = 0;
+		ShaderResourceViewDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
+		ShaderResourceViewDesc.Texture2DArray.FirstArraySlice = 0;
+		ShaderResourceViewDesc.Texture2DArray.ArraySize = ResourceDesc.DepthOrArraySize;
+		break;
+
+	case RESOURCE_TEXTURE_CUBE:
+		ShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+		ShaderResourceViewDesc.TextureCube.MipLevels = -1;
+		ShaderResourceViewDesc.TextureCube.MostDetailedMip = 0;
+		ShaderResourceViewDesc.TextureCube.ResourceMinLODClamp = 0.0f;
+		break;
+
+	case RESOURCE_BUFFER:
+		ShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+		ShaderResourceViewDesc.Buffer.FirstElement = 0;
+		ShaderResourceViewDesc.Buffer.NumElements = 0;
+		ShaderResourceViewDesc.Buffer.StructureByteStride = 0;
+		ShaderResourceViewDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+		break;
+	}
+	return ShaderResourceViewDesc;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE TitleScene::CreateShaderResourceView(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, Texture *Texture, UINT nRootParameterStartIndex, bool AutoIncrement)
+{
+	if (Texture) {
+		int nTexture = Texture->GetTextureNum();
+		int nTextureType = Texture->GetTextureType();
+		for (int i = 0; i < nTexture; ++i) {
+			ID3D12Resource *ShaderResource = Texture->GetTexture(i);
+			D3D12_RESOURCE_DESC ResourceDesc = ShaderResource->GetDesc();
+			D3D12_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc = GetTitleSceneShaderResourceViewDesc(ResourceDesc, nTextureType);
+			Device->CreateShaderResourceView(ShaderResource, &ShaderResourceViewDesc, m_SrvCPUDescriptorNextHandle);
+			m_SrvCPUDescriptorNextHandle.ptr += ::nCbvSrvDescriptorIncrementSize;
+
+			Texture->SetRootArgument(i, (AutoIncrement) ? (nRootParameterStartIndex + i) : nRootParameterStartIndex, m_SrvGPUDescriptorNextHandle);
+			m_SrvGPUDescriptorNextHandle.ptr += ::nCbvSrvDescriptorIncrementSize;
+		}
+	}
+	return m_SrvGPUDescriptorNextHandle;
+}
+
 void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 {
 	// 루트 시그너쳐를 설정
 	CommandList->SetGraphicsRootSignature(m_GraphicsRootSignature);
+	// 디스크립터 힙 설정
+	CommandList->SetDescriptorHeaps(1, &m_CbvSrvDescriptorHeap);
 
 	// 뷰포트와 씨저렉트 영역을 설정
 	CommandList->RSSetViewports(1, &m_Viewport);
 	CommandList->RSSetScissorRects(1, &m_ScissorRect);
 
 	// 씬에 등장할 오브젝트들을 렌더링
-	//if (m_UI) m_UI->Render(CommandList);
+	if (m_Select) m_Select->Render(CommandList);
+	if (m_Background) m_Background->Render(CommandList);
 }
 
 
 // 싱글 및 멀티와 캐릭터, 함정 등을 선택 후, 게임을 진행하는 게임 씬
-
 GameScene::GameScene()
 {
 	m_socket = network_manager::GetInst()->m_serverSocket;
@@ -171,6 +276,15 @@ void GameScene::BuildDefaultLightsAndMaterials()
 	::ZeroMemory(m_Lights, sizeof(LIGHT) * m_nLights);
 
 	m_GlobalAmbient = XMFLOAT4(0.15f, 0.15f, 0.15f, 1.f);
+
+	// 방향성 조명
+	m_Lights[0].m_Enable = true;
+	m_Lights[0].m_nType = DIRECTIONAL_LIGHT;
+	m_Lights[0].m_Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.f);
+	m_Lights[0].m_Diffuse = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.f);
+	m_Lights[0].m_Specular = XMFLOAT4(0.6f, 0.4f, 0.4f, 1.f);
+	m_Lights[0].m_Direction = XMFLOAT3(0.f, 0.f, 1.f);
+
 	/*
 	m_Lights[0].m_Enable = true;
 	m_Lights[0].m_nType = POINT_LIGHT;

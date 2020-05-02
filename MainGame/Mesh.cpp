@@ -148,23 +148,8 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 
 }
 
-// bin 파일에서 불러오는 오브젝트에 사용할 메쉬
-MeshLoadInfo::~MeshLoadInfo()
-{
-	if (m_Position) delete[] m_Position;
-	if (m_Color) delete[] m_Color;
-	if (m_Normal) delete[] m_Normal;
 
-	if (m_pnIndices) delete[] m_pnIndices;
-
-	if (m_nSubSetIndices) delete[] m_nSubSetIndices;
-
-	for (int i = 0; i < m_nSubMeshes; ++i)
-		if (m_pnSubSetIndices[i]) delete[] m_pnSubSetIndices[i];
-	if (m_pnSubSetIndices) delete m_pnSubSetIndices;
-}
-
-// 애니메이션을 할 3D 모델에 사용할 메쉬
+// 3D 모델에 사용할 메쉬
 StandardMesh::StandardMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList) : Mesh(Device, CommandList)
 {
 
@@ -331,6 +316,7 @@ void StandardMesh::LoadMeshFromFile(ID3D12Device *Device, ID3D12GraphicsCommandL
 	}
 }
 
+// 애니메이션을 하는 3D 모델에 사용할 메쉬
 SkinnedMesh::SkinnedMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList) : StandardMesh(Device, CommandList)
 {
 

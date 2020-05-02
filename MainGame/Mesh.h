@@ -122,33 +122,6 @@ public:
 };
 
 // bin 파일에서 불러오는 오브젝트에 사용할 메쉬
-class MeshLoadInfo
-{
-public:
-	MeshLoadInfo() { };
-	~MeshLoadInfo();
-
-	char			m_MeshName[256] = { 0 };
-
-	UINT			m_nType = 0x00;
-
-	XMFLOAT3		m_AABBCenter = XMFLOAT3(0.f, 0.f, 0.f);
-	XMFLOAT3		m_AABBExtent = XMFLOAT3(0.f, 0.f, 0.f);
-
-	int				m_nVertices = 0;
-	XMFLOAT3		*m_Position = NULL;
-	XMFLOAT4		*m_Color = NULL;
-	XMFLOAT3		*m_Normal = NULL;
-
-	int				m_nIndices = 0;
-	UINT			*m_pnIndices = 0;
-
-	int				m_nSubMeshes = 0;
-	int				*m_nSubSetIndices = NULL;
-	UINT			**m_pnSubSetIndices = NULL;
-};
-
-
 class StandardMesh : public Mesh
 {
 public:

@@ -303,7 +303,6 @@ public:
 	virtual void MoveForward(float Distance);
 	virtual void MoveRight(float Distance);
 
-	static MeshLoadInfo *LoadMeshInfoFromFile(FILE *InFile);
 	void LoadMaterialInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile, GameObject *Parent, Shader *Shader);
 
 	static GameObject *LoadFrameHierarchyFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, FILE *InFile, GameObject *Parent, Shader *Shader);
@@ -331,9 +330,10 @@ public:
 class UI : public GameObject
 {
 public:
-	UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+	UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, float x, float y, int type);
 	~UI();
 
+	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
