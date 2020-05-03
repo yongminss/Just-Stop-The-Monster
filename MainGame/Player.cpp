@@ -4,12 +4,12 @@
 Player::Player(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
 {
 	GameObject* Model = LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/weak_infantry.bin", NULL, true);
-	SetChild(Model, true);
+	SetChild(Model, false);
 	
 	m_Right = XMFLOAT3(1.f, 0.f, 0.f);
 	m_Up = XMFLOAT3(0.f, 1.f, 0.f);
 	m_Look = XMFLOAT3(0.f, 0.f, 1.f);
-	m_Position = XMFLOAT3(0.f, 0.f, 0.f);
+	m_Position = XMFLOAT3(0.f, -30.f, 0.f);
 
 	m_Camera = new Camera();
 

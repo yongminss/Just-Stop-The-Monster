@@ -108,7 +108,7 @@ void Camera::SetCameraOption()
 	GenerateProjectionMatrix(1.01f, 5000.f, ASPECT_RATIO, 60.f);
 	SetViewport(0.f, 0.f, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.f, 1.f);
 	SetScissorRect(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
-	SetOffset(XMFLOAT3(0.f, 50.f, -150.f));
+	SetOffset(XMFLOAT3(0.f, 60.f, -150.f));
 }
 
 void Camera::SetRotate(float Pitch, float Yaw, float Roll)

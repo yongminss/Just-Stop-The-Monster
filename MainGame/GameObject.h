@@ -260,11 +260,6 @@ protected:
 	XMFLOAT3						m_Up;
 	XMFLOAT3						m_Look;
 	XMFLOAT3						m_Position;
-	// 오브젝트의 속도, 중력, 최대 속도, 저항력
-	XMFLOAT3						m_Velocity;
-	XMFLOAT3						m_Gravity;
-	float							m_MaxVelocity;
-	float							m_Friction;
 
 	ID3D12Resource					*m_cbGameObject = NULL;
 	CB_GAMEOBJECT_INFO				*m_cbMappedGameObject = NULL;
@@ -337,14 +332,6 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
-class TrapCover : public GameObject
-{
-public:
-	TrapCover(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, int Type);
-	~TrapCover();
-
-	virtual void Render(ID3D12GraphicsCommandList *CommandList);
-};
 
 class SkyBox : public GameObject
 {
@@ -363,6 +350,22 @@ public:
 };
 
 // 3D 모델
+class Trap : public GameObject
+{
+public:
+	Trap() { }
+	~Trap() { }
+
+private:
+	bool IsAnimate = false;
+
+public:
+	void SetAnimate(bool Input) { IsAnimate = Input; }
+	bool GetAnimate() { return IsAnimate; }
+
+	void Animate(GameObject *Player);
+};
+
 class Monster : public GameObject
 {
 public:

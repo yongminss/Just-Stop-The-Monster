@@ -459,15 +459,15 @@ void GameObject::LoadMaterialInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCo
 		else if (!strcmp(Token, "<SpecularMap>:"))
 			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_SPECULAR_MAP, 4, ObjMaterial->m_TextureName[1], &(ObjMaterial->m_Texture[1]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "<NormalMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 5, ObjMaterial->m_TextureName[2], &(ObjMaterial->m_Texture[2]), InFile, Parent, Shader, ObjMaterial);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_NORMAL_MAP, 5, ObjMaterial->m_TextureName[2], &(ObjMaterial->m_Texture[2]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "<MetallicMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 6, ObjMaterial->m_TextureName[3], &(ObjMaterial->m_Texture[3]), InFile, Parent, Shader, ObjMaterial);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_METALLIC_MAP, 6, ObjMaterial->m_TextureName[3], &(ObjMaterial->m_Texture[3]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "<EmissionMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 7, ObjMaterial->m_TextureName[4], &(ObjMaterial->m_Texture[4]), InFile, Parent, Shader, ObjMaterial);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_EMISSION_MAP, 7, ObjMaterial->m_TextureName[4], &(ObjMaterial->m_Texture[4]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "<DetailAlbedoMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 8, ObjMaterial->m_TextureName[5], &(ObjMaterial->m_Texture[5]), InFile, Parent, Shader, ObjMaterial);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_DETAIL_ALBEDO_MAP, 8, ObjMaterial->m_TextureName[5], &(ObjMaterial->m_Texture[5]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "<DetailNormalMap>:"))
-			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_ALBEDO_MAP, 9, ObjMaterial->m_TextureName[6], &(ObjMaterial->m_Texture[6]), InFile, Parent, Shader, ObjMaterial);
+			m_Material[nMaterial]->LoadTexutreFromFile(Device, CommandList, MATERIAL_DETAIL_NORMAL_MAP, 9, ObjMaterial->m_TextureName[6], &(ObjMaterial->m_Texture[6]), InFile, Parent, Shader, ObjMaterial);
 		else if (!strcmp(Token, "</Materials>"))
 			break;
 	}
@@ -761,7 +761,7 @@ UI::~UI()
 
 void UI::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
 {
-	//m_Mesh
+	
 }
 
 void UI::Render(ID3D12GraphicsCommandList *CommandList)
@@ -777,62 +777,60 @@ void UI::Render(ID3D12GraphicsCommandList *CommandList)
 	}
 }
 
-
-// 함정 윗부분
-TrapCover::TrapCover(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, int Type)
-{
-	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 30.f, 30.f, 0.f, 0.f, 0.f, 0.f, 0);
-	SetMesh(ObjMesh);
-
-	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
-	
-	// 함정 윗부분의 타입에 맞는 이미지를 로드
-	switch (Type)
-	{
-	case 0:
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/JSTM_Title.dds", 0);
-		break;
-
-	default:
-		break;
-	}
-
-	TrapShader *ObjShader = new TrapShader();
-	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
-	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 2, false);
-
-	Material *ObjMaterial = new Material(1);
-	ObjMaterial->SetTexture(ObjTexture);
-	m_nMaterial = 1;
-
-	m_Material = new Material*();
-	m_Material[0] = NULL;
-	SetMaterial(0, ObjMaterial);
-	SetCbvGPUDescriptorHandle(ObjShader->GetGPUCbvDescriptorStartHandle());
-	SetShader(0, ObjShader);
-
-	ObjMaterial = NULL;
-}
-
-TrapCover::~TrapCover()
-{
-
-}
-
-void TrapCover::Render(ID3D12GraphicsCommandList *CommandList)
-{
-	UpdateShaderVariable(CommandList, &m_WorldPos);
-
-	if (m_nMaterial > 0) {
-		for (int i = 0; i < m_nMaterial; ++i) {
-			if (m_Material[i]->m_Shader)
-				m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
-			m_Material[i]->UpdateShaderVariable(CommandList);
-			if (m_Mesh)
-				m_Mesh->Render(CommandList);
-		}
-	}
-}
+//TrapCover::TrapCover(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, int Type)
+//{
+//	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 30.f, 30.f, 0.f, 0.f, 0.f, 0.f, 0);
+//	SetMesh(ObjMesh);
+//
+//	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
+//	
+//	// 함정 윗부분의 타입에 맞는 이미지를 로드
+//	switch (Type)
+//	{
+//	case 0:
+//		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/JSTM_Title.dds", 0);
+//		break;
+//
+//	default:
+//		break;
+//	}
+//
+//	TrapShader *ObjShader = new TrapShader();
+//	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
+//	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 2, false);
+//
+//	Material *ObjMaterial = new Material(1);
+//	ObjMaterial->SetTexture(ObjTexture);
+//	m_nMaterial = 1;
+//
+//	m_Material = new Material*();
+//	m_Material[0] = NULL;
+//	SetMaterial(0, ObjMaterial);
+//	SetCbvGPUDescriptorHandle(ObjShader->GetGPUCbvDescriptorStartHandle());
+//	SetShader(0, ObjShader);
+//
+//	ObjMaterial = NULL;
+//}
+//
+//TrapCover::~TrapCover()
+//{
+//
+//}
+//
+//void TrapCover::Render(ID3D12GraphicsCommandList *CommandList)
+//{
+//	UpdateShaderVariable(CommandList, &m_WorldPos);
+//
+//	if (m_nMaterial > 0) {
+//		for (int i = 0; i < m_nMaterial; ++i) {
+//			if (m_Material[i]->m_Shader)
+//				m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
+//			m_Material[i]->UpdateShaderVariable(CommandList);
+//			if (m_Mesh)
+//				m_Mesh->Render(CommandList);
+//		}
+//	}
+//}
 
 
 SkyBox::SkyBox(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
@@ -907,5 +905,16 @@ void SkyBox::Render(ID3D12GraphicsCommandList *CommandList)
 			for (int j = 0; j < 6; ++j)
 				m_SkyBoxMesh[j]->Render(CommandList);
 		}
+	}
+}
+
+
+void Trap::Animate(GameObject *Player)
+{
+	if (IsAnimate) {
+		SetPostion(Vector3::Add(Player->GetPosition(), Vector3::ScalarProduct(Player->GetLook(), 100)));
+		m_TransformPos._42 = -50.f;
+
+		UpdateTransform(NULL);
 	}
 }

@@ -231,16 +231,19 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	// 스카이박스
 	m_SkyBox = new SkyBox(Device, CommandList, m_GraphicsRootSignature);
 
+	// 스테이지
+	m_StageModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/allfloor.bin", NULL, false);
+	m_StageModel->SetPostion(XMFLOAT3(2500.f, -50.f, 0.f));
+	m_StageModel->SetScale(100.f, 100.f, 100.f);
+
+	// 함정
+	m_NeedleTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, false);
+	m_NeedleTrapModel->SetScale(2.f, 2.f, 2.f);
+
 	// 몬스터 모델
 	m_OrcModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/weak_infantry.bin", NULL, true);
 	m_ShamanModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/shaman.bin", NULL, true);
 	m_WolfRiderModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/wolf_rider.bin", NULL, true);
-
-	// 스테이지
-	m_StageModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/allfloor.bin", NULL, false);
-
-	m_StageModel->SetPostion(XMFLOAT3(2500.f, -50.f, 0.f));
-	m_StageModel->SetScale(100.f, 100.f, 100.f);
 
 	// 기본 오크
 	m_Orc.emplace_back(new Monster());
@@ -611,6 +614,12 @@ void GameScene::Animate(float ElapsedTime)
 		m_Player->Update(ElapsedTime);
 	}
 
+	for (auto iter = m_NeedleTrap.begin(); iter != m_NeedleTrap.end(); ++iter)
+		if (*iter) {
+			(*iter)->UpdateTransform(NULL);
+			(*iter)->Animate(m_Player);
+		}
+
 	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
@@ -651,6 +660,13 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	if (m_Player) m_Player->Render(CommandList);
 
 	// GameScene에 등장할 오브젝트 렌더링
+	if (m_StageModel) m_StageModel->Render(CommandList);
+
+	// Trap Objects
+	for (auto iter = m_NeedleTrap.begin(); iter != m_NeedleTrap.end(); ++iter)
+		(*iter)->Render(CommandList);
+
+	// Monster Objects
 	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
 		(*iter)->Render(CommandList);
 
@@ -659,8 +675,6 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 	for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
 		(*iter)->Render(CommandList);
-
-	if (m_StageModel) m_StageModel->Render(CommandList);
 }
 
 void GameScene::ProcessInput(HWND hWnd)
@@ -690,7 +704,12 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 	case WM_LBUTTONDOWN:
 		::SetCapture(hWnd);
 		::GetCursorPos(&m_OldCursourPos);
-		m_Player->SetEnable(4);
+		// 플레이어가 공격 버튼을 클릭했을 때, 함정 설치 중이었다면 더 이상 따라오지 않도록 함
+		if (m_NeedleTrap.size() != 0) {
+			if (m_NeedleTrap.back()->GetAnimate() == true) m_NeedleTrap.back()->SetAnimate(false);
+			else m_Player->SetEnable(4);
+		}
+		else m_Player->SetEnable(4);
 		break;
 
 	case WM_LBUTTONUP:
@@ -755,6 +774,15 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		{
 			m_Player->SetDirection(4);
 			m_Player->SetEnable(2);
+		}
+		break;
+
+		// 함정 설치 준비
+		case '1':
+		{
+			m_NeedleTrap.emplace_back(new Trap());
+			m_NeedleTrap.back()->SetChild(m_NeedleTrapModel, false);
+			m_NeedleTrap.back()->SetAnimate(true);
 		}
 		break;
 

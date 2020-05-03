@@ -88,6 +88,7 @@ public:
 private:
 	ID3D12RootSignature			*m_GraphicsRootSignature = NULL;
 
+	// Light
 	LIGHT						*m_Lights = NULL;
 	int							m_nLights = 0;
 
@@ -98,8 +99,15 @@ private:
 
 	Player						*m_Player = NULL;
 
+	// Map
 	SkyBox						*m_SkyBox = NULL;
+	GameObject					*m_StageModel = NULL;
 
+	// Trap
+	GameObject					*m_NeedleTrapModel = NULL;
+	list<Trap*>					m_NeedleTrap;
+
+	// Monster Model
 	GameObject					*m_OrcModel = NULL;
 	list<Monster*>				m_Orc;
 
@@ -109,10 +117,8 @@ private:
 	GameObject					*m_WolfRiderModel = NULL;
 	list<Monster*>				m_WolfRider;
 
-	GameObject					*m_StageModel = NULL;
-
-	// 다른 플레이어
-	TrapCover					*m_OtherPlayerModel = NULL;
+	// Other Player
+	GameObject					*m_OtherPlayerModel = NULL;
 
 	// 디스크립터 힙을 게임 씬에서 만듬
 	static ID3D12DescriptorHeap	*m_CbvSrvDescriptorHeap;

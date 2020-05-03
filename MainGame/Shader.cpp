@@ -131,8 +131,6 @@ void Shader::OnPrepareRender(ID3D12GraphicsCommandList *CommandList, int nPipeli
 {
 	if (m_PipelineStates)
 		CommandList->SetPipelineState(m_PipelineStates[nPipelineState]);
-	if (m_CbvSrvDescriptorHeap)
-		CommandList->SetDescriptorHeaps(1, &m_CbvSrvDescriptorHeap);
 }
 
 void Shader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
@@ -157,21 +155,6 @@ void Shader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *Comma
 
 	hResult = Device->CreateGraphicsPipelineState(&m_PipelineStateDesc, __uuidof(ID3D12PipelineState), (void**)&m_PipelineStates[0]);
 }
-
-//void Shader::CreateCbvSrvDescriptorHeap(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, int nConstantBufferView, int nShaderResourceView)
-//{
-//	D3D12_DESCRIPTOR_HEAP_DESC DescriptorHeapDesc;
-//	DescriptorHeapDesc.NumDescriptors = nConstantBufferView + nShaderResourceView;
-//	DescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-//	DescriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-//	DescriptorHeapDesc.NodeMask = 0;
-//	Device->CreateDescriptorHeap(&DescriptorHeapDesc, __uuidof(ID3D12DescriptorHeap), (void**)&m_CbvSrvDescriptorHeap);
-//
-//	m_CbvCPUDescriptorStartHandle = m_CbvSrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-//	m_CbvGPUDescriptorStartHandle = m_CbvSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
-//	m_SrvCPUDescriptorStartHandle.ptr = m_CbvCPUDescriptorStartHandle.ptr + (::nCbvSrvDescriptorIncrementSize * nConstantBufferView);
-//	m_SrvGPUDescriptorStartHandle.ptr = m_CbvGPUDescriptorStartHandle.ptr + (::nCbvSrvDescriptorIncrementSize * nConstantBufferView);
-//}
 
 
 // UI에서 사용할 쉐이더 //
