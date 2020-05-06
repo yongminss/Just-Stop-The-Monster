@@ -120,7 +120,7 @@ void Material::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
 	CommandList->SetGraphicsRoot32BitConstants(1, 1, &m_nType, 32);
 
 	for (int i = 0; i < m_nTexture; ++i)
-		if (m_Texture[i]) m_Texture[i]->UpdateShaderVariable(CommandList, i);
+		if (m_Texture[i]) m_Texture[i]->UpdateShaderVariable(CommandList, 0);
 }
 
 void Material::LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, UINT nType, UINT nRootParameter, _TCHAR *TextureName, Texture **ObjTexture, FILE *InFile, GameObject *Parent, Shader *Shader, Material *ObjMaterial)
@@ -586,6 +586,8 @@ Texture *GameObject::FindReplicatedTexture(_TCHAR *TextureName)
 		return ObjTexture;
 	if (m_Child) if (ObjTexture = m_Child->FindReplicatedTexture(TextureName))
 		return ObjTexture;
+
+	return NULL;
 }
 
 void GameObject::CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
@@ -718,20 +720,27 @@ void GameObject::LoadAnimationFromFile(FILE *InFile)
 }
 
 // UI
-UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, float x, float y, int Type)
+UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, float x, float y, int Type, int SceneNum)
 {
-	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, x, y, 0.f, 0.f, 0.f, 0.f, 0);
+	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, x, y, 0.f, 0.f, 0.f, 0.f, 0, Type);
 	SetMesh(ObjMesh);
 
 	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
 
 	switch (Type) {
+		// Title Background
 	case 0:
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/JSTM_Title.dds", 0);
 		break;
 
 	case 1:
+		// Select
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/select.dds", 0);
+		break;
+
+	case 2:
+		// Trap List UI
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/traplist.dds", 0);
 		break;
 
 	default:
@@ -739,8 +748,15 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	}
 	UIShader *ObjShader = new UIShader();
 	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
-	TitleScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 1, false);
+	switch (SceneNum) {
+	case 0:
+		TitleScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 1, false);
+		break;
 
+	case 1:
+		GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 2, false);
+		break;
+	}
 	Material *ObjMaterial = new Material(1);
 	ObjMaterial->SetTexture(ObjTexture);
 	m_nMaterial = 1;

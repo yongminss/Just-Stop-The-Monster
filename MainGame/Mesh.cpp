@@ -50,7 +50,7 @@ void Mesh::Render(ID3D12GraphicsCommandList *CommandList, int nSubSet)
 }
 
 // 텍스쳐 맵핑을 진행할 메쉬
-TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, float width, float height, float depth, float x, float y, float z, int type)
+TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, float width, float height, float depth, float x, float y, float z, int type, int ImageType)
 {
 	m_nVertices = 6;
 	m_nStride = sizeof(TextureVertex);
@@ -62,17 +62,24 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 	float objY = height + y;
 	float objZ = depth + z;
 
+	float tempY = 0.f;
+
+	// Select Box
+	if (1 == ImageType) tempY = -0.1f;
+	// Traplist UI
+	if (2 == ImageType) tempY = -0.8f;
+
 	switch (type)
 	{
 	case 0: // 앞
 	{
-		Vertices[0] = TextureVertex(XMFLOAT3(+objX, +objY, objZ), XMFLOAT2(1.0f, 0.0f));
-		Vertices[1] = TextureVertex(XMFLOAT3(+objX, -objY, objZ), XMFLOAT2(1.0f, 1.0f));
-		Vertices[2] = TextureVertex(XMFLOAT3(-objX, -objY, objZ), XMFLOAT2(0.0f, 1.0f));
+		Vertices[0] = TextureVertex(XMFLOAT3(+objX, +objY + tempY, objZ), XMFLOAT2(1.0f, 0.0f));
+		Vertices[1] = TextureVertex(XMFLOAT3(+objX, -objY + tempY, objZ), XMFLOAT2(1.0f, 1.0f));
+		Vertices[2] = TextureVertex(XMFLOAT3(-objX, -objY + tempY, objZ), XMFLOAT2(0.0f, 1.0f));
 
-		Vertices[3] = TextureVertex(XMFLOAT3(-objX, -objY, objZ), XMFLOAT2(0.0f, 1.0f));
-		Vertices[4] = TextureVertex(XMFLOAT3(-objX, +objY, objZ), XMFLOAT2(0.0f, 0.0f));
-		Vertices[5] = TextureVertex(XMFLOAT3(+objX, +objY, objZ), XMFLOAT2(1.0f, 0.0f));
+		Vertices[3] = TextureVertex(XMFLOAT3(-objX, -objY + tempY, objZ), XMFLOAT2(0.0f, 1.0f));
+		Vertices[4] = TextureVertex(XMFLOAT3(-objX, +objY + tempY, objZ), XMFLOAT2(0.0f, 0.0f));
+		Vertices[5] = TextureVertex(XMFLOAT3(+objX, +objY + tempY, objZ), XMFLOAT2(1.0f, 0.0f));
 	}
 	break;
 
@@ -145,7 +152,6 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 	m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
 	m_VertexBufferView.StrideInBytes = m_nStride;
 	m_VertexBufferView.SizeInBytes = m_nStride * m_nVertices;
-
 }
 
 

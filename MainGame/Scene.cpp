@@ -35,8 +35,8 @@ void TitleScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 	m_ScissorRect = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT };
 
 	// TitleScene 에서 Redering 될 Objects
-	m_Background = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, 0);
-	m_Select = new UI(Device, CommandList, m_GraphicsRootSignature, 0.3f, 0.125f, 1);
+	m_Background = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, 0, 0);
+	m_Select = new UI(Device, CommandList, m_GraphicsRootSignature, 0.3f, 0.125f, 1, 0);
 }
 
 void TitleScene::ReleaseObject()
@@ -228,13 +228,20 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
 
+	// UI
+	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.25f, 0.125f, 2, 1);
+	
 	// 스카이박스
 	m_SkyBox = new SkyBox(Device, CommandList, m_GraphicsRootSignature);
 
-	// 스테이지
-	m_StageModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/allfloor.bin", NULL, false);
-	m_StageModel->SetPostion(XMFLOAT3(2500.f, -50.f, 0.f));
-	m_StageModel->SetScale(100.f, 100.f, 100.f);
+	// 스테이지의 벽과 바닥
+	m_StageWall = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/allwall.bin", NULL, false);
+	m_StageWall->SetPostion(XMFLOAT3(850.f, 150.f, -100.f));
+	m_StageWall->SetScale(100.f, 100.f, 100.f);
+
+	m_StageFloor = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/allfloor.bin", NULL, false);
+	m_StageFloor->SetPostion(XMFLOAT3(2500.f, -50.f, 0.f));
+	m_StageFloor->SetScale(100.f, 100.f, 100.f);
 
 	// 함정
 	m_NeedleTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, false);
@@ -659,8 +666,12 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	// 플레이어 렌더링
 	if (m_Player) m_Player->Render(CommandList);
 
+	// UI
+	if (m_TrapListUi) m_TrapListUi->Render(CommandList);
+
 	// GameScene에 등장할 오브젝트 렌더링
-	if (m_StageModel) m_StageModel->Render(CommandList);
+	if (m_StageWall) m_StageWall->Render(CommandList);
+	if (m_StageFloor) m_StageFloor->Render(CommandList);
 
 	// Trap Objects
 	for (auto iter = m_NeedleTrap.begin(); iter != m_NeedleTrap.end(); ++iter)

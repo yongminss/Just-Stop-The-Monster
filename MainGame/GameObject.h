@@ -325,7 +325,7 @@ public:
 class UI : public GameObject
 {
 public:
-	UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, float x, float y, int type);
+	UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, float x, float y, int type, int SceneNum);
 	~UI();
 
 	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);

@@ -99,9 +99,13 @@ private:
 
 	Player						*m_Player = NULL;
 
+	// UI
+	UI							*m_TrapListUi = NULL;
+
 	// Map
 	SkyBox						*m_SkyBox = NULL;
-	GameObject					*m_StageModel = NULL;
+	GameObject					*m_StageWall = NULL;
+	GameObject					*m_StageFloor = NULL;
 
 	// Trap
 	GameObject					*m_NeedleTrapModel = NULL;

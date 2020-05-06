@@ -1,3 +1,2 @@
-﻿  Scene.cpp
-c:\users\user\desktop\수업 자료\졸업 작품\just-stop-the-monster\maingame\scene.cpp(802): warning C4065: switch문에 'default'가 있으나 'case' 레이블이 없습니다.
+﻿  Camera.cpp
   MainGame.vcxproj -> C:\Users\user\Desktop\수업 자료\졸업 작품\Just-Stop-The-Monster\x64\Debug\MainGame.exe
