@@ -176,19 +176,99 @@ void Material::LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandLi
 
 
 // Animation //
+
+AnimationSet::~AnimationSet()
+{
+	if (m_KeyFrameTransformTime) delete[] m_KeyFrameTransformTime;
+	for (int j = 0; j < m_nKeyFrameTransform; j++) if (m_KeyFrameTransform[j]) delete[] m_KeyFrameTransform[j];
+	if (m_KeyFrameTransform) delete[] m_KeyFrameTransform;
+
+}
+
 float AnimationSet::GetPosition(float Position)
 {
 	float GetPosition = Position;
 
 	switch (m_nType) {
 	case ANIMATION_TYPE_LOOP:
-		GetPosition = Position - int(Position / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]) * m_KeyFrameTransformTime[m_nKeyFrameTransform - 1];
+		if (m_bAnimateChange == false) {
+			GetPosition = Position - int(Position / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]) * m_KeyFrameTransformTime[m_nKeyFrameTransform - 1];
+		}
+		else {
+			if (m_StartPosition == -1.0f) {
+				m_StartPosition = Position;
+			}
+			GetPosition = Position - int(Position / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]) * m_KeyFrameTransformTime[m_nKeyFrameTransform - 1];
+			if ((Position - m_StartPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1] >= 0.1f) {
+				m_StartPosition = -1.0f;
+				m_bAnimateChange = false;
+			}
+		}
 		break;
 
 	case ANIMATION_TYPE_ONCE:
+		if (m_StartPosition == -1.0f) {
+			m_StartPosition = Position;
+		}
+		if (m_bAnimateChange == false) {
+			GetPosition = (Position - m_StartPosition) - int((Position - m_StartPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]) * (m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]);
+
+			if ((Position - m_StartPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1] >= 0.9f) {
+				m_bAnimateChange = true;
+				m_TranslatePosition = Position - m_StartPosition;
+			}
+		}
+		else {
+			GetPosition = (Position - m_StartPosition) - int((Position - m_StartPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]) * (m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]);
+
+			if ((Position - m_StartPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1] >= 1.0f) {
+				m_StartPosition = -1.0f;
+				m_TranslatePosition = 0.0f;
+				m_bAnimateChange = false;
+			}
+		}
 		break;
 
-	case ANIMATION_TYPE_PINGPONG:
+	case ANIMATION_TYPE_SHOOT:
+	case ANIMATION_TYPE_RELOAD:
+		if (m_StartPosition == -1.0f) {
+			m_StartPosition = Position;
+		}
+		if (m_bAnimateChange == false) {
+			GetPosition = (Position - m_StartPosition) - int((Position - m_StartPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]) * (m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]);
+
+			if ((Position - m_StartPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1] >= 0.9f) {
+				m_bAnimateChange = true;
+				m_bReloadEnd = true; // true이면 이제 SHOOT 애니메이션으로 부르지 않음.
+				m_TranslatePosition = Position - m_StartPosition;
+			}
+		}
+		else {
+			if (m_bReloadEnd == true) { // 애니메이션이 90프로 끝났을때
+				GetPosition = (Position - m_StartPosition) - int((Position - m_StartPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]) * (m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]);
+
+				if ((Position - m_StartPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1] >= 1.0f) {
+					m_StartPosition = -1.0f;
+					m_TranslatePosition = 0.0f;
+					m_bAnimateChange = false;
+					m_ReloadPosition = -1.0f;
+					m_bReloadEnd = false;
+				}
+			}
+			else { // 애니메이션이 중도 변환된 상태일때
+				if (m_ReloadPosition == -1.0f) {
+					m_ReloadPosition = Position;
+				}
+				GetPosition = (Position - m_StartPosition) - int((Position - m_StartPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]) * (m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]);
+				if ((Position - m_ReloadPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1] >= 0.05f) {
+					m_StartPosition = -1.0f;
+					m_TranslatePosition = 0.0f;
+					m_bAnimateChange = false;
+					m_ReloadPosition = -1.0f;
+					m_bReloadEnd = false;
+				}
+			}
+		}
 		break;
 	}
 	return GetPosition;
@@ -221,45 +301,231 @@ AnimationController::AnimationController(int nAnimationTrack)
 	m_AnimationTrack = new AnimationTrack[nAnimationTrack];
 }
 
+AnimationController::~AnimationController()
+{
+	if (m_AnimationSet) delete[] m_AnimationSet;
+	if (m_AnimationBoneFrameCache) delete[] m_AnimationBoneFrameCache;
+	if (m_AnimationTrack) delete[] m_AnimationTrack;
+}
+
 void AnimationController::SetAnimationSet(int nAnimationSet)
 {
 	if (m_AnimationSet) {
 		for (int i = 0; i < m_nAnimationTrack; ++i)
 			m_AnimationTrack[i].m_AnimationSet = &m_AnimationSet[i];
+
+		m_nNowAnimation = nAnimationSet;
 	}
-	m_AnimationTrack[nAnimationSet].m_Enable = true;
 }
 
 void AnimationController::SetAnimationEnable(int nAnimationSet)
 {
 	if (m_AnimationTrack) {
-		for (int i = 0; i < m_nAnimationTrack; ++i)
-			m_AnimationTrack[i].m_Enable = false;
-		m_AnimationTrack[nAnimationSet].m_Enable = true;
+		if (m_nNowAnimation != nAnimationSet && m_nNextAnimation == -1)
+		{
+			if (m_AnimationTrack[m_nNowAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_RELOAD)
+			{
+				if (m_AnimationTrack[m_nNowAnimation].m_AnimationSet->m_bReloadEnd == false)
+				{
+					if (0 <= nAnimationSet && nAnimationSet <= 8)
+					{
+						nAnimationSet += 18;
+						if (nAnimationSet != m_nNowAnimation)
+							m_nNextAnimation = nAnimationSet;
+						else
+							m_nNextAnimation = -1;
+					}
+					else
+					{
+						m_nNextAnimation = -1;
+					}
+				}
+				else
+				{
+					m_nNextAnimation = nAnimationSet;
+				}
+			}
+			else if (m_AnimationTrack[m_nNowAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_SHOOT)
+			{
+				if (m_AnimationTrack[m_nNowAnimation].m_AnimationSet->m_bReloadEnd == false)
+				{
+					if (0 <= nAnimationSet && nAnimationSet <= 8)
+					{
+						nAnimationSet += 9;
+						if (nAnimationSet != m_nNowAnimation)
+							m_nNextAnimation = nAnimationSet;
+						else
+							m_nNextAnimation = -1;
+					}
+					else
+					{
+						m_nNextAnimation = -1;
+					}
+				}
+				else
+				{
+					m_nNextAnimation = nAnimationSet;
+				}
+			}
+			// LOOP(IDLE/RUN) 애니메이션일때 RELOAD/SHOOT 실행시 LOOP진행중인 것으로 이어지도록
+			else if (m_AnimationTrack[m_nNowAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_LOOP)
+			{
+				if (nAnimationSet == 18 || nAnimationSet == 9) // reload
+				{
+					nAnimationSet += m_nNowAnimation;
+					m_nNextAnimation = nAnimationSet;
+				}
+				else
+				{
+					m_nNextAnimation = nAnimationSet;
+				}
+			}
+			else
+			{
+				m_nNextAnimation = nAnimationSet;
+			}
+		}
 	}
 }
+
+void AnimationController::SetAnimateControlType(int nAnimationSet, int nType)
+{
+	if (m_AnimationTrack) {
+		m_AnimationTrack[nAnimationSet].m_AnimationSet->m_nType = nType;
+	}
+}
+
+void AnimationController::SetPlayerAnimateType(int nType)
+{
+	if (m_AnimationTrack) {
+		switch (nType) {
+		case ANIMATION_TYPE_SHOOT:
+			this->SetAnimateControlType(9, ANIMATION_TYPE_SHOOT);
+			this->SetAnimateControlType(10, ANIMATION_TYPE_SHOOT);
+			this->SetAnimateControlType(11, ANIMATION_TYPE_SHOOT);
+			this->SetAnimateControlType(12, ANIMATION_TYPE_SHOOT);
+			this->SetAnimateControlType(13, ANIMATION_TYPE_SHOOT);
+			this->SetAnimateControlType(14, ANIMATION_TYPE_SHOOT);
+			this->SetAnimateControlType(15, ANIMATION_TYPE_SHOOT);
+			this->SetAnimateControlType(16, ANIMATION_TYPE_SHOOT);
+			this->SetAnimateControlType(17, ANIMATION_TYPE_SHOOT);
+			break;
+		case ANIMATION_TYPE_RELOAD:
+			this->SetAnimateControlType(18, ANIMATION_TYPE_RELOAD);
+			this->SetAnimateControlType(19, ANIMATION_TYPE_RELOAD);
+			this->SetAnimateControlType(20, ANIMATION_TYPE_RELOAD);
+			this->SetAnimateControlType(21, ANIMATION_TYPE_RELOAD);
+			this->SetAnimateControlType(22, ANIMATION_TYPE_RELOAD);
+			this->SetAnimateControlType(23, ANIMATION_TYPE_RELOAD);
+			this->SetAnimateControlType(24, ANIMATION_TYPE_RELOAD);
+			this->SetAnimateControlType(25, ANIMATION_TYPE_RELOAD);
+			this->SetAnimateControlType(26, ANIMATION_TYPE_RELOAD);
+		}
+	}
+}
+
 
 void AnimationController::AdvanceTime(float ElapsedTime, AnimationCallbackHandler *CallbackHandler)
 {
 	m_Time += ElapsedTime;
 
 	if (m_AnimationSet) {
-		for (int i = 0; i < m_nAnimationTrack; ++i) {
-			if (m_AnimationTrack[i].m_Enable) {
-				m_AnimationTrack[i].m_Position += (ElapsedTime * m_AnimationTrack[i].m_Speed);
+		m_AnimationTrack[m_nNowAnimation].m_Position += (ElapsedTime * m_AnimationTrack[m_nNowAnimation].m_Speed);
+		AnimationSet *pAnimationSet = m_AnimationTrack[m_nNowAnimation].m_AnimationSet;
+		pAnimationSet->m_Position += (ElapsedTime * pAnimationSet->m_Speed);
 
-				AnimationSet *ObjAnimationSet = m_AnimationTrack[i].m_AnimationSet;
-				ObjAnimationSet->m_Position += (ElapsedTime * ObjAnimationSet->m_Speed);
-
-				if (CallbackHandler) {
-					void *CallbackData = ObjAnimationSet->GetCallback(ObjAnimationSet->m_Position);
-					if (CallbackData) CallbackHandler->HandleCallback(CallbackData);
+		if (!(pAnimationSet->m_bAnimateChange)) {
+			if (m_nNextAnimation != -1 && pAnimationSet->m_nType == ANIMATION_TYPE_LOOP) {
+				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_LOOP) {
+					pAnimationSet->m_bAnimateChange = true;
+					m_AnimationTrack[m_nNextAnimation].m_Position = pAnimationSet->m_Position;
+					m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_Position = pAnimationSet->m_Position;
 				}
-
-				float Position = ObjAnimationSet->GetPosition(ObjAnimationSet->m_Position);
-				for (int i = 0; i < m_nAnimationBoneFrame; ++i)
-					m_AnimationBoneFrameCache[i]->m_TransformPos = ObjAnimationSet->GetSRT(i, Position);
+				else if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_ONCE ||
+					m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_SHOOT ||
+					m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_RELOAD) {
+					pAnimationSet->m_bAnimateChange = true;
+				}
 			}
+			else if (m_nNextAnimation != -1 && pAnimationSet->m_nType == ANIMATION_TYPE_RELOAD) {
+				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_RELOAD) {
+					pAnimationSet->m_bAnimateChange = true;
+					m_AnimationTrack[m_nNextAnimation].m_Position = pAnimationSet->m_Position;
+					m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_Position = pAnimationSet->m_Position;
+					m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_StartPosition = pAnimationSet->m_StartPosition;
+				}
+			}
+			else if (m_nNextAnimation != -1 && pAnimationSet->m_nType == ANIMATION_TYPE_SHOOT) {
+				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_SHOOT) {
+					pAnimationSet->m_bAnimateChange = true;
+					m_AnimationTrack[m_nNextAnimation].m_Position = pAnimationSet->m_Position;
+					m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_Position = pAnimationSet->m_Position;
+					m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_StartPosition = pAnimationSet->m_StartPosition;
+				}
+			}
+			float fPositon = pAnimationSet->GetPosition(pAnimationSet->m_Position);
+			for (int i = 0; i < m_nAnimationBoneFrame; i++)
+			{
+				m_AnimationBoneFrameCache[i]->m_TransformPos = pAnimationSet->GetSRT(i, fPositon);
+				//애니메이션에서 두 프레임 사이를 보간해준다.
+			}
+		}
+		else if (pAnimationSet->m_bAnimateChange) {
+			// ONCE 타입의 애니메이션 실행 후 다음 애니메이션이 -1이면, NextAnimation은 Idle
+			if ((m_nNextAnimation == -1 && pAnimationSet->m_nType == ANIMATION_TYPE_ONCE)) {
+				m_nNextAnimation = 0;
+			}
+			// RELOAD 타입이 끝까지 애니메이션 실행 후 다음 애니메이션이 -1이면, NextAnimation은 idle
+			if (m_nNextAnimation == -1 && pAnimationSet->m_nType == ANIMATION_TYPE_RELOAD && pAnimationSet->m_bReloadEnd == true) {
+				m_nNextAnimation = 0;
+			}
+			// SHOOT 타입이 끝까지 애니메이션 실행 후 다음 애니메이션이 -1이면, NextAnimation은 idle
+			if (m_nNextAnimation == -1 && pAnimationSet->m_nType == ANIMATION_TYPE_SHOOT && pAnimationSet->m_bReloadEnd == true) {
+				m_nNextAnimation = 0;
+			}
+
+			m_AnimationTrack[m_nNextAnimation].m_Position += (ElapsedTime * m_AnimationTrack[m_nNextAnimation].m_Speed);
+			AnimationSet *pNewAnimationSet = m_AnimationTrack[m_nNextAnimation].m_AnimationSet;
+			pNewAnimationSet->m_Position += (ElapsedTime * pNewAnimationSet->m_Speed);
+
+			//if (pAnimationSet->m_fStartPosition == -1.0f) {
+			//	pAnimationSet->m_fStartPosition = pAnimationSet->m_fPosition;
+			//}
+
+			float fPosition = pAnimationSet->GetPosition(pAnimationSet->m_Position);
+
+			float fInterpolPosition = ((pAnimationSet->m_Position - pAnimationSet->m_StartPosition) - (pAnimationSet->m_TranslatePosition)) / ((pAnimationSet->m_KeyFrameTransformTime[pAnimationSet->m_nKeyFrameTransform - 1]) - pAnimationSet->m_TranslatePosition);
+
+			if (!(pAnimationSet->m_bAnimateChange)) {
+				if (pAnimationSet->m_nType == ANIMATION_TYPE_RELOAD && pNewAnimationSet->m_nType == ANIMATION_TYPE_RELOAD && pAnimationSet->m_bReloadEnd == true) {
+					m_nNextAnimation -= 18;
+					pNewAnimationSet->m_bReloadEnd = false;
+					pNewAnimationSet->m_bAnimateChange = false;
+					pNewAnimationSet->m_ReloadPosition = -1.0f;
+					pNewAnimationSet->m_StartPosition = -1.0f;
+					pNewAnimationSet->m_TranslatePosition = 0.0f;
+				}
+				else if (pAnimationSet->m_nType == ANIMATION_TYPE_SHOOT && pNewAnimationSet->m_nType == ANIMATION_TYPE_SHOOT && pAnimationSet->m_bReloadEnd == true) {
+					m_nNextAnimation -= 9;
+					pNewAnimationSet->m_bReloadEnd = false;
+					pNewAnimationSet->m_bAnimateChange = false;
+					pNewAnimationSet->m_ReloadPosition = -1.0f;
+					pNewAnimationSet->m_StartPosition = -1.0f;
+					pNewAnimationSet->m_TranslatePosition = 0.0f;
+				}
+				m_nNowAnimation = m_nNextAnimation;
+				m_nNextAnimation = -1;
+				return;
+			}
+
+			float fNewPosition = pNewAnimationSet->GetPosition(pNewAnimationSet->m_Position);
+
+			for (int i = 0; i < m_nAnimationBoneFrame; i++)
+			{
+				m_AnimationBoneFrameCache[i]->m_TransformPos = Matrix4x4::Interpolate(pAnimationSet->GetSRT(i, fPosition), pNewAnimationSet->GetSRT(i, fNewPosition), fInterpolPosition);
+			}
+
+
 		}
 	}
 }
@@ -611,6 +877,22 @@ void GameObject::SetEnable(int nAnimationSet)
 
 	if (m_Sibling) m_Sibling->SetEnable(nAnimationSet);
 	if (m_Child) m_Child->SetEnable(nAnimationSet);
+}
+
+void GameObject::SetAnimateType(int nAnimationSet, int nType)
+{
+	if (m_AnimationController) m_AnimationController->SetAnimateControlType(nAnimationSet, nType);
+
+	if (m_Sibling) m_Sibling->SetAnimateType(nAnimationSet, nType);
+	if (m_Child) m_Child->SetAnimateType(nAnimationSet, nTy);
+}
+
+void GameObject::SetPlayerAnimateType(int nType)
+{
+	if (m_AnimationController) m_AnimationController->SetPlayerAnimateType(nType);
+
+	if (m_Sibling) m_Sibling->SetPlayerAnimateType(nType);
+	if (m_Child) m_Child->SetPlayerAnimateType(nType);
 }
 
 void GameObject::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)

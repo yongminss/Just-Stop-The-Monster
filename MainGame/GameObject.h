@@ -146,7 +146,10 @@ public:
 // 애니메이션
 #define ANIMATION_TYPE_ONCE			0
 #define ANIMATION_TYPE_LOOP			1
-#define ANIMATION_TYPE_PINGPONG		2
+#define ANIMATION_TYPE_SHOOT		2
+#define ANIMATION_TYPE_RELOAD		3
+
+
 
 #define _WITH_ANIMATION_INTERPOLATION
 
@@ -154,7 +157,7 @@ class AnimationSet
 {
 public:
 	AnimationSet() { }
-	~AnimationSet() { }
+	~AnimationSet();
 
 public:
 	char			m_strName[64];
@@ -168,6 +171,14 @@ public:
 
 	float			m_Speed = 1.f;
 	float			m_Position = 0.f;
+
+	float			m_StartPosition = -1.0f;
+	float			m_TranslatePosition = 0.0f;
+
+	bool			m_bAnimateChange = false;
+	
+	float			m_ReloadPosition = -1.0f; // reload, 사격 할때 이동시 보간용도
+	bool			m_bReloadEnd = false;
 
 	int				m_nType = ANIMATION_TYPE_LOOP;
 
@@ -189,7 +200,6 @@ public:
 public:
 	AnimationSet	*m_AnimationSet = NULL;
 
-	BOOL			m_Enable = false;
 	float			m_Speed = 1.f;
 	float			m_Position = 0.f;
 	float			m_Weight = 1.f;
@@ -205,7 +215,7 @@ class AnimationController
 {
 public:
 	AnimationController(int nAnimationTrack = 1);
-	~AnimationController() { }
+	~AnimationController();
 
 public:
 	float				m_Time = 0.f;
@@ -219,10 +229,15 @@ public:
 	int					m_nAnimationBoneFrame = 0;
 	GameObject			**m_AnimationBoneFrameCache = NULL;
 
+	int					m_nNowAnimation = 0;
+
+	int					m_nNextAnimation = -1;
+
 public:
 	void SetAnimationSet(int nAnimationSet);
 	void SetAnimationEnable(int nAnimationSet);
-
+	void SetAnimateControlType(int nAnimationSet, int nType);
+	void SetPlayerAnimateType(int nType);
 	void AdvanceTime(float ElapsedTime, AnimationCallbackHandler *CallbackHandler);
 };
 
@@ -311,6 +326,10 @@ public:
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, XMFLOAT4X4 *WorldPos);
 
 	void SetEnable(int nAnimationSet);
+
+	void SetAnimateType(int nAnimationSet, int nType);
+
+	void SetPlayerAnimateType(int nType);
 
 	virtual void OnPrepareRender() { }
 
