@@ -103,7 +103,7 @@ private:
 	UI							*m_TrapListUi = NULL;
 
 	// Map
-	SkyBox						*m_SkyBox = NULL;
+	SkyBox						*m_SkyBox[5];
 	GameObject					*m_StageWall = NULL;
 	GameObject					*m_StageFloor = NULL;
 

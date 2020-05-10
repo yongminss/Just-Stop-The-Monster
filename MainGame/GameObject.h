@@ -38,7 +38,7 @@ public:
 
 private:
 	int								m_nReference = 0;
-	
+
 	UINT							m_nTextureType = RESOURCE_TEXTURE2D;
 	int								m_nTexture = 0;
 
@@ -108,9 +108,9 @@ private:
 	int				m_nReference = 0;
 
 public:
-	Texture			**m_Texture = NULL;
+	Texture * *m_Texture = NULL;
 	Shader			*m_Shader = NULL;
-	_TCHAR			(*m_TextureName)[64] = NULL;
+	_TCHAR(*m_TextureName)[64] = NULL;
 
 public:
 	void AddRef() { ++m_nReference; }
@@ -119,7 +119,7 @@ public:
 	void SetTexture(Texture *Texture, UINT nTexture = 0);
 	void SetShader(Shader *Shader);
 	void SetType(UINT nType) { m_nType |= nType; }
-	
+
 	void SetIlluminatedShader() { SetShader(m_IlluminatedShader); }
 	void SetStandardShader() { SetShader(m_StandardShader); }
 	void SetSkinnedAnimationShader() { Material::SetShader(m_SkinnedAnimationShader); }
@@ -149,8 +149,6 @@ public:
 #define ANIMATION_TYPE_SHOOT		2
 #define ANIMATION_TYPE_RELOAD		3
 
-
-
 #define _WITH_ANIMATION_INTERPOLATION
 
 class AnimationSet
@@ -176,7 +174,7 @@ public:
 	float			m_TranslatePosition = 0.0f;
 
 	bool			m_bAnimateChange = false;
-	
+
 	float			m_ReloadPosition = -1.0f; // reload, 사격 할때 이동시 보간용도
 	bool			m_bReloadEnd = false;
 
@@ -198,7 +196,7 @@ public:
 	~AnimationTrack() { }
 
 public:
-	AnimationSet	*m_AnimationSet = NULL;
+	AnimationSet * m_AnimationSet = NULL;
 
 	float			m_Speed = 1.f;
 	float			m_Position = 0.f;
@@ -248,7 +246,7 @@ public:
 	GameObject();
 	GameObject(int nMaterial);
 	~GameObject();
-	
+
 protected:
 	int								m_nReference = 0;
 
@@ -280,8 +278,8 @@ protected:
 	CB_GAMEOBJECT_INFO				*m_cbMappedGameObject = NULL;
 
 public:
-	GameObject						*m_Parent = NULL;
-	
+	GameObject * m_Parent = NULL;
+
 	AnimationController				*m_AnimationController = NULL;
 
 public:
@@ -351,20 +349,13 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
-
 class SkyBox : public GameObject
 {
 public:
-	SkyBox(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
-	~SkyBox() { }
+	SkyBox(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, int type);
+	~SkyBox();
 
-public:
-	Mesh		**m_SkyBoxMesh = NULL;
-
-public:
-	void SetMesh(int Index, Mesh *Mesh);
-
-	void Animate(XMFLOAT3 Position);
+	virtual void Animate(XMFLOAT3 PlayerPosition);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
@@ -390,4 +381,7 @@ class Monster : public GameObject
 public:
 	Monster() { }
 	~Monster() { }
+
+public:
+	void SetDirection(XMFLOAT3 Position);
 };

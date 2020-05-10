@@ -80,7 +80,7 @@ void GameFramework::OnDestroy()
 	if (m_CommandList) m_CommandList->Release();
 
 	if (m_Fence) m_Fence->Release();
-	
+
 	if (m_SwapChain) m_SwapChain->Release();
 	if (m_Device) m_Device->Release();
 	if (m_Factory) m_Factory->Release();
@@ -172,7 +172,7 @@ void GameFramework::CreateDirect3DDevice()
 
 	// 하드웨어 어댑터에 대해 특성 레벨 12.0을 지원하는 디바이스를 생성
 	for (UINT i = 0; DXGI_ERROR_NOT_FOUND != m_Factory->EnumAdapters1(i, &Adapter); ++i) {
-		
+
 		DXGI_ADAPTER_DESC1 AdapterDesc;
 
 		Adapter->GetDesc1(&AdapterDesc);
@@ -217,7 +217,7 @@ void GameFramework::CreateCommandQueueAndList()
 	::ZeroMemory(&CommandQueueDesc, sizeof(D3D12_COMMAND_QUEUE_DESC));
 	CommandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	CommandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-	
+
 	hResult = m_Device->CreateCommandQueue(&CommandQueueDesc, _uuidof(ID3D12CommandQueue), (void**)&m_CommandQueue);
 	hResult = m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, __uuidof(ID3D12CommandAllocator), (void**)&m_CommandAllocator);
 	hResult = m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator, NULL, __uuidof(ID3D12GraphicsCommandList), (void**)&m_CommandList);
@@ -300,7 +300,7 @@ void GameFramework::CreateDepthStencilView()
 void GameFramework::BuildObject()
 {
 	m_CommandList->Reset(m_CommandAllocator, NULL);
-	
+
 	m_TitleScene = new TitleScene();
 	m_TitleScene->BuildObject(m_Device, m_CommandList);
 
@@ -354,7 +354,7 @@ void GameFramework::FrameAdvance()
 
 	HRESULT hResult = m_CommandAllocator->Reset();
 	hResult = m_CommandList->Reset(m_CommandAllocator, NULL);
-	
+
 	D3D12_RESOURCE_BARRIER ResourceBarrier;
 	::ZeroMemory(&ResourceBarrier, sizeof(D3D12_RESOURCE_BARRIER));
 	ResourceBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -438,7 +438,7 @@ void GameFramework::FrameAdvance()
 
 	m_Timer.GetFrameRate(m_FrameRate + 23, 37);
 	size_t Length = _tcslen(m_FrameRate);
-	
+
 	_stprintf_s(m_FrameRate + Length, 70 - Length, _T(" "));
 	::SetWindowText(m_hwnd, m_FrameRate);
 
@@ -491,7 +491,7 @@ void GameFramework::OnProcessingKeyboardMessage(HWND hwnd, UINT MessageID, WPARA
 		case VK_ESCAPE:
 			::PostQuitMessage(0);
 			break;
-			
+
 		default:
 			break;
 		}

@@ -120,7 +120,7 @@ void Material::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
 	CommandList->SetGraphicsRoot32BitConstants(1, 1, &m_nType, 32);
 
 	for (int i = 0; i < m_nTexture; ++i)
-		if (m_Texture[i]) m_Texture[i]->UpdateShaderVariable(CommandList, 0);
+		if (m_Texture[i]) m_Texture[i]->UpdateShaderVariable(CommandList, i);
 }
 
 void Material::LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, UINT nType, UINT nRootParameter, _TCHAR *TextureName, Texture **ObjTexture, FILE *InFile, GameObject *Parent, Shader *Shader, Material *ObjMaterial)
@@ -157,7 +157,7 @@ void Material::LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandLi
 			*ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
 			(*ObjTexture)->LoadTextureFromFile(Device, CommandList, TextureName, 0);
 			if (*ObjTexture) (*ObjTexture)->AddRef();
-			
+
 			GameScene::CreateShaderResourceView(Device, CommandList, *ObjTexture, nRootParameter, false);
 		}
 		else {
@@ -182,7 +182,6 @@ AnimationSet::~AnimationSet()
 	if (m_KeyFrameTransformTime) delete[] m_KeyFrameTransformTime;
 	for (int j = 0; j < m_nKeyFrameTransform; j++) if (m_KeyFrameTransform[j]) delete[] m_KeyFrameTransform[j];
 	if (m_KeyFrameTransform) delete[] m_KeyFrameTransform;
-
 }
 
 float AnimationSet::GetPosition(float Position)
@@ -313,9 +312,8 @@ void AnimationController::SetAnimationSet(int nAnimationSet)
 	if (m_AnimationSet) {
 		for (int i = 0; i < m_nAnimationTrack; ++i)
 			m_AnimationTrack[i].m_AnimationSet = &m_AnimationSet[i];
-
-		m_nNowAnimation = nAnimationSet;
 	}
+	m_nNowAnimation = nAnimationSet;
 }
 
 void AnimationController::SetAnimationEnable(int nAnimationSet)
@@ -424,7 +422,6 @@ void AnimationController::SetPlayerAnimateType(int nType)
 	}
 }
 
-
 void AnimationController::AdvanceTime(float ElapsedTime, AnimationCallbackHandler *CallbackHandler)
 {
 	m_Time += ElapsedTime;
@@ -525,7 +522,6 @@ void AnimationController::AdvanceTime(float ElapsedTime, AnimationCallbackHandle
 				m_AnimationBoneFrameCache[i]->m_TransformPos = Matrix4x4::Interpolate(pAnimationSet->GetSRT(i, fPosition), pNewAnimationSet->GetSRT(i, fNewPosition), fInterpolPosition);
 			}
 
-
 		}
 	}
 }
@@ -619,7 +615,7 @@ void GameObject::SetScale(float x, float y, float z)
 {
 	XMMATRIX Scale = XMMatrixScaling(x, y, z);
 	m_TransformPos = Matrix4x4::Multiply(Scale, m_TransformPos);
-	
+
 	UpdateTransform(NULL);
 }
 
@@ -659,6 +655,8 @@ void GameObject::MoveForward(float Distance)
 	XMFLOAT3 Look = GetLook();
 	Position = Vector3::Add(Position, Look, Distance);
 	GameObject::SetPostion(Position);
+
+	m_TransformPos._42 = -50.f;
 }
 
 void GameObject::MoveRight(float Distance)
@@ -782,7 +780,7 @@ GameObject *GameObject::LoadFrameHierarchyFromFile(ID3D12Device *Device, ID3D12G
 
 			::ReadStringFromFile(InFile, Token);
 			ObjMesh->LoadMeshFromFile(Device, CommandList, InFile);
-			
+
 			GameObj->SetMesh(ObjMesh);
 		}
 		else if (!strcmp(Token, "<Materials>:")) {
@@ -814,7 +812,7 @@ GameObject *GameObject::LoadGeometryAndAnimationFromFile(ID3D12Device *Device, I
 	GameObj->CacheSkinningBoneFrame(GameObj);
 
 	if (Animation) {
-		GameObj->m_AnimationController = new AnimationController(8);
+		GameObj->m_AnimationController = new AnimationController(30);
 		GameObj->LoadAnimationFromFile(File);
 		GameObj->m_AnimationController->SetAnimationSet(0);
 	}
@@ -884,7 +882,7 @@ void GameObject::SetAnimateType(int nAnimationSet, int nType)
 	if (m_AnimationController) m_AnimationController->SetAnimateControlType(nAnimationSet, nType);
 
 	if (m_Sibling) m_Sibling->SetAnimateType(nAnimationSet, nType);
-	if (m_Child) m_Child->SetAnimateType(nAnimationSet, nTy);
+	if (m_Child) m_Child->SetAnimateType(nAnimationSet, nType);
 }
 
 void GameObject::SetPlayerAnimateType(int nType)
@@ -907,7 +905,7 @@ void GameObject::Render(ID3D12GraphicsCommandList *CommandList)
 {
 	OnPrepareRender();
 	UpdateShaderVariable(CommandList, &m_WorldPos);
-	
+
 	if (m_nMaterial > 0) {
 		for (int i = 0; i < m_nMaterial; ++i) {
 			if (m_Material[i]) {
@@ -931,7 +929,7 @@ void GameObject::CacheSkinningBoneFrame(GameObject *RootFrame)
 		for (int i = 0; i < ObjMesh->GetSkinningBoneNum(); ++i)
 			ObjMesh->m_SkinningBoneFrameCache[i] = RootFrame->FindFrame(ObjMesh->m_SkinningBoneName[i]);
 	}
-	
+
 	if (m_Sibling) m_Sibling->CacheSkinningBoneFrame(RootFrame);
 	if (m_Child) m_Child->CacheSkinningBoneFrame(RootFrame);
 }
@@ -1059,7 +1057,7 @@ UI::~UI()
 
 void UI::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
 {
-	
+
 }
 
 void UI::Render(ID3D12GraphicsCommandList *CommandList)
@@ -1075,96 +1073,71 @@ void UI::Render(ID3D12GraphicsCommandList *CommandList)
 	}
 }
 
-//TrapCover::TrapCover(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, int Type)
-//{
-//	TextureMesh *ObjMesh = new TextureMesh(Device, CommandList, 30.f, 30.f, 0.f, 0.f, 0.f, 0.f, 0);
-//	SetMesh(ObjMesh);
-//
-//	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
-//	
-//	// 함정 윗부분의 타입에 맞는 이미지를 로드
-//	switch (Type)
-//	{
-//	case 0:
-//		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/JSTM_Title.dds", 0);
-//		break;
-//
-//	default:
-//		break;
-//	}
-//
-//	TrapShader *ObjShader = new TrapShader();
-//	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
-//	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 2, false);
-//
-//	Material *ObjMaterial = new Material(1);
-//	ObjMaterial->SetTexture(ObjTexture);
-//	m_nMaterial = 1;
-//
-//	m_Material = new Material*();
-//	m_Material[0] = NULL;
-//	SetMaterial(0, ObjMaterial);
-//	SetCbvGPUDescriptorHandle(ObjShader->GetGPUCbvDescriptorStartHandle());
-//	SetShader(0, ObjShader);
-//
-//	ObjMaterial = NULL;
-//}
-//
-//TrapCover::~TrapCover()
-//{
-//
-//}
-//
-//void TrapCover::Render(ID3D12GraphicsCommandList *CommandList)
-//{
-//	UpdateShaderVariable(CommandList, &m_WorldPos);
-//
-//	if (m_nMaterial > 0) {
-//		for (int i = 0; i < m_nMaterial; ++i) {
-//			if (m_Material[i]->m_Shader)
-//				m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
-//			m_Material[i]->UpdateShaderVariable(CommandList);
-//			if (m_Mesh)
-//				m_Mesh->Render(CommandList);
-//		}
-//	}
-//}
 
-
-SkyBox::SkyBox(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+// InGame에 사용할 이미지 파일
+SkyBox::SkyBox(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, int type)
 {
-	m_SkyBoxMesh = new Mesh *[6];
-	for (int i = 0; i < 6; ++i) m_SkyBoxMesh[i] = NULL;
-
 	TextureMesh *ObjMesh = NULL;
-	ObjMesh = new TextureMesh(Device, CommandList, 500.f, 500.f, 500.f, 0.f, 0.f, 0.f, 0);
-	SetMesh(0, ObjMesh);
-	ObjMesh = new TextureMesh(Device, CommandList, 500.f, 500.f, -500.f, 0.f, 0.f, 0.f, 1);
-	SetMesh(1, ObjMesh);
-	ObjMesh = new TextureMesh(Device, CommandList, -500.f, 500.f, 500.f, 0.f, 0.f, 0.f, 2);
-	SetMesh(2, ObjMesh);
-	ObjMesh = new TextureMesh(Device, CommandList, 500.f, 500.f, 500.f, 0.f, 0.f, 0.f, 3);
-	SetMesh(3, ObjMesh);
-	ObjMesh = new TextureMesh(Device, CommandList, 500.f, 500.f, 500.f, 0.f, 0.f, 0.f, 4);
-	SetMesh(4, ObjMesh);
-	ObjMesh = new TextureMesh(Device, CommandList, 500.f, -500.f, 500.f, 0.f, 0.f, 0.f, 5);
-	SetMesh(5, ObjMesh);
 
-	CreateShaderVariable(Device, CommandList);
+	switch (type) {
+	case 0: // 정면
+		ObjMesh = new TextureMesh(Device, CommandList, 1000.f, 1000.f, 1000.f, 0.f, 0.f, 0.f, 0);
+		break;
 
-	Texture *ObjTexture = new Texture(6, RESOURCE_TEXTURE2D, 0);
-	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_front.dds", 0);
-	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_back.dds", 1);
-	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_left.dds", 2);
-	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/JSTM_Title.dds", 3);
-	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_up.dds", 4);
-	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_down.dds", 5);
+	case 1: // 후면
+		ObjMesh = new TextureMesh(Device, CommandList, 1000.f, 1000.f, -1000.f, 0.f, 0.f, 0.f, 1);
+		break;
+
+	case 2: // 좌측
+		ObjMesh = new TextureMesh(Device, CommandList, -1000.f, 1000.f, 1000.f, 0.f, 0.f, 0.f, 2);
+		break;
+
+	case 3: // 우측
+		ObjMesh = new TextureMesh(Device, CommandList, 1000.f, 1000.f, 1000.f, 0.f, 0.f, 0.f, 3);
+		break;
+
+	case 4: // 천장
+		ObjMesh = new TextureMesh(Device, CommandList, 1000.f, 1000.f, 1000.f, 0.f, 0.f, 0.f, 4);
+		break;
+
+	default:
+		break;
+	}
+	SetMesh(ObjMesh);
+
+	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
+	// 함정 윗부분의 타입에 맞는 이미지를 로드
+	switch (type)
+	{
+	case 0:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_front.dds", 0);
+		break;
+
+	case 1:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_back.dds", 0);
+		break;
+
+	case 2:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_right.dds", 0);
+		break;
+
+	case 3:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_left.dds", 0);
+		break;
+
+	case 4:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/skybox_up.dds", 0);
+		break;
+
+	default:
+		break;
+	}
 
 	SkyBoxShader *ObjShader = new SkyBoxShader();
 	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
 	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 2, false);
 
-	Material *ObjMaterial = new Material(6);
+	Material *ObjMaterial = new Material(1);
 	ObjMaterial->SetTexture(ObjTexture);
 	m_nMaterial = 1;
 
@@ -1177,17 +1150,15 @@ SkyBox::SkyBox(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3
 	ObjMaterial = NULL;
 }
 
-void SkyBox::SetMesh(int Index, Mesh *Mesh)
+SkyBox::~SkyBox()
 {
-	if (m_SkyBoxMesh) m_SkyBoxMesh[Index] = Mesh;
-	if (Mesh) Mesh->AddRef();
+
 }
 
-void SkyBox::Animate(XMFLOAT3 Position)
+void SkyBox::Animate(XMFLOAT3 PlayerPosition)
 {
-	SetPostion(Position);
-
-	UpdateTransform(NULL);
+	// SkyBox는 플레이어를 쫓아감
+	SetPostion(PlayerPosition);
 }
 
 void SkyBox::Render(ID3D12GraphicsCommandList *CommandList)
@@ -1199,9 +1170,8 @@ void SkyBox::Render(ID3D12GraphicsCommandList *CommandList)
 			if (m_Material[i]->m_Shader)
 				m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
 			m_Material[i]->UpdateShaderVariable(CommandList);
-			
-			for (int j = 0; j < 6; ++j)
-				m_SkyBoxMesh[j]->Render(CommandList);
+			if (m_Mesh)
+				m_Mesh->Render(CommandList);
 		}
 	}
 }
@@ -1215,4 +1185,27 @@ void Trap::Animate(GameObject *Player)
 
 		UpdateTransform(NULL);
 	}
+}
+
+
+// Monster
+void Monster::SetDirection(XMFLOAT3 Position)
+{
+	// 플레이어를 바라보도록 설정
+	Position.y = -50.f;
+
+	XMFLOAT3 Look = Vector3::Subtract(GetPosition(), Position);
+	Look = Vector3::Normalize(Look);
+	m_TransformPos._31 = -Look.x;
+	m_TransformPos._32 = -Look.y;
+	m_TransformPos._33 = -Look.z;
+
+	m_TransformPos._21 = 0.f;
+	m_TransformPos._22 = 1.f;
+	m_TransformPos._23 = 0.f;
+
+	XMFLOAT3 Right = Vector3::CrossProduct(GetUp(), Look, true);
+	m_TransformPos._11 = -Right.x;
+	m_TransformPos._12 = -Right.y;
+	m_TransformPos._13 = -Right.z;
 }

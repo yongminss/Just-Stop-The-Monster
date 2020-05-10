@@ -50,7 +50,7 @@ void TitleScene::ReleaseObject()
 ID3D12RootSignature *TitleScene::CreateGraphicsRootSignature(ID3D12Device *Device)
 {
 	ID3D12RootSignature *GraphicsRootSignature = NULL;
-	
+
 	// 디스크립터 레인지
 	D3D12_DESCRIPTOR_RANGE DescriptorRange;
 	DescriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
@@ -102,7 +102,7 @@ ID3D12RootSignature *TitleScene::CreateGraphicsRootSignature(ID3D12Device *Devic
 	ID3DBlob *ErrorBlob = NULL;
 	D3D12SerializeRootSignature(&RootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &SignatureBlob, &ErrorBlob);
 	Device->CreateRootSignature(0, SignatureBlob->GetBufferPointer(), SignatureBlob->GetBufferSize(), __uuidof(ID3D12RootSignature), (void **)&GraphicsRootSignature);
-	
+
 	if (SignatureBlob) SignatureBlob->Release();
 	if (ErrorBlob) ErrorBlob->Release();
 
@@ -230,13 +230,13 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 
 	// UI
 	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.25f, 0.125f, 2, 1);
-	
+
 	// 스카이박스
-	m_SkyBox = new SkyBox(Device, CommandList, m_GraphicsRootSignature);
+	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
 
 	// 스테이지의 벽과 바닥
 	m_StageWall = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/allwall.bin", NULL, false);
-	m_StageWall->SetPostion(XMFLOAT3(850.f, 150.f, -100.f));
+	m_StageWall->SetPostion(XMFLOAT3(820.f, 150.f, -100.f));
 	m_StageWall->SetScale(100.f, 100.f, 100.f);
 
 	m_StageFloor = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/allfloor.bin", NULL, false);
@@ -248,28 +248,27 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_NeedleTrapModel->SetScale(2.f, 2.f, 2.f);
 
 	// 몬스터 모델
-	m_OrcModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/weak_infantry.bin", NULL, true);
-	m_ShamanModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/shaman.bin", NULL, true);
-	m_WolfRiderModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/wolf_rider.bin", NULL, true);
+	m_OrcModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
+	m_ShamanModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Shaman.bin", NULL, true);
+	m_WolfRiderModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_WolfRider.bin", NULL, true);
 
 	// 기본 오크
 	m_Orc.emplace_back(new Monster());
 	m_Orc.back()->SetChild(m_OrcModel, true);
-	m_Orc.back()->SetScale(1.5f, 1.5f, 1.5f);
-	m_Orc.back()->SetRotate(0.f, 150.f, 0.f);
-	m_Orc.back()->SetPostion(XMFLOAT3(-200.f, -20.f, 150.f));
+	m_Orc.back()->SetPostion(XMFLOAT3(-200.f, -50.f, 150.f));
 
 	// 마법사 오크
 	m_Shaman.emplace_back(new Monster());
 	m_Shaman.back()->SetChild(m_ShamanModel, true);
-	m_Shaman.back()->SetRotate(0.f, 150.f, 0.f);
 	m_Shaman.back()->SetPostion(XMFLOAT3(0.f, -50.f, 150.f));
 
 	// 늑대 오크
 	m_Shaman.emplace_back(new Monster());
 	m_Shaman.back()->SetChild(m_WolfRiderModel, true);
-	m_Shaman.back()->SetRotate(0.f, 150.f, 0.f);
 	m_Shaman.back()->SetPostion(XMFLOAT3(200.f, -50.f, 150.f));
+
+	m_OtherPlayerModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Soldier_Player.bin", NULL, true);
+	m_OtherPlayerModel->SetPostion(XMFLOAT3(-1000.f, -15.f, 0.f));
 
 	CreateShaderVariable(Device, CommandList);
 }
@@ -293,7 +292,7 @@ void GameScene::BuildDefaultLightsAndMaterials()
 	m_Lights[0].m_Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.f);
 	m_Lights[0].m_Diffuse = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.f);
 	m_Lights[0].m_Specular = XMFLOAT4(0.6f, 0.4f, 0.4f, 1.f);
-	m_Lights[0].m_Direction = XMFLOAT3(0.f, 0.f, 1.f);
+	m_Lights[0].m_Direction = XMFLOAT3(1.f, 0.f, 0.f);
 
 	/*
 	m_Lights[0].m_Enable = true;
@@ -614,7 +613,7 @@ void GameScene::Animate(float ElapsedTime)
 {
 	m_ElasedTime = ElapsedTime;
 
-	if (m_SkyBox) m_SkyBox->Animate(m_Player->GetPosition());
+	for (int i = 0; i < 5; ++i) if (m_SkyBox[i]) m_SkyBox[i]->Animate(m_Player->GetPosition());
 
 	if (m_Player) {
 		m_Player->UpdateTransform(NULL);
@@ -631,20 +630,32 @@ void GameScene::Animate(float ElapsedTime)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
+			if (Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition()) > 50.f) {
+				(*iter)->SetEnable(2);
+				(*iter)->SetDirection(m_Player->GetPosition());
+				(*iter)->MoveForward(100.f * ElapsedTime);
+			}
+			else
+				(*iter)->SetEnable(3);
 		}
 
 	for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
+			(*iter)->SetDirection(m_Player->GetPosition());
 			(*iter)->Animate(ElapsedTime, NULL);
 		}
 
 	for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
+			(*iter)->SetDirection(m_Player->GetPosition());
 			(*iter)->Animate(ElapsedTime, NULL);
 		}
 
+	// Ohter Player
+	if (network_manager::GetInst()->IsConnect())
+		m_OtherPlayerModel->Animate(ElapsedTime, NULL);
 }
 
 void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
@@ -661,7 +672,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	UpdateShaderVariable(CommandList);
 
 	// 스카이박스 렌더링
-	if (m_SkyBox) m_SkyBox->Render(CommandList);
+	for (int i = 0; i < 5; ++i) if (m_SkyBox[i]) m_SkyBox[i]->Render(CommandList);
 
 	// 플레이어 렌더링
 	if (m_Player) m_Player->Render(CommandList);
@@ -686,6 +697,10 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 	for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
 		(*iter)->Render(CommandList);
+
+	// Ohter Player
+	if (network_manager::GetInst()->IsConnect())
+		m_OtherPlayerModel->Render(CommandList);
 }
 
 void GameScene::ProcessInput(HWND hWnd)
@@ -718,9 +733,9 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		// 플레이어가 공격 버튼을 클릭했을 때, 함정 설치 중이었다면 더 이상 따라오지 않도록 함
 		if (m_NeedleTrap.size() != 0) {
 			if (m_NeedleTrap.back()->GetAnimate() == true) m_NeedleTrap.back()->SetAnimate(false);
-			else m_Player->SetEnable(4);
+			else m_Player->SetEnable(10);
 		}
-		else m_Player->SetEnable(4);
+		else m_Player->SetEnable(10);
 		break;
 
 	case WM_LBUTTONUP:
@@ -746,7 +761,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 'W':
 		{
 			m_Player->SetDirection(1);
-			m_Player->SetEnable(2);
+			m_Player->SetEnable(1);
 			// Send to Server
 			cs_packet_pos packet;
 			packet.id = network_manager::GetInst()->m_my_info.id;
@@ -776,7 +791,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 'A':
 		{
 			m_Player->SetDirection(3);
-			m_Player->SetEnable(2);
+			m_Player->SetEnable(4);
 		}
 		break;
 
@@ -784,11 +799,19 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 'D':
 		{
 			m_Player->SetDirection(4);
-			m_Player->SetEnable(2);
+			m_Player->SetEnable(3);
 		}
 		break;
 
-		// 함정 설치 준비
+		case 'r':
+		case 'R':
+			//if (m_Player->m_AnimationController->m_AnimationTrack[18].m_AnimationSet->m_nType != ANIMATION_TYPE_RELOAD) {
+				m_Player->SetPlayerAnimateType(ANIMATION_TYPE_RELOAD);
+			//}
+			m_Player->SetEnable(18);
+			break;
+
+			// 함정 설치 준비
 		case '1':
 		{
 			m_NeedleTrap.emplace_back(new Trap());
