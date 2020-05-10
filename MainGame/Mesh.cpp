@@ -62,24 +62,27 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 	float objY = height + y;
 	float objZ = depth + z;
 
+	float tempX = 0.f;
 	float tempY = 0.f;
 
 	// Select Box
 	if (1 == ImageType) tempY = -0.1f;
+	// Charactor Information
+	if (2 == ImageType) tempX = -0.6f, tempY = +0.85f;
 	// Traplist UI
-	if (2 == ImageType) tempY = -0.8f;
+	if (3 == ImageType) tempY = -0.8f;
 
 	switch (type)
 	{
 	case 0: // ¾Õ
 	{
-		Vertices[0] = TextureVertex(XMFLOAT3(+objX, +objY + tempY, objZ), XMFLOAT2(1.0f, 0.0f));
-		Vertices[1] = TextureVertex(XMFLOAT3(+objX, -objY + tempY, objZ), XMFLOAT2(1.0f, 1.0f));
-		Vertices[2] = TextureVertex(XMFLOAT3(-objX, -objY + tempY, objZ), XMFLOAT2(0.0f, 1.0f));
+		Vertices[0] = TextureVertex(XMFLOAT3(+objX + tempX, +objY + tempY, objZ), XMFLOAT2(1.0f, 0.0f));
+		Vertices[1] = TextureVertex(XMFLOAT3(+objX + tempX, -objY + tempY, objZ), XMFLOAT2(1.0f, 1.0f));
+		Vertices[2] = TextureVertex(XMFLOAT3(-objX + tempX, -objY + tempY, objZ), XMFLOAT2(0.0f, 1.0f));
 
-		Vertices[3] = TextureVertex(XMFLOAT3(-objX, -objY + tempY, objZ), XMFLOAT2(0.0f, 1.0f));
-		Vertices[4] = TextureVertex(XMFLOAT3(-objX, +objY + tempY, objZ), XMFLOAT2(0.0f, 0.0f));
-		Vertices[5] = TextureVertex(XMFLOAT3(+objX, +objY + tempY, objZ), XMFLOAT2(1.0f, 0.0f));
+		Vertices[3] = TextureVertex(XMFLOAT3(-objX + tempX, -objY + tempY, objZ), XMFLOAT2(0.0f, 1.0f));
+		Vertices[4] = TextureVertex(XMFLOAT3(-objX + tempX, +objY + tempY, objZ), XMFLOAT2(0.0f, 0.0f));
+		Vertices[5] = TextureVertex(XMFLOAT3(+objX + tempX, +objY + tempY, objZ), XMFLOAT2(1.0f, 0.0f));
 	}
 	break;
 

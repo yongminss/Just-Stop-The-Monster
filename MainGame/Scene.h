@@ -100,6 +100,7 @@ private:
 	Player						*m_Player = NULL;
 
 	// UI
+	UI							*m_CharInfo = NULL;
 	UI							*m_TrapListUi = NULL;
 
 	// Map
@@ -142,6 +143,8 @@ private:
 	POINT m_OldCursourPos;
 
 public:
+	bool temp = false;
+
 	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 	void ReleaseObject();
 

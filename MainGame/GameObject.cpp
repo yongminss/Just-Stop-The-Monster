@@ -1019,6 +1019,11 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 		break;
 
 	case 2:
+		// Charactor Information
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/charinfo.dds", 0);
+		break;
+			
+	case 3:
 		// Trap List UI
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/traplist.dds", 0);
 		break;

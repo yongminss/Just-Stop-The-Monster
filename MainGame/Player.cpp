@@ -105,7 +105,8 @@ void Player::Update(float ElapsedTime)
 		m_Camera->Update(GetPosition(), ElapsedTime);
 		m_Camera->RegenerateViewMatrix();
 	}
-	if (m_Direction != 0) Move(ElapsedTime);
+	if (m_Direction == 0) SetEnable(0);
+	else Move(ElapsedTime);
 	Animate(ElapsedTime);
 }
 

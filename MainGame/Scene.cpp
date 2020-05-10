@@ -229,7 +229,8 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
 
 	// UI
-	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.25f, 0.125f, 2, 1);
+	m_CharInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.125f, 2, 1);
+	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.25f, 0.125f, 3, 1);
 
 	// 스카이박스
 	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
@@ -630,13 +631,15 @@ void GameScene::Animate(float ElapsedTime)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
-			if (Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition()) > 50.f) {
-				(*iter)->SetEnable(2);
-				(*iter)->SetDirection(m_Player->GetPosition());
-				(*iter)->MoveForward(100.f * ElapsedTime);
+			(*iter)->SetDirection(m_Player->GetPosition());
+			if (temp == true) {
+				if (Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition()) > 50.f) {
+					(*iter)->SetEnable(2);
+					(*iter)->MoveForward(100.f * ElapsedTime);
+				}
+				else
+					(*iter)->SetEnable(3);
 			}
-			else
-				(*iter)->SetEnable(3);
 		}
 
 	for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
@@ -678,6 +681,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	if (m_Player) m_Player->Render(CommandList);
 
 	// UI
+	if (m_CharInfo) m_CharInfo->Render(CommandList);
 	if (m_TrapListUi) m_TrapListUi->Render(CommandList);
 
 	// GameScene에 등장할 오브젝트 렌더링
@@ -733,9 +737,9 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		// 플레이어가 공격 버튼을 클릭했을 때, 함정 설치 중이었다면 더 이상 따라오지 않도록 함
 		if (m_NeedleTrap.size() != 0) {
 			if (m_NeedleTrap.back()->GetAnimate() == true) m_NeedleTrap.back()->SetAnimate(false);
-			else m_Player->SetEnable(10);
+			else m_Player->SetEnable(9);
 		}
-		else m_Player->SetEnable(10);
+		else m_Player->SetEnable(9);
 		break;
 
 	case WM_LBUTTONUP:
@@ -760,8 +764,8 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 'w':
 		case 'W':
 		{
-			m_Player->SetDirection(1);
 			m_Player->SetEnable(1);
+			m_Player->SetDirection(1);
 			// Send to Server
 			cs_packet_pos packet;
 			packet.id = network_manager::GetInst()->m_my_info.id;
@@ -820,6 +824,11 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		}
 		break;
 
+		case '2':
+			if (temp == true) temp = false, m_Orc.back()->SetEnable(0);
+			else temp = true;
+			break;
+
 		default:
 			break;
 		}
@@ -830,7 +839,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		default:
 		{
 			m_Player->SetDirection(0);
-			m_Player->SetEnable(0);
+			//m_Player->SetEnable(0);
 		}
 		break;
 		}
