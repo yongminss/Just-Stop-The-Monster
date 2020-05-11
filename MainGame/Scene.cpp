@@ -743,7 +743,7 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		break;
 
 	case WM_LBUTTONUP:
-		m_Player->SetEnable(0);
+		//m_Player->SetEnable(0);
 		//::ReleaseCapture();
 		break;
 
@@ -765,7 +765,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 'W':
 		{
 			m_Player->SetEnable(1);
-			m_Player->SetDirection(1);
+			m_Player->SetMoveUp(true);
 			// Send to Server
 			cs_packet_pos packet;
 			packet.id = network_manager::GetInst()->m_my_info.id;
@@ -779,8 +779,8 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 's':
 		case 'S':
 		{
-			m_Player->SetDirection(2);
 			m_Player->SetEnable(2);
+			m_Player->SetMoveDown(true);
 			// Send to Server
 			cs_packet_pos packet;
 			packet.id = network_manager::GetInst()->m_my_info.id;
@@ -794,16 +794,16 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 'a':
 		case 'A':
 		{
-			m_Player->SetDirection(3);
 			m_Player->SetEnable(4);
+			m_Player->SetMoveLeft(true);
 		}
 		break;
 
 		case 'd':
 		case 'D':
 		{
-			m_Player->SetDirection(4);
 			m_Player->SetEnable(3);
+			m_Player->SetMoveRight(true);
 		}
 		break;
 
@@ -836,10 +836,29 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 
 	case WM_KEYUP:
 		switch (wParam) {
+		case 'w':
+		case 'W':
+			m_Player->SetMoveUp(false);
+			break;
+
+		case 's':
+		case 'S':
+			m_Player->SetMoveDown(false);
+			break;
+
+		case 'a':
+		case 'A':
+			m_Player->SetMoveLeft(false);
+			break;
+
+		case 'd':
+		case 'D':
+			m_Player->SetMoveRight(false);
+			break;
+
 		default:
 		{
-			m_Player->SetDirection(0);
-			//m_Player->SetEnable(0);
+			m_Player->SetEnable(0);
 		}
 		break;
 		}

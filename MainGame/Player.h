@@ -12,13 +12,22 @@ public:
 protected:
 	Camera			*m_Camera = NULL;
 
-	int				m_Direction = 0;
+	bool			m_MoveUp = false;
+	bool			m_MoveDown = false;
+	bool			m_MoveLeft = false;
+	bool			m_MoveRight = false;
+
 	HWND			m_hWnd = NULL;
 	POINT			m_OldCursorPos{};
 
 public:
-	void SetDirection(int Direction) { m_Direction = Direction; }
+	void SetMoveUp(bool IsTrue) { m_MoveUp = IsTrue; }
+	void SetMoveDown(bool IsTrue) { m_MoveDown = IsTrue; }
+	void SetMoveLeft(bool IsTrue) { m_MoveLeft = IsTrue; }
+	void SetMoveRight(bool IsTrue) { m_MoveRight = IsTrue; }
 	void SetCursorPos(POINT CursourPos) { m_OldCursorPos = CursourPos; }
+
+	bool GetMoveInfo() { bool IsTrue = false; (m_MoveUp || m_MoveDown || m_MoveLeft || m_MoveRight) ? IsTrue = true : IsTrue = false; return IsTrue; }
 
 	void CreateCameraSet(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 	void UpdateCameraSet(ID3D12GraphicsCommandList *CommandList);

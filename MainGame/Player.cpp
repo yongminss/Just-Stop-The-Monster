@@ -67,26 +67,10 @@ void Player::MoveRight(float Distance)
 
 void Player::Move(float ElapsedTime)
 {
-	switch (m_Direction) {
-	case 1:
-		MoveForward(250.f * ElapsedTime);
-		break;
-
-	case 2:
-		MoveForward(-(250.f * ElapsedTime));
-		break;
-
-	case 3:
-		MoveRight(-(250.f * ElapsedTime));
-		break;
-
-	case 4:
-		MoveRight(250.f * ElapsedTime);
-		break;
-
-	default:
-		break;
-	}
+	if (m_MoveUp) MoveForward(250.f * ElapsedTime);
+	if (m_MoveDown) MoveForward(-(250.f * ElapsedTime));
+	if (m_MoveLeft) MoveRight(-(250.f * ElapsedTime));
+	if (m_MoveRight) MoveRight(250.f * ElapsedTime);
 }
 
 void Player::OnPrepareRender()
@@ -105,8 +89,8 @@ void Player::Update(float ElapsedTime)
 		m_Camera->Update(GetPosition(), ElapsedTime);
 		m_Camera->RegenerateViewMatrix();
 	}
-	if (m_Direction == 0) SetEnable(0);
-	else Move(ElapsedTime);
+	// Player가 이동 중이면 Move 함수 호출 -> 이동이 끝나면 IDLE 상태로 애니메이션 전환
+	if (GetMoveInfo()) Move(ElapsedTime); else SetEnable(0);
 	Animate(ElapsedTime);
 }
 
