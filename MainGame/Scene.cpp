@@ -655,8 +655,14 @@ void GameScene::Animate(float ElapsedTime)
 		}
 
 	// Ohter Player
-	if (network_manager::GetInst()->IsConnect())
+	if (network_manager::GetInst()->IsConnect()) {
+		XMFLOAT3 other;
+		other.x = network_manager::GetInst()->m_OtherInfo.Transform._41;
+		other.y = -50.f; //network_manager::GetInst()->m_OtherInfo.Transform._42;
+		other.z = network_manager::GetInst()->m_OtherInfo.Transform._43;
+		m_OtherPlayerModel->SetPostion(other);
 		m_OtherPlayerModel->Animate(ElapsedTime, NULL);
+	}
 }
 
 void GameScene::Render(ID3D12GraphicsCommandList *CommandList)

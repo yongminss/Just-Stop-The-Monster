@@ -410,7 +410,7 @@ void GameFramework::FrameAdvance()
 			packet.id = network_manager::GetInst()->m_my_info.id;
 			packet.size = sizeof(packet);
 			packet.type = CS_POS;
-			//packet.player_world_pos = m_GameScene->GetPlayerInfo();
+			packet.player_world_pos = m_GameScene->GetPlayerInfo();
 			send(network_manager::GetInst()->m_serverSocket, (char*)&packet, sizeof(packet), 0);
 		}
 		m_GameScene->Render(m_CommandList);
