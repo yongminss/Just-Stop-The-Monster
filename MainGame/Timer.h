@@ -34,7 +34,7 @@ public:
 	void				Reset();
 	
 	unsigned long		GetFrameRate(LPTSTR string = NULL, int charNum = 0);
-	float				GetTimeElapsed();
-
+	float				GetTimeElapsed() { return m_TimeElapsed; }
+	float				GetTotalTime();
 };
 

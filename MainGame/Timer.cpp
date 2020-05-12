@@ -16,7 +16,6 @@ Timer::Timer()
 	m_nCurrentFrameRate = 0;
 	m_nFramesPerSecond = 0;
 	m_FPSTimeElapsed = 0.f;
-
 }
 
 Timer::~Timer()
@@ -91,7 +90,9 @@ unsigned long Timer::GetFrameRate(LPTSTR string, int charNum)
 	return m_nCurrentFrameRate;
 }
 
-float Timer::GetTimeElapsed()
+float Timer::GetTotalTime()
 {
-	return m_TimeElapsed;
+	if (m_Stopped)
+		return float((m_nStopPerformanceCounter - m_nPausedPerformanceCounter) - m_nBasePerformanceCounter) *m_TimeScale;
+	return float((m_nCurrentPerformanceCounter - m_nPausedPerformanceCounter) - m_nBasePerformanceCounter) * m_TimeElapsed;
 }

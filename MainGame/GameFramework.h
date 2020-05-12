@@ -50,7 +50,6 @@ private:
 	Timer						m_Timer;
 	TitleScene					*m_TitleScene = NULL;
 	GameScene					*m_GameScene = NULL;
-	//Camera						*m_Camera = NULL;
 	
 	int							SceneState = 0;
 

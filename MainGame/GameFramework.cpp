@@ -315,9 +315,17 @@ void GameFramework::ReleaseObject()
 void GameFramework::Animate()
 {
 	float ElapsedTime = m_Timer.GetTimeElapsed();
+	float RunTime = m_Timer.GetTotalTime();
+
+	// 여기서 패킷을 보냄
+	if (GameState == SceneState)
+		if (RunTime > 1667.f) {
+			m_Timer.Reset();
+			m_GameScene->GetPlayerInfo(); // Player의 4x4 월드행렬
+		}
 
 	if (m_GameScene) m_GameScene->ProcessInput(m_hwnd);
-	if (m_GameScene) m_GameScene->Animate(ElapsedTime);
+	if (m_GameScene) m_GameScene->Animate(ElapsedTime, RunTime);
 }
 
 
@@ -398,6 +406,7 @@ void GameFramework::FrameAdvance()
 			if (m_GameScene == NULL) {
 				m_GameScene = new GameScene();
 				m_GameScene->BuildObject(m_Device, m_CommandList);
+				m_Timer.Reset();
 			}
 		}
 		m_GameScene->Render(m_CommandList);

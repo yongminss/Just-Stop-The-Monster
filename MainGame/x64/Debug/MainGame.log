@@ -1,7 +1,0 @@
-﻿  GameObject.cpp
-c:\users\user\desktop\수업 자료\졸업 작품\just-stop-the-monster\maingame\gameobject.cpp(323): error C2039: 'm_Enable': 'AnimationTrack'의 멤버가 아닙니다.
-  c:\users\user\desktop\수업 자료\졸업 작품\just-stop-the-monster\maingame\gameobject.h(192): note: 'AnimationTrack' 선언을 참조하십시오.
-c:\users\user\desktop\수업 자료\졸업 작품\just-stop-the-monster\maingame\gameobject.cpp(324): error C2039: 'm_Enable': 'AnimationTrack'의 멤버가 아닙니다.
-  c:\users\user\desktop\수업 자료\졸업 작품\just-stop-the-monster\maingame\gameobject.h(192): note: 'AnimationTrack' 선언을 참조하십시오.
-  Player.cpp
-  코드를 생성하고 있습니다...

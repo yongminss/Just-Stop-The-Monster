@@ -610,10 +610,8 @@ D3D12_GPU_DESCRIPTOR_HANDLE GameScene::CreateShaderResourceView(ID3D12Device *De
 	return m_SrvGPUDescriptorNextHandle;
 }
 
-void GameScene::Animate(float ElapsedTime)
+void GameScene::Animate(float ElapsedTime, float RunTime)
 {
-	m_ElasedTime = ElapsedTime;
-
 	for (int i = 0; i < 5; ++i) if (m_SkyBox[i]) m_SkyBox[i]->Animate(m_Player->GetPosition());
 
 	if (m_Player) {

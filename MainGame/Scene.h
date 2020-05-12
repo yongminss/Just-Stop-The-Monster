@@ -138,7 +138,6 @@ private:
 	static D3D12_CPU_DESCRIPTOR_HANDLE m_SrvCPUDescriptorNextHandle;
 	static D3D12_GPU_DESCRIPTOR_HANDLE m_SrvGPUDescriptorNextHandle;
 
-	float m_ElasedTime = 0.f;
 	// 마우스 입력
 	POINT m_OldCursourPos;
 
@@ -158,11 +157,14 @@ public:
 	static void CreateCbvSrvDescriptorHeap(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, int nConstantBufferView, int nShaderResourceView);
 	static D3D12_GPU_DESCRIPTOR_HANDLE CreateShaderResourceView(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, Texture *Texture, UINT nRootParameterStartIndex, bool AutoIncrement);
 
-	void Animate(float ElapsedTime);
+	void Animate(float ElapsedTime, float RunTime);
 	void Render(ID3D12GraphicsCommandList *CommandList);
 
 	void ProcessInput(HWND hWnd);
 
 	bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
+
+	// Player가 가지고 있는 정보를 Framework에 보내주자
+	XMFLOAT4X4 GetPlayerInfo() { return m_Player->GetTransform(); }
 };
