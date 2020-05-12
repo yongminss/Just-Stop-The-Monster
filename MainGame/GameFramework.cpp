@@ -315,17 +315,9 @@ void GameFramework::ReleaseObject()
 void GameFramework::Animate()
 {
 	float ElapsedTime = m_Timer.GetTimeElapsed();
-	float RunTime = m_Timer.GetTotalTime();
-
-	// 여기서 패킷을 보냄
-	if (GameState == SceneState)
-		if (RunTime > 1667.f) {
-			m_Timer.Reset();
-			m_GameScene->GetPlayerInfo(); // Player의 4x4 월드행렬
-		}
-
+	
 	if (m_GameScene) m_GameScene->ProcessInput(m_hwnd);
-	if (m_GameScene) m_GameScene->Animate(ElapsedTime, RunTime);
+	if (m_GameScene) m_GameScene->Animate(ElapsedTime);
 }
 
 
@@ -384,6 +376,8 @@ void GameFramework::FrameAdvance()
 
 	m_CommandList->OMSetRenderTargets(1, &RtvCPUDescriptorHandle, TRUE, &DsvCPUDescriptorHandle);
 
+	float RunTime = m_Timer.GetTotalTime();
+
 	// Scene을 Rendering 하는 영역
 	switch (SceneState)
 	{
@@ -408,6 +402,16 @@ void GameFramework::FrameAdvance()
 				m_GameScene->BuildObject(m_Device, m_CommandList);
 				m_Timer.Reset();
 			}
+		}
+		// 여기서 패킷을 보냄
+		if (RunTime > 1667.f) {
+			m_Timer.Reset();
+			cs_packet_pos packet;
+			packet.id = network_manager::GetInst()->m_my_info.id;
+			packet.size = sizeof(packet);
+			packet.type = CS_POS;
+			//packet.player_world_pos = m_GameScene->GetPlayerInfo();
+			send(network_manager::GetInst()->m_serverSocket, (char*)&packet, sizeof(packet), 0);
 		}
 		m_GameScene->Render(m_CommandList);
 		break;

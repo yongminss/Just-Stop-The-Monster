@@ -610,7 +610,7 @@ D3D12_GPU_DESCRIPTOR_HANDLE GameScene::CreateShaderResourceView(ID3D12Device *De
 	return m_SrvGPUDescriptorNextHandle;
 }
 
-void GameScene::Animate(float ElapsedTime, float RunTime)
+void GameScene::Animate(float ElapsedTime)
 {
 	for (int i = 0; i < 5; ++i) if (m_SkyBox[i]) m_SkyBox[i]->Animate(m_Player->GetPosition());
 
@@ -764,13 +764,6 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		{
 			m_Player->SetEnable(1);
 			m_Player->SetMoveUp(true);
-			// Send to Server
-			cs_packet_pos packet;
-			packet.id = network_manager::GetInst()->m_my_info.id;
-			packet.size = sizeof(packet);
-			packet.type = CS_POS;
-			packet.player_world_pos = m_Player->GetTransform();
-			send(m_socket, (char*)&packet, sizeof(packet), 0);
 			break;
 		}
 
@@ -779,13 +772,6 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		{
 			m_Player->SetEnable(2);
 			m_Player->SetMoveDown(true);
-			// Send to Server
-			cs_packet_pos packet;
-			packet.id = network_manager::GetInst()->m_my_info.id;
-			packet.size = sizeof(packet);
-			packet.type = CS_POS;
-			packet.player_world_pos = m_Player->GetTransform();
-			send(m_socket, (char*)&packet, sizeof(packet), 0);
 			break;
 		}
 

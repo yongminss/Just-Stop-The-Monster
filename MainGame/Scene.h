@@ -157,7 +157,7 @@ public:
 	static void CreateCbvSrvDescriptorHeap(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, int nConstantBufferView, int nShaderResourceView);
 	static D3D12_GPU_DESCRIPTOR_HANDLE CreateShaderResourceView(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, Texture *Texture, UINT nRootParameterStartIndex, bool AutoIncrement);
 
-	void Animate(float ElapsedTime, float RunTime);
+	void Animate(float ElapsedTime);
 	void Render(ID3D12GraphicsCommandList *CommandList);
 
 	void ProcessInput(HWND hWnd);
