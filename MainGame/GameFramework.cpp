@@ -411,6 +411,7 @@ void GameFramework::FrameAdvance()
 			packet.size = sizeof(packet);
 			packet.type = CS_POS;
 			packet.player_world_pos = m_GameScene->GetPlayerInfo();
+			packet.animation_state = m_GameScene->GetPlayerAnimate();
 			send(network_manager::GetInst()->m_serverSocket, (char*)&packet, sizeof(packet), 0);
 		}
 		m_GameScene->Render(m_CommandList);

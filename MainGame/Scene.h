@@ -166,5 +166,8 @@ public:
 	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 
 	// Player가 가지고 있는 정보를 Framework에 보내주자
-	XMFLOAT4X4 GetPlayerInfo() { return m_Player->GetTransform(); }
+	short		GetPlayerAnimate() { return m_Player->GetAnimateState(); }
+	XMFLOAT4X4	GetPlayerInfo() { return m_Player->GetTransform(); }
+
+	int AnimateState = 0;
 };

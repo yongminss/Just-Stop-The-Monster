@@ -94,6 +94,7 @@ void network_manager::PacketProccess(void * buf)
 		}
 		else { // 다른 플레이어 위치
 			m_OtherInfo.Transform = pos_packet->world_pos;
+			m_OtherInfo.AnimateState = pos_packet->animation_state;
 			cout << "다른 플레이어 위치 받기 확인" << endl;
 		}
 		break;

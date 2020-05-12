@@ -7,6 +7,7 @@ struct PLAYER_INFO
 {
 	int id;
 	bool is_connect;
+	short AnimateState;
 	XMFLOAT4X4 Transform;
 };
 

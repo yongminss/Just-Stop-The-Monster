@@ -656,11 +656,14 @@ void GameScene::Animate(float ElapsedTime)
 
 	// Ohter Player
 	if (network_manager::GetInst()->IsConnect()) {
-		XMFLOAT3 other;
-		other.x = network_manager::GetInst()->m_OtherInfo.Transform._41;
-		other.y = -50.f; //network_manager::GetInst()->m_OtherInfo.Transform._42;
-		other.z = network_manager::GetInst()->m_OtherInfo.Transform._43;
-		m_OtherPlayerModel->SetPostion(other);
+		XMFLOAT4X4 Transform = network_manager::GetInst()->m_OtherInfo.Transform;
+		
+		AnimateState = int(network_manager::GetInst()->m_OtherInfo.AnimateState);
+		cout << "AnimateState : " << AnimateState << " " << typeid(AnimateState).name() << endl;
+
+		m_OtherPlayerModel->SetTransform(Transform);
+		m_OtherPlayerModel->SetScale(30.f, 30.f, 30.f);
+		m_OtherPlayerModel->SetEnable(AnimateState);
 		m_OtherPlayerModel->Animate(ElapsedTime, NULL);
 	}
 }

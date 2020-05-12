@@ -602,6 +602,33 @@ void GameObject::UpdateTransform(XMFLOAT4X4 *Parent)
 	if (m_Child) m_Child->UpdateTransform(&m_WorldPos);
 }
 
+void GameObject::SetRight(XMFLOAT3 Right)
+{
+	m_TransformPos._11 = Right.x;
+	m_TransformPos._12 = Right.y;
+	m_TransformPos._13 = Right.z;
+
+	UpdateTransform(NULL);
+}
+
+void GameObject::SetUp(XMFLOAT3 Up)
+{
+	m_TransformPos._21 = Up.x;
+	m_TransformPos._22 = Up.y;
+	m_TransformPos._23 = Up.z;
+
+	UpdateTransform(NULL);
+}
+
+void GameObject::SetLook(XMFLOAT3 Look)
+{
+	m_TransformPos._31 = Look.x;
+	m_TransformPos._32 = Look.y;
+	m_TransformPos._33 = Look.z;
+
+	UpdateTransform(NULL);
+}
+
 void GameObject::SetPostion(XMFLOAT3 Position)
 {
 	m_TransformPos._41 = Position.x;
@@ -609,6 +636,14 @@ void GameObject::SetPostion(XMFLOAT3 Position)
 	m_TransformPos._43 = Position.z;
 
 	UpdateTransform(NULL);
+}
+
+void GameObject::SetTransform(XMFLOAT4X4 Transform)
+{
+	m_TransformPos._11 = Transform._11, m_TransformPos._12 = Transform._12, m_TransformPos._13 = Transform._13, m_TransformPos._14 = Transform._14;
+	m_TransformPos._21 = Transform._21, m_TransformPos._22 = Transform._22, m_TransformPos._23 = Transform._23, m_TransformPos._14 = Transform._24;
+	m_TransformPos._31 = Transform._31, m_TransformPos._32 = Transform._32, m_TransformPos._33 = Transform._33, m_TransformPos._14 = Transform._34;
+	m_TransformPos._41 = Transform._41, m_TransformPos._42 = -55.f, m_TransformPos._43 = Transform._43, m_TransformPos._14 = Transform._44;
 }
 
 void GameObject::SetScale(float x, float y, float z)
@@ -871,6 +906,9 @@ void GameObject::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, XM
 
 void GameObject::SetEnable(int nAnimationSet)
 {
+	if (nAnimationSet < 0) nAnimationSet = 0;
+	m_AnimateState = short(nAnimationSet);
+
 	if (m_AnimationController) m_AnimationController->SetAnimationEnable(nAnimationSet);
 
 	if (m_Sibling) m_Sibling->SetEnable(nAnimationSet);

@@ -277,6 +277,8 @@ protected:
 	ID3D12Resource					*m_cbGameObject = NULL;
 	CB_GAMEOBJECT_INFO				*m_cbMappedGameObject = NULL;
 
+	short							m_AnimateState = 0;
+
 public:
 	GameObject * m_Parent = NULL;
 
@@ -294,7 +296,13 @@ public:
 
 	void UpdateTransform(XMFLOAT4X4 *Parent);
 
+	void SetRight(XMFLOAT3 Right);
+	void SetUp(XMFLOAT3 Up);
+	void SetLook(XMFLOAT3 Look);
 	void SetPostion(XMFLOAT3 Position);
+
+	void SetTransform(XMFLOAT4X4 Transform);
+	
 	void SetScale(float x, float y, float z);
 	virtual void SetRotate(float Pitch, float Yaw, float Roll);
 
@@ -324,10 +332,10 @@ public:
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, XMFLOAT4X4 *WorldPos);
 
 	void SetEnable(int nAnimationSet);
-
 	void SetAnimateType(int nAnimationSet, int nType);
-
 	void SetPlayerAnimateType(int nType);
+
+	short GetAnimateState() { return m_AnimateState; }
 
 	virtual void OnPrepareRender() { }
 
