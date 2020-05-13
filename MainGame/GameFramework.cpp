@@ -406,13 +406,8 @@ void GameFramework::FrameAdvance()
 		// 여기서 패킷을 보냄
 		if (RunTime > 1667.f) {
 			m_Timer.Reset();
-			cs_packet_pos packet;
-			packet.id = network_manager::GetInst()->m_my_info.id;
-			packet.size = sizeof(packet);
-			packet.type = CS_POS;
-			packet.player_world_pos = m_GameScene->GetPlayerInfo();
-			packet.animation_state = m_GameScene->GetPlayerAnimate();
-			send(network_manager::GetInst()->m_serverSocket, (char*)&packet, sizeof(packet), 0);
+			network_manager::GetInst()->send_change_state_packet(PLAYER_STATE_playing_game);
+			network_manager::GetInst()->send_my_world_pos_packet(m_GameScene->GetPlayerInfo(), m_GameScene->GetPlayerAnimate());
 		}
 		m_GameScene->Render(m_CommandList);
 		break;

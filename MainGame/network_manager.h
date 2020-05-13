@@ -30,8 +30,12 @@ public:
 	void init_socket();
 	void rq_connect_server(const char * server_ip);
 	void ReadBuffer(SOCKET sock);
-
 	void PacketProccess(void * buf);
+
+	void send_change_state_packet(char state);
+	void send_my_world_pos_packet(DirectX::XMFLOAT4X4 world_pos, short animation_state);
+	void send_make_room_packet();
+	void send_request_join_room(short room_number);
 
 
 public:

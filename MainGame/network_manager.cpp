@@ -103,6 +103,7 @@ void network_manager::PacketProccess(void * buf)
 		sc_packet_put_player *put_player_packet = reinterpret_cast<sc_packet_put_player*>(buf);
 		int new_id = put_player_packet->new_player_id;
 		if (new_id != m_my_info.id) {
+			m_OtherInfo.id = new_id;
 			m_OtherInfo.is_connect = true;
 			cout << "다른 플레이어 풋 확인" << endl;
 		}
@@ -110,12 +111,53 @@ void network_manager::PacketProccess(void * buf)
 	}
 	case SC_REMOVE_PLAYER: {
 		sc_packet_remove_player *remove_player_packet = reinterpret_cast<sc_packet_remove_player*>(buf);
-		if (remove_player_packet->leave_player_id != m_my_info.id) {
+		if (m_OtherInfo.id == remove_player_packet->leave_player_id) {
 			m_OtherInfo.is_connect = false;
+			m_OtherInfo.id = -1;
 		}
 
 		break;
 	}
 
 	}
+}
+
+void network_manager::send_change_state_packet(char state)
+{
+	cs_packet_client_state_change packet;
+	packet.type = CS_CLIENT_STATE_CHANGE;
+	packet.id = m_my_info.id;
+	packet.change_state = state;
+	packet.size = sizeof(packet);
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+}
+
+void network_manager::send_my_world_pos_packet(DirectX::XMFLOAT4X4 world_pos, short animation_state)
+{
+	cs_packet_pos packet;
+	packet.type = CS_POS;
+	packet.id = m_my_info.id;
+	packet.player_world_pos = world_pos;
+	packet.animation_state = animation_state;
+	packet.size = sizeof(packet);
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+}
+
+void network_manager::send_make_room_packet()
+{
+	cs_packet_make_room packet;
+	packet.type = CS_MAKE_ROOM;
+	packet.id = m_my_info.id;
+	packet.size = sizeof(packet);
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+}
+
+void network_manager::send_request_join_room(short room_number)
+{
+	cs_packet_request_join_room packet;
+	packet.type = CS_REQUEST_JOIN_ROOM;
+	packet.joiner_id = m_my_info.id;
+	packet.room_number = room_number;
+	packet.size = sizeof(packet);
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
 }
