@@ -37,6 +37,8 @@ public:
 	void send_make_room_packet();
 	void send_request_join_room(short room_number);
 
+	void socket_err_display(const char * msg, int err_no);
+
 
 public:
 	WSADATA m_WSAData;

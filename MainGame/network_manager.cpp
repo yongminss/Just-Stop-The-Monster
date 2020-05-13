@@ -44,7 +44,12 @@ void network_manager::ReadBuffer(SOCKET sock)
 	int saved_packet_size = 0;
 
 	DWORD iobyte, ioflag = 0;
-	WSARecv(sock, &m_recv_buf, 1, &iobyte, &ioflag, NULL, NULL);
+	int ret = WSARecv(sock, &m_recv_buf, 1, &iobyte, &ioflag, NULL, NULL);
+	if (ret != 0) {
+		int err_no = WSAGetLastError();
+		if (WSA_IO_PENDING != err_no)
+			socket_err_display("WSASend Error :", err_no);
+	}
 
 	char * temp = reinterpret_cast<char*>(m_buffer);
 
@@ -160,4 +165,20 @@ void network_manager::send_request_join_room(short room_number)
 	packet.room_number = room_number;
 	packet.size = sizeof(packet);
 	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+}
+
+void network_manager::socket_err_display(const char * msg, int err_no)
+{
+	WCHAR *lpMsgBuf;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL, err_no,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf, 0, NULL);
+	std::cout << msg;
+	std::cout << L"¿¡·¯: " << lpMsgBuf << std::endl;
+
+	while (true);
+	LocalFree(lpMsgBuf);
 }
