@@ -67,10 +67,16 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 
 	// Select Box
 	if (1 == ImageType) tempY = -0.1f;
+	// Stage Select
+	if (3 == ImageType) tempY = +0.75f;
+	// Weapon and Skill Select
+	if (4 == ImageType) tempX = -0.5f, tempY = -0.2f;
+	// Player Infomation
+	if (5 == ImageType) tempX = +0.5f, tempY = -0.2f;
 	// Charactor Information
-	if (2 == ImageType) tempX = -0.6f, tempY = +0.85f;
+	if (7 == ImageType) tempX = -0.6f, tempY = +0.85f;
 	// Traplist UI
-	if (3 == ImageType) tempY = -0.8f;
+	if (8 == ImageType) tempY = -0.8f;
 
 	switch (type)
 	{

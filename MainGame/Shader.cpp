@@ -70,12 +70,16 @@ D3D12_BLEND_DESC Shader::CreateBlendState()
 	D3D12_BLEND_DESC BlendDesc;
 
 	::ZeroMemory(&BlendDesc, sizeof(D3D12_BLEND_DESC));
-	BlendDesc.AlphaToCoverageEnable = FALSE;
+	//BlendDesc.AlphaToCoverageEnable = FALSE;
+	BlendDesc.AlphaToCoverageEnable = TRUE;
 	BlendDesc.IndependentBlendEnable = FALSE;
-	BlendDesc.RenderTarget[0].BlendEnable = FALSE;
+	//BlendDesc.RenderTarget[0].BlendEnable = FALSE;
+	BlendDesc.RenderTarget[0].BlendEnable = TRUE;
 	BlendDesc.RenderTarget[0].LogicOpEnable = FALSE;
-	BlendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
-	BlendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_ZERO;
+	//BlendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+	BlendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	//BlendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_ZERO;
+	BlendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
 	BlendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 	BlendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
 	BlendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;

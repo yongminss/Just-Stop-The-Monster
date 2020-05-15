@@ -17,6 +17,10 @@ private:
 	// 타이틀 씬에서 사용할 오브젝트
 	UI							*m_Background = NULL;
 	UI							*m_Select = NULL;
+	UI							*m_RoomList = NULL;
+	UI							*m_StageSelect = NULL;
+	UI							*m_WeaponSkill = NULL;
+	UI							*m_PlayerInfo = NULL;
 
 	D3D12_VIEWPORT				m_Viewport;
 	D3D12_RECT					m_ScissorRect;
@@ -33,6 +37,9 @@ private:
 	static D3D12_CPU_DESCRIPTOR_HANDLE m_SrvCPUDescriptorNextHandle;
 	static D3D12_GPU_DESCRIPTOR_HANDLE m_SrvGPUDescriptorNextHandle;
 
+	bool m_JoinRoom = false;
+	bool m_StartGame = false;
+
 public:
 	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 	void ReleaseObject();
@@ -44,6 +51,10 @@ public:
 	static D3D12_GPU_DESCRIPTOR_HANDLE CreateShaderResourceView(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, Texture *Texture, UINT nRootParameterStartIndex, bool AutoIncrement);
 
 	void Render(ID3D12GraphicsCommandList *CommandList);
+
+	bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
+
+	bool IsStartGame() { return m_StartGame; }
 };
 
 #define MAX_LIGHTS			16

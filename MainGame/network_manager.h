@@ -7,9 +7,12 @@ struct PLAYER_INFO
 {
 	int id;
 	bool is_connect;
+	char player_state;
+	short room_number;
 	short AnimateState;
 	XMFLOAT4X4 Transform;
 };
+
 
 struct OVER_EX {
 	WSAOVERLAPPED over;
@@ -50,6 +53,8 @@ public:
 
 	PLAYER_INFO m_my_info;
 	PLAYER_INFO m_OtherInfo;
+
+	vector<GAME_ROOM*> m_vec_gameRoom;
 
 public:
 	bool IsConnect() { return m_OtherInfo.is_connect; }

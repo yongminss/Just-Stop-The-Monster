@@ -37,6 +37,10 @@ void TitleScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 	// TitleScene 에서 Redering 될 Objects
 	m_Background = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, 0, 0);
 	m_Select = new UI(Device, CommandList, m_GraphicsRootSignature, 0.3f, 0.125f, 1, 0);
+	m_RoomList = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, 2, 0);
+	m_StageSelect = new UI(Device, CommandList, m_GraphicsRootSignature, 0.45f, 0.2f, 3, 0);
+	m_WeaponSkill = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.6f, 4, 0);
+	m_PlayerInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.75f, 5, 0);
 }
 
 void TitleScene::ReleaseObject()
@@ -200,10 +204,48 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 	CommandList->RSSetScissorRects(1, &m_ScissorRect);
 
 	// 씬에 등장할 오브젝트들을 렌더링
-	if (m_Select) m_Select->Render(CommandList);
+	if (PLAYER_STATE_in_room == network_manager::GetInst()->m_my_info.player_state) {
+		if (m_StageSelect) m_StageSelect->Render(CommandList);
+		if (m_WeaponSkill) m_WeaponSkill->Render(CommandList);
+		if (m_PlayerInfo) m_PlayerInfo->Render(CommandList);
+	}
+	if (m_RoomList) m_RoomList->Render(CommandList);
 	if (m_Background) m_Background->Render(CommandList);
 }
 
+bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+{
+	POINT MousePos{};
+	switch (nMessageID)
+	{
+	case WM_LBUTTONDOWN:
+		MousePos.x = LOWORD(lParam);
+		MousePos.y = HIWORD(lParam);
+		cout << "x : " << MousePos.x << ", y : " << MousePos.y << endl;
+		// Make Room
+		if (MousePos.x > 625 && MousePos.x < 785 && MousePos.y > 175 && MousePos.y < 220) {
+			network_manager::GetInst()->send_make_room_packet();
+		}
+		if (MousePos.x > 240 && MousePos.x < 590 && MousePos.y > 70 && MousePos.y < 120)
+			if (network_manager::GetInst()->m_vec_gameRoom.size() != NULL) {
+				network_manager::GetInst()->send_request_join_room(network_manager::GetInst()->m_vec_gameRoom[0]->room_number);
+				cout << "방에 들어감" << endl;
+				m_JoinRoom = true;
+			}
+		//if (network_manager::GetInst()->m_vec_gameRoom[0]->players_id[0] == network_manager::GetInst()->m_my_info.id)
+		if (MousePos.x > 600 && MousePos.x < 800 && MousePos.x < 800 && MousePos.y > 500 && MousePos.y < 600)
+			m_StartGame = true;
+
+
+	case WM_LBUTTONUP:
+		break;
+
+	default:
+		break;
+	}
+
+	return false;
+}
 
 // 싱글 및 멀티와 캐릭터, 함정 등을 선택 후, 게임을 진행하는 게임 씬
 GameScene::GameScene()
@@ -229,8 +271,8 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
 
 	// UI
-	m_CharInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.125f, 2, 1);
-	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.25f, 0.125f, 3, 1);
+	m_CharInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.125f, 7, 1);
+	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.25f, 0.125f, 8, 1);
 
 	// 스카이박스
 	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
@@ -659,7 +701,6 @@ void GameScene::Animate(float ElapsedTime)
 		XMFLOAT4X4 Transform = network_manager::GetInst()->m_OtherInfo.Transform;
 		
 		AnimateState = int(network_manager::GetInst()->m_OtherInfo.AnimateState);
-		cout << "AnimateState : " << AnimateState << " " << typeid(AnimateState).name() << endl;
 
 		m_OtherPlayerModel->SetTransform(Transform);
 		m_OtherPlayerModel->SetScale(30.f, 30.f, 30.f);

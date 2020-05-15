@@ -378,6 +378,10 @@ void GameFramework::FrameAdvance()
 
 	float RunTime = m_Timer.GetTotalTime();
 
+	if (m_TitleScene) {
+		bool GameStart = m_TitleScene->IsStartGame();
+		if (true == GameStart) SceneState = GameState;
+	}
 	// Scene을 Rendering 하는 영역
 	switch (SceneState)
 	{
@@ -401,12 +405,13 @@ void GameFramework::FrameAdvance()
 				m_GameScene = new GameScene();
 				m_GameScene->BuildObject(m_Device, m_CommandList);
 				m_Timer.Reset();
+				network_manager::GetInst()->send_change_state_packet(PLAYER_STATE_playing_game);
 			}
 		}
 		// 여기서 패킷을 보냄
 		if (RunTime > 1667.f) {
 			m_Timer.Reset();
-			network_manager::GetInst()->send_change_state_packet(PLAYER_STATE_playing_game);
+			//network_manager::GetInst()->send_change_state_packet(PLAYER_STATE_playing_game);
 			network_manager::GetInst()->send_my_world_pos_packet(m_GameScene->GetPlayerInfo(), m_GameScene->GetPlayerAnimate());
 		}
 		m_GameScene->Render(m_CommandList);
@@ -455,6 +460,9 @@ void GameFramework::FrameAdvance()
 
 void GameFramework::OnProcessingMouseMessage(HWND hwnd, UINT MessageID, WPARAM wParam, LPARAM lParam)
 {
+	if (m_TitleScene)
+		m_TitleScene->OnProcessingMouseMessage(hwnd, MessageID, wParam, lParam);
+
 	if (m_GameScene)
 		m_GameScene->OnProcessingMouseMessage(hwnd, MessageID, wParam, lParam);
 

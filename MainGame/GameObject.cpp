@@ -1037,6 +1037,7 @@ void GameObject::LoadAnimationFromFile(FILE *InFile)
 	}
 }
 
+
 // UI
 UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, float x, float y, int Type, int SceneNum)
 {
@@ -1057,11 +1058,34 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 		break;
 
 	case 2:
+		// Room List
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/roomlist.dds", 0);
+		break;
+
+	case 3:
+		// Stage Select
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_stage.dds", 0);
+		break;
+
+	case 4:
+		// Weapon and Skill Select
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_weapon_skill.dds", 0);
+		break;
+
+	case 5:
+		// Player Info
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_player.dds", 0);
+		break;
+
+	case 6:
+		break;
+
+	case 7:
 		// Charactor Information
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/charinfo.dds", 0);
 		break;
 			
-	case 3:
+	case 8:
 		// Trap List UI
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/traplist.dds", 0);
 		break;

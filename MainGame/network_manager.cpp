@@ -98,6 +98,7 @@ void network_manager::PacketProccess(void * buf)
 			cout << "내 위치 받기 확인" << endl;
 		}
 		else { // 다른 플레이어 위치
+			m_OtherInfo.is_connect = true;
 			m_OtherInfo.Transform = pos_packet->world_pos;
 			m_OtherInfo.AnimateState = pos_packet->animation_state;
 			cout << "다른 플레이어 위치 받기 확인" << endl;
@@ -109,7 +110,7 @@ void network_manager::PacketProccess(void * buf)
 		int new_id = put_player_packet->new_player_id;
 		if (new_id != m_my_info.id) {
 			m_OtherInfo.id = new_id;
-			m_OtherInfo.is_connect = true;
+			//m_OtherInfo.is_connect = true;
 			cout << "다른 플레이어 풋 확인" << endl;
 		}
 		break;
@@ -123,7 +124,33 @@ void network_manager::PacketProccess(void * buf)
 
 		break;
 	}
+	case SC_SEND_ROOM_LIST: {
+		sc_packet_room_info *room_info_packet = reinterpret_cast<sc_packet_room_info*>(buf);
+		for (auto rw : m_vec_gameRoom) {
+			if (rw->room_number == room_info_packet->game_room.room_number) { // 원래있는방 업데이트
+				for (int i = 0; i < 4; ++i) {
+					rw->players_id[i] = room_info_packet->game_room.players_id[i];
+					return;
+				}
+			}
+		}
+		GAME_ROOM *new_room = new GAME_ROOM;
+		new_room->room_number = room_info_packet->game_room.room_number;
+		for (int i = 0; i < 4; ++i) {
+			new_room->players_id[i] = room_info_packet->game_room.players_id[i];
+		}
+		m_vec_gameRoom.emplace_back(new_room);
+		cout << "new room"<< new_room->room_number << endl;
+		break;
+	}
+	case SC_MAKE_ROOM_OK: {
+		sc_packet_make_room_ok *make_room_ok_packet = reinterpret_cast<sc_packet_make_room_ok*>(buf);
+		if (m_my_info.id == make_room_ok_packet->id) {
+			m_my_info.room_number = make_room_ok_packet->room_number;
+			m_my_info.player_state = PLAYER_STATE_in_room;
+		}
 
+	}
 	}
 }
 
