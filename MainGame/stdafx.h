@@ -56,21 +56,25 @@ using namespace std;
 
 #include "DDSTextureLoader12.h"
 
+// Texture Image
+enum {
+	// Title Scene
+	BackGround,
+	RoomList,
+	Select_Stage,
+	Select_WeaponAndSkill,
+	PlayerInfo,
+	// Game Scene
+	UI_PlayerInfo,
+	UI_TrapList
+};
+
 extern UINT nCbvSrvDescriptorIncrementSize;
 
 extern ID3D12Resource *CreateBufferResource(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, void *Data, UINT Bytes, D3D12_HEAP_TYPE HeapType = D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATES ResourceStates = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, ID3D12Resource **UploadBuffer = NULL);
 extern ID3D12Resource *CreateTextureResourceFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, wchar_t *FileName, ID3D12Resource **UploadBuffer, D3D12_RESOURCE_STATES ResourceState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 #define EPSILON					1.0e-10f
-
-//static SOCKET g_serverScoket;
-
-
-
-
-
-
-
 
 
 inline bool IsZero(float fValue) { return((fabsf(fValue) < EPSILON)); }

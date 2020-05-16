@@ -29,18 +29,17 @@ void TitleScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 {
 	m_GraphicsRootSignature = CreateGraphicsRootSignature(Device);
 
-	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 2);
+	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 6);
 
 	m_Viewport = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.f, 1.f };
 	m_ScissorRect = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT };
 
 	// TitleScene 에서 Redering 될 Objects
-	m_Background = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, 0, 0);
-	m_Select = new UI(Device, CommandList, m_GraphicsRootSignature, 0.3f, 0.125f, 1, 0);
-	m_RoomList = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, 2, 0);
-	m_StageSelect = new UI(Device, CommandList, m_GraphicsRootSignature, 0.45f, 0.2f, 3, 0);
-	m_WeaponSkill = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.6f, 4, 0);
-	m_PlayerInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.75f, 5, 0);
+	m_Background = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, BackGround, 0);
+	m_RoomList = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, RoomList, 0);
+	m_StageSelect = new UI(Device, CommandList, m_GraphicsRootSignature, 0.45f, 0.2f, Select_Stage, 0);
+	m_WeaponSkill = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.6f, Select_WeaponAndSkill, 0);
+	m_PlayerInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.75f, PlayerInfo, 0);
 }
 
 void TitleScene::ReleaseObject()
@@ -48,7 +47,8 @@ void TitleScene::ReleaseObject()
 	if (m_GraphicsRootSignature) m_GraphicsRootSignature->Release();
 
 	if (m_Background) delete m_Background;
-	if (m_Select) delete m_Select;
+
+	if (m_RoomList) delete m_RoomList;
 }
 
 ID3D12RootSignature *TitleScene::CreateGraphicsRootSignature(ID3D12Device *Device)
@@ -203,14 +203,32 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 	CommandList->RSSetViewports(1, &m_Viewport);
 	CommandList->RSSetScissorRects(1, &m_ScissorRect);
 
-	// 씬에 등장할 오브젝트들을 렌더링
-	if (PLAYER_STATE_in_room == network_manager::GetInst()->m_my_info.player_state) {
+	// Player의 선택에 따라 그려질 방법
+	switch (m_state) {
+	case Basic:
+		if (m_Background) m_Background->Render(CommandList);
+		break;
+
+	case Select_Room:
+		if (m_RoomList) m_RoomList->Render(CommandList);
+		if (m_Background) m_Background->Render(CommandList);
+		break;
+
+	case Wait_Room:
 		if (m_StageSelect) m_StageSelect->Render(CommandList);
 		if (m_WeaponSkill) m_WeaponSkill->Render(CommandList);
 		if (m_PlayerInfo) m_PlayerInfo->Render(CommandList);
+
+		if (m_Background) m_Background->Render(CommandList);
+		break;
+
+	default:
+		break;
+
 	}
-	if (m_RoomList) m_RoomList->Render(CommandList);
-	if (m_Background) m_Background->Render(CommandList);
+	// 씬에 등장할 오브젝트들을 렌더링
+	if (PLAYER_STATE_in_room == network_manager::GetInst()->m_my_info.player_state) {
+	}
 }
 
 bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -222,20 +240,41 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 		MousePos.x = LOWORD(lParam);
 		MousePos.y = HIWORD(lParam);
 		cout << "x : " << MousePos.x << ", y : " << MousePos.y << endl;
-		// Make Room
-		if (MousePos.x > 625 && MousePos.x < 785 && MousePos.y > 175 && MousePos.y < 220) {
-			network_manager::GetInst()->send_make_room_packet();
-		}
-		if (MousePos.x > 240 && MousePos.x < 590 && MousePos.y > 70 && MousePos.y < 120)
-			if (network_manager::GetInst()->m_vec_gameRoom.size() != NULL) {
-				network_manager::GetInst()->send_request_join_room(network_manager::GetInst()->m_vec_gameRoom[0]->room_number);
-				cout << "방에 들어감" << endl;
-				m_JoinRoom = true;
-			}
-		//if (network_manager::GetInst()->m_vec_gameRoom[0]->players_id[0] == network_manager::GetInst()->m_my_info.id)
-		if (MousePos.x > 600 && MousePos.x < 800 && MousePos.x < 800 && MousePos.y > 500 && MousePos.y < 600)
-			m_StartGame = true;
 
+		switch (m_state) {
+		case Basic:
+			// Single Game 버튼을 클릭하면 Game Start
+			if (MousePos.x > 290 && MousePos.x < 510 && MousePos.y > 310 && MousePos.y < 360)
+				m_StartGame = true;
+			// Multi Game 버튼을 클릭하면 Make Room
+			else if (MousePos.x > 300 && MousePos.x < 510 && MousePos.y > 370 && MousePos.y < 420)
+				m_state = Select_Room;
+			// Exit 버튼을 누르면 Game Over
+			else if (MousePos.x > 360 && MousePos.x < 440 && MousePos.y > 430 && MousePos.y < 480)
+				::PostQuitMessage(0);
+			break;
+
+		case Select_Room:
+			// Make Room
+			if (MousePos.x > 625 && MousePos.x < 785 && MousePos.y > 175 && MousePos.y < 220) {
+				network_manager::GetInst()->send_make_room_packet();
+				m_state = Wait_Room;
+			}
+			// Join Room
+			if (MousePos.x > 240 && MousePos.x < 590 && MousePos.y > 70 && MousePos.y < 120)
+				if (network_manager::GetInst()->m_vec_gameRoom.size() != NULL) {
+					network_manager::GetInst()->send_request_join_room(network_manager::GetInst()->m_vec_gameRoom[0]->room_number);
+					m_state = Wait_Room;
+				}
+			break;
+
+		case Wait_Room:
+			m_StartGame = true;
+			break;
+
+		default:
+			break;
+		}
 
 	case WM_LBUTTONUP:
 		break;
@@ -262,7 +301,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 {
 	m_GraphicsRootSignature = CreateGraphicsRootSignature(Device);
 
-	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 100);
+	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 15);
 
 	Material::PrepareShader(Device, CommandList, m_GraphicsRootSignature);
 
@@ -271,8 +310,8 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
 
 	// UI
-	m_CharInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.125f, 7, 1);
-	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.25f, 0.125f, 8, 1);
+	m_CharInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.125f, UI_PlayerInfo, 1);
+	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.25f, 0.125f, UI_TrapList, 1);
 
 	// 스카이박스
 	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);

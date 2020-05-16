@@ -16,7 +16,6 @@ private:
 
 	// 타이틀 씬에서 사용할 오브젝트
 	UI							*m_Background = NULL;
-	UI							*m_Select = NULL;
 	UI							*m_RoomList = NULL;
 	UI							*m_StageSelect = NULL;
 	UI							*m_WeaponSkill = NULL;
@@ -37,8 +36,14 @@ private:
 	static D3D12_CPU_DESCRIPTOR_HANDLE m_SrvCPUDescriptorNextHandle;
 	static D3D12_GPU_DESCRIPTOR_HANDLE m_SrvGPUDescriptorNextHandle;
 
-	bool m_JoinRoom = false;
-	bool m_StartGame = false;
+	enum {
+		Basic,
+		Select_Room,
+		Wait_Room,
+	};
+
+	int		m_state = Basic;
+	bool	m_StartGame = false;
 
 public:
 	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);

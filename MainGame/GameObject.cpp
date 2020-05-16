@@ -1048,44 +1048,36 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 
 	switch (Type) {
 		// Title Background
-	case 0:
+	case BackGround:
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/JSTM_Title.dds", 0);
 		break;
 
-	case 1:
-		// Select
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/select.dds", 0);
-		break;
-
-	case 2:
+	case RoomList:
 		// Room List
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/roomlist.dds", 0);
 		break;
 
-	case 3:
+	case Select_Stage:
 		// Stage Select
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_stage.dds", 0);
 		break;
 
-	case 4:
+	case Select_WeaponAndSkill:
 		// Weapon and Skill Select
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_weapon_skill.dds", 0);
 		break;
 
-	case 5:
+	case PlayerInfo:
 		// Player Info
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_player.dds", 0);
 		break;
 
-	case 6:
-		break;
-
-	case 7:
+	case UI_PlayerInfo:
 		// Charactor Information
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/charinfo.dds", 0);
 		break;
 			
-	case 8:
+	case UI_TrapList:
 		// Trap List UI
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/traplist.dds", 0);
 		break;
