@@ -50,14 +50,16 @@ void network_manager::ReadBuffer(SOCKET sock)
 		if (WSA_IO_PENDING != err_no)
 			socket_err_display("WSASend Error :", err_no);
 	}
-
+	cout << "iobyte: " << iobyte << endl;
+	
+	unsigned short * temp_size = reinterpret_cast<unsigned short*>(m_buffer);
 	char * temp = reinterpret_cast<char*>(m_buffer);
 
 	while (iobyte != 0)
 	{
 		if (in_packet_size == 0)
 		{
-			in_packet_size = temp[0];
+			in_packet_size = temp_size[0];
 		}
 		if (iobyte + saved_packet_size >= in_packet_size)
 		{
@@ -81,7 +83,7 @@ void network_manager::PacketProccess(void * buf)
 {
 	char* temp = reinterpret_cast<char*>(buf);
 
-	switch (temp[1]) {
+	switch (temp[2]) {
 	case SC_SEND_ID:
 	{
 		sc_packet_send_id *send_id_packet = reinterpret_cast<sc_packet_send_id*>(buf);

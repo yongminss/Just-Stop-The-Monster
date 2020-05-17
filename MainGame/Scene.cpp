@@ -301,7 +301,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 {
 	m_GraphicsRootSignature = CreateGraphicsRootSignature(Device);
 
-	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 15);
+	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 100);
 
 	Material::PrepareShader(Device, CommandList, m_GraphicsRootSignature);
 
