@@ -71,6 +71,35 @@ void Player::Move(float ElapsedTime)
 	if (m_MoveDown) MoveForward(-(250.f * ElapsedTime));
 	if (m_MoveLeft) MoveRight(-(250.f * ElapsedTime));
 	if (m_MoveRight) MoveRight(250.f * ElapsedTime);
+
+	if (m_MoveUp) {
+		if (m_MoveLeft) {
+			SetEnable(6);
+		}
+		else if (m_MoveRight) {
+			SetEnable(5);
+		}
+		else {
+			SetEnable(1);
+		}
+	}
+	else if (m_MoveDown) {
+		if (m_MoveLeft) {
+			SetEnable(8);
+		}
+		else if (m_MoveRight) {
+			SetEnable(7);
+		}
+		else {
+			SetEnable(2);
+		}
+	}
+	else if (m_MoveLeft) {
+		SetEnable(4);
+	}
+	else if (m_MoveRight) {
+		SetEnable(3);
+	}
 }
 
 void Player::OnPrepareRender()
@@ -90,7 +119,10 @@ void Player::Update(float ElapsedTime)
 		m_Camera->RegenerateViewMatrix();
 	}
 	// Player가 이동 중이면 Move 함수 호출 -> 이동이 끝나면 IDLE 상태로 애니메이션 전환
-	if (GetMoveInfo()) Move(ElapsedTime); else SetEnable(0);
+	if (GetMoveInfo()) 
+		Move(ElapsedTime);
+	else 
+		SetEnable(0);
 	Animate(ElapsedTime);
 }
 

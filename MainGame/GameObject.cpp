@@ -259,7 +259,7 @@ float AnimationSet::GetPosition(float Position)
 					m_ReloadPosition = Position;
 				}
 				GetPosition = (Position - m_StartPosition) - int((Position - m_StartPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]) * (m_KeyFrameTransformTime[m_nKeyFrameTransform - 1]);
-				if ((Position - m_ReloadPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1] >= 0.05f) {
+				if ((Position - m_ReloadPosition) / m_KeyFrameTransformTime[m_nKeyFrameTransform - 1] >= 0.1f) {
 					m_StartPosition = -1.0f;
 					m_TranslatePosition = 0.0f;
 					m_bAnimateChange = false;
@@ -491,7 +491,18 @@ void AnimationController::AdvanceTime(float ElapsedTime, AnimationCallbackHandle
 
 			float fPosition = pAnimationSet->GetPosition(pAnimationSet->m_Position);
 
-			float fInterpolPosition = ((pAnimationSet->m_Position - pAnimationSet->m_StartPosition) - (pAnimationSet->m_TranslatePosition)) / ((pAnimationSet->m_KeyFrameTransformTime[pAnimationSet->m_nKeyFrameTransform - 1]) - pAnimationSet->m_TranslatePosition);
+
+			float fInterpolPosition;
+			if (pAnimationSet->m_nType == ANIMATION_TYPE_LOOP) {
+				fInterpolPosition = ((pAnimationSet->m_Position - pAnimationSet->m_StartPosition)) / ((pAnimationSet->m_KeyFrameTransformTime[pAnimationSet->m_nKeyFrameTransform - 1]) * 0.1f);
+			}
+			else if ((pAnimationSet->m_nType == ANIMATION_TYPE_RELOAD && pAnimationSet->m_bReloadEnd == false) ||
+				(pAnimationSet->m_nType == ANIMATION_TYPE_SHOOT && pAnimationSet->m_bReloadEnd == false)) {
+				fInterpolPosition = ((pAnimationSet->m_Position) - (pAnimationSet->m_ReloadPosition)) / ((pAnimationSet->m_KeyFrameTransformTime[pAnimationSet->m_nKeyFrameTransform - 1]) * 0.1f);
+			}
+			else {
+				fInterpolPosition = ((pAnimationSet->m_Position - pAnimationSet->m_StartPosition) - (pAnimationSet->m_TranslatePosition)) / ((pAnimationSet->m_KeyFrameTransformTime[pAnimationSet->m_nKeyFrameTransform - 1]) - pAnimationSet->m_TranslatePosition);
+			}
 
 			if (!(pAnimationSet->m_bAnimateChange)) {
 				if (pAnimationSet->m_nType == ANIMATION_TYPE_RELOAD && pNewAnimationSet->m_nType == ANIMATION_TYPE_RELOAD && pAnimationSet->m_bReloadEnd == true) {

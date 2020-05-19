@@ -826,7 +826,10 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			if (m_NeedleTrap.back()->GetAnimate() == true) m_NeedleTrap.back()->SetAnimate(false);
 			else m_Player->SetEnable(9);
 		}
-		else m_Player->SetEnable(9);
+		else { 
+			m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
+			m_Player->SetEnable(9); 
+		}
 		break;
 
 	case WM_LBUTTONUP:
@@ -851,7 +854,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 'w':
 		case 'W':
 		{
-			m_Player->SetEnable(1);
+			//m_Player->SetEnable(1);
 			m_Player->SetMoveUp(true);
 			break;
 		}
@@ -859,7 +862,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 's':
 		case 'S':
 		{
-			m_Player->SetEnable(2);
+			//m_Player->SetEnable(2);
 			m_Player->SetMoveDown(true);
 			break;
 		}
@@ -867,7 +870,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 'a':
 		case 'A':
 		{
-			m_Player->SetEnable(4);
+			//m_Player->SetEnable(4);
 			m_Player->SetMoveLeft(true);
 		}
 		break;
@@ -875,7 +878,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 'd':
 		case 'D':
 		{
-			m_Player->SetEnable(3);
+			//m_Player->SetEnable(3);
 			m_Player->SetMoveRight(true);
 		}
 		break;
@@ -902,6 +905,10 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			else temp = true;
 			break;
 
+		case '5':
+			m_Player->SetAnimateType(27, ANIMATION_TYPE_ONCE);
+			m_Player->SetEnable(27);
+			break;
 		default:
 			break;
 		}
@@ -931,7 +938,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 
 		default:
 		{
-			m_Player->SetEnable(0);
+			//m_Player->SetEnable(0);
 		}
 		break;
 		}
