@@ -1279,3 +1279,35 @@ void Monster::SetDirection(XMFLOAT3 Position)
 	m_TransformPos._12 = -Right.y;
 	m_TransformPos._13 = -Right.z;
 }
+
+void Monster::SetLookDirection(XMFLOAT3 Look)
+{
+	m_TransformPos._31 = Look.x;
+	m_TransformPos._32 = Look.y;
+	m_TransformPos._33 = Look.z;
+	 
+	m_TransformPos._21 = 0.f;
+	m_TransformPos._22 = 1.f;
+	m_TransformPos._23 = 0.f;
+
+	XMFLOAT3 Right = Vector3::CrossProduct(GetUp(), Look, true);
+	m_TransformPos._11 = -Right.x;
+	m_TransformPos._12 = -Right.y;
+	m_TransformPos._13 = -Right.z;
+}
+
+void Monster::SetLine(XMFLOAT3 PlayerPos)
+{
+	XMFLOAT3 pos = GetPosition();
+	if (880.0f < pos.x && pos.x <= 2200.0f) {
+		SetLookDirection(XMFLOAT3(-1.0f, 0.0f, 0.0f));
+	}
+	else if (540.0f < pos.x && pos.x <= 880.0f) {
+		XMFLOAT3 Look(-0.7f, 0.0f, 0.7f);
+		Look = Vector3::Normalize(Look);
+		SetLookDirection(Look);
+	}
+	else {
+		SetLookDirection(XMFLOAT3(-1.0f, 0.0f, 0.0f));
+	}
+}

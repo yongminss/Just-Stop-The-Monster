@@ -390,6 +390,9 @@ public:
 	Monster() { }
 	~Monster() { }
 
+	bool IsClose = false;
 public:
 	void SetDirection(XMFLOAT3 Position);
+	void SetLookDirection(XMFLOAT3 Look);
+	void SetLine(XMFLOAT3 PlayerPos);
 };
