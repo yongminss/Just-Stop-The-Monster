@@ -124,6 +124,8 @@ void Player::Update(float ElapsedTime)
 	else 
 		SetEnable(0);
 	Animate(ElapsedTime);
+	
+	//cout << "Position : " << m_TransformPos._41 << ", " << m_TransformPos._42 << ", " << m_TransformPos._43 << endl;
 }
 
 void Player::Render(ID3D12GraphicsCommandList *CommandList)

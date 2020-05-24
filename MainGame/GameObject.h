@@ -391,8 +391,9 @@ public:
 	~Monster() { }
 
 	bool IsClose = false;
+	int check = 0;
 public:
 	void SetDirection(XMFLOAT3 Position);
 	void SetLookDirection(XMFLOAT3 Look);
-	void SetLine(XMFLOAT3 PlayerPos);
+	void SetLine(float ElapsedTime);
 };

@@ -710,13 +710,11 @@ void GameScene::Animate(float ElapsedTime)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
-			float DistanceWithPlayer = Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition());
-			if (DistanceWithPlayer > 200.0f) {
-				(*iter)->SetLine(m_Player->GetPosition());
-				(*iter)->MoveForward(200.f * ElapsedTime);
-				(*iter)->SetEnable(2);
+			float DistanceToPlayer = Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition());
+			if (DistanceToPlayer > 200.0f) {
+				(*iter)->SetLine(ElapsedTime);
 			}
-			else if (DistanceWithPlayer <= 200.0f && DistanceWithPlayer >= 70.0f) {
+			else if (DistanceToPlayer <= 200.0f && DistanceToPlayer >= 70.0f) {
 				(*iter)->SetDirection(m_Player->GetPosition());
 				(*iter)->MoveForward(200.f * ElapsedTime);
 				(*iter)->SetEnable(2);

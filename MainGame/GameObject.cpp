@@ -1296,18 +1296,23 @@ void Monster::SetLookDirection(XMFLOAT3 Look)
 	m_TransformPos._13 = -Right.z;
 }
 
-void Monster::SetLine(XMFLOAT3 PlayerPos)
+void Monster::SetLine(float ElapsedTime)
 {
-	XMFLOAT3 pos = GetPosition();
-	if (880.0f < pos.x && pos.x <= 2200.0f) {
-		SetLookDirection(XMFLOAT3(-1.0f, 0.0f, 0.0f));
+	XMFLOAT3 FirstCheckPoint = XMFLOAT3(600.f, -50.f, -80.f);
+	XMFLOAT3 SecondCheckPoint = XMFLOAT3(-2400.f, -50.f, 290.f);
+
+	if (check == 0) {
+		if (Vector3::Distance(GetPosition(), FirstCheckPoint) <= 50.f) ++check;
+		SetDirection(FirstCheckPoint);
+		SetEnable(2);
 	}
-	else if (540.0f < pos.x && pos.x <= 880.0f) {
-		XMFLOAT3 Look(-0.7f, 0.0f, 0.7f);
-		Look = Vector3::Normalize(Look);
-		SetLookDirection(Look);
+	else if (check == 1) {
+		if (Vector3::Distance(GetPosition(), SecondCheckPoint) < 50.f) check = -1, SetEnable(0);
+		SetDirection(SecondCheckPoint);
+		SetEnable(2);
 	}
-	else {
-		SetLookDirection(XMFLOAT3(-1.0f, 0.0f, 0.0f));
-	}
+	else 
+		SetEnable(0);
+
+	if (check != -1) MoveForward(200.f * ElapsedTime);
 }
