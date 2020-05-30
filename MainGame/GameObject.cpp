@@ -433,6 +433,7 @@ void AnimationController::AdvanceTime(float ElapsedTime, AnimationCallbackHandle
 
 		if (!(pAnimationSet->m_bAnimateChange)) {
 			if (m_nNextAnimation != -1 && pAnimationSet->m_nType == ANIMATION_TYPE_LOOP) {
+				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == NULL) { return; }
 				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_LOOP) {
 					pAnimationSet->m_bAnimateChange = true;
 					m_AnimationTrack[m_nNextAnimation].m_Position = pAnimationSet->m_Position;
@@ -1087,7 +1088,7 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 		// Charactor Information
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/charinfo.dds", 0);
 		break;
-			
+
 	case UI_TrapList:
 		// Trap List UI
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/traplist.dds", 0);
@@ -1282,10 +1283,11 @@ void Monster::SetDirection(XMFLOAT3 Position)
 
 void Monster::SetLookDirection(XMFLOAT3 Look)
 {
+	Look = Vector3::Normalize(Look);
 	m_TransformPos._31 = Look.x;
 	m_TransformPos._32 = Look.y;
 	m_TransformPos._33 = Look.z;
-	 
+
 	m_TransformPos._21 = 0.f;
 	m_TransformPos._22 = 1.f;
 	m_TransformPos._23 = 0.f;
@@ -1295,24 +1297,45 @@ void Monster::SetLookDirection(XMFLOAT3 Look)
 	m_TransformPos._12 = -Right.y;
 	m_TransformPos._13 = -Right.z;
 }
+void Monster::SetinterPolation(XMFLOAT3 DesLook)
+{
+	XMFLOAT3 NowLook = StartLook;
+	float alpha = XMScalarACos(Vector3::DotProduct(NowLook, DesLook));
+	cout << nCheckPoint << " °¢µµ: " << alpha * nInporation << endl;
+	XMMATRIX Rotate = XMMatrixRotationAxis(XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&NowLook), XMLoadFloat3(&DesLook))), alpha*nInporation);
+	NowLook = Vector3::TransformNormal(NowLook, Rotate);
+	//SetRotate(0.0f, alpha * (1.0f - nInporation), 0.0f);
+	//XMMATRIX Rotate = XMMatrixRotationRollPitchYaw(0.0f, XMConvertToRadians(alpha * nInporation), 0.0f);
+	SetLookDirection(NowLook);
+}
 
 void Monster::SetLine(float ElapsedTime)
 {
-	XMFLOAT3 FirstCheckPoint = XMFLOAT3(600.f, -50.f, -80.f);
-	XMFLOAT3 SecondCheckPoint = XMFLOAT3(-2400.f, -50.f, 290.f);
-
-	if (check == 0) {
-		if (Vector3::Distance(GetPosition(), FirstCheckPoint) <= 50.f) ++check;
-		SetDirection(FirstCheckPoint);
-		SetEnable(2);
+	XMFLOAT3 pos = GetPosition();
+	if (880.0f < pos.x && pos.x <= 2200.0f) {
+		if (nCheckPoint != 1) { nCheckPoint = 1; nInporation = 0.0f; StartLook = GetLook(); }
+		if (nInporation < 1.0f) {
+			nInporation += 0.02f;
+			SetinterPolation(XMFLOAT3(-1.0f, 0.0f, 0.0f));
+		}
+		else {
+			SetLookDirection(XMFLOAT3(-1.0f, 0.0f, 0.0f));
+		}
+		SetLookDirection(XMFLOAT3(-1.0f, 0.0f, 0.0f));
 	}
-	else if (check == 1) {
-		if (Vector3::Distance(GetPosition(), SecondCheckPoint) < 50.f) check = -1, SetEnable(0);
-		SetDirection(SecondCheckPoint);
-		SetEnable(2);
+	else if (360.0f < pos.x && pos.x <= 880.0f) {
+		if (nCheckPoint != 2) { nCheckPoint = 2; nInporation = 0.0f; StartLook = GetLook(); }
+		if (nInporation < 1.0f) {
+			nInporation += 0.02f;
+			XMFLOAT3 Look = Vector3::Subtract(XMFLOAT3(360.0f, 15.0f, 50.0f), GetPosition());
+			SetinterPolation(Vector3::Normalize(Look));
+		}
 	}
-	else 
-		SetEnable(0);
-
-	if (check != -1) MoveForward(200.f * ElapsedTime);
+	else {
+		if (nCheckPoint != 3) { nCheckPoint = 3; nInporation = 0.0f; StartLook = GetLook(); }
+		if (nInporation < 1.0f) {
+			nInporation += 0.02f;
+			SetinterPolation(XMFLOAT3(-1.0f, 0.0f, 0.0f));
+		}
+	}
 }

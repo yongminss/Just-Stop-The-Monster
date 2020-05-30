@@ -337,17 +337,16 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	// ±âº» ¿ÀÅ©
 	m_Orc.emplace_back(new Monster());
 	m_Orc.back()->SetChild(m_OrcModel, true);
-	m_Orc.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -350.f));
-
+	m_Orc.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -150.f));
 	// ¸¶¹ý»ç ¿ÀÅ©
 	m_Shaman.emplace_back(new Monster());
 	m_Shaman.back()->SetChild(m_ShamanModel, true);
-	m_Shaman.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -420.f));
+	m_Shaman.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -400.f));
 
 	// ´Á´ë ¿ÀÅ©
-	m_Shaman.emplace_back(new Monster());
-	m_Shaman.back()->SetChild(m_WolfRiderModel, true);
-	m_Shaman.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -490.f));
+	m_WolfRider.emplace_back(new Monster());
+	m_WolfRider.back()->SetChild(m_WolfRiderModel, true);
+	m_WolfRider.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -600.f));
 
 	m_OtherPlayerModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Soldier_Player.bin", NULL, true);
 	m_OtherPlayerModel->SetPostion(XMFLOAT3(-1000.f, -15.f, 0.f));
@@ -710,17 +709,22 @@ void GameScene::Animate(float ElapsedTime)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
-			float DistanceToPlayer = Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition());
-			if (DistanceToPlayer > 200.0f) {
+			float DistanceWithPlayer = Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition());
+			if (DistanceWithPlayer > 200.0f) {
 				(*iter)->SetLine(ElapsedTime);
+				(*iter)->MoveForward(200.f * ElapsedTime);
+				(*iter)->SetEnable(2);
 			}
-			else if (DistanceToPlayer <= 200.0f && DistanceToPlayer >= 70.0f) {
+			else if (DistanceWithPlayer <= 200.0f && DistanceWithPlayer >= 70.0f) {
+				(*iter)->nCheckPoint = 0;
 				(*iter)->SetDirection(m_Player->GetPosition());
 				(*iter)->MoveForward(200.f * ElapsedTime);
 				(*iter)->SetEnable(2);
 			}
 			else {
+				(*iter)->nCheckPoint = 0;
 				(*iter)->SetDirection(m_Player->GetPosition());
+				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
 				(*iter)->SetEnable(3);
 			}
 			//if (temp == true) {
@@ -736,21 +740,56 @@ void GameScene::Animate(float ElapsedTime)
 	for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
-			(*iter)->SetDirection(m_Player->GetPosition());
 			(*iter)->Animate(ElapsedTime, NULL);
+			float DistanceWithPlayer = Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition());
+			if (DistanceWithPlayer > 300.0f) {
+				(*iter)->SetLine(ElapsedTime);
+				(*iter)->MoveForward(200.f * ElapsedTime);
+				(*iter)->SetEnable(2);
+			}
+			else if (DistanceWithPlayer <= 300.0f && DistanceWithPlayer >= 200.0f) {
+				(*iter)->nCheckPoint = 0;
+				(*iter)->SetDirection(m_Player->GetPosition());
+				(*iter)->MoveForward(200.f * ElapsedTime);
+				(*iter)->SetEnable(2);
+			}
+			else {
+				(*iter)->nCheckPoint = 0;
+				(*iter)->SetDirection(m_Player->GetPosition());
+				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
+				(*iter)->SetEnable(3);
+			}
 		}
 
 	for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
-			(*iter)->SetDirection(m_Player->GetPosition());
 			(*iter)->Animate(ElapsedTime, NULL);
+			float DistanceWithPlayer = Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition());
+			if (DistanceWithPlayer > 200.0f) {
+				(*iter)->SetLine(ElapsedTime);
+				(*iter)->MoveForward(200.f * ElapsedTime);
+				(*iter)->SetEnable(2);
+			}
+			else if (DistanceWithPlayer <= 200.0f && DistanceWithPlayer >= 90.0f) {
+
+				(*iter)->nCheckPoint = 0;
+				(*iter)->SetDirection(m_Player->GetPosition());
+				(*iter)->SetEnable(2);
+				(*iter)->MoveForward(300.f * ElapsedTime);
+			}
+			else {
+				(*iter)->nCheckPoint = 0;
+				(*iter)->SetDirection(m_Player->GetPosition());
+				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
+				(*iter)->SetEnable(3);
+			}
 		}
 
 	// Ohter Player
 	if (network_manager::GetInst()->IsConnect()) {
 		XMFLOAT4X4 Transform = network_manager::GetInst()->m_OtherInfo.Transform;
-		
+
 		AnimateState = int(network_manager::GetInst()->m_OtherInfo.AnimateState);
 
 		m_OtherPlayerModel->SetTransform(Transform);
@@ -838,9 +877,9 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			if (m_NeedleTrap.back()->GetAnimate() == true) m_NeedleTrap.back()->SetAnimate(false);
 			else m_Player->SetEnable(9);
 		}
-		else { 
+		else {
 			m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
-			m_Player->SetEnable(9); 
+			m_Player->SetEnable(9);
 		}
 		break;
 
@@ -898,7 +937,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case 'r':
 		case 'R':
 			//if (m_Player->m_AnimationController->m_AnimationTrack[18].m_AnimationSet->m_nType != ANIMATION_TYPE_RELOAD) {
-				m_Player->SetPlayerAnimateType(ANIMATION_TYPE_RELOAD);
+			m_Player->SetPlayerAnimateType(ANIMATION_TYPE_RELOAD);
 			//}
 			m_Player->SetEnable(18);
 			break;
@@ -917,7 +956,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			else temp = true;
 			break;
 		case '3':
-			cout << "ÁÂÇ¥ x: " << m_Player->GetPosition().x << " y: " << m_Player->GetPosition().y <<" z: "<< m_Player->GetPosition().z <<endl;
+			cout << "ÁÂÇ¥ x: " << m_Player->GetPosition().x << " y: " << m_Player->GetPosition().y << " z: " << m_Player->GetPosition().z << endl;
 			cout << "·èº¤ÅÍ x: " << m_Player->GetLook().x << " y: " << m_Player->GetLook().y << " z: " << m_Player->GetLook().z << endl;
 			break;
 		case '5':

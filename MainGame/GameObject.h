@@ -302,7 +302,7 @@ public:
 	void SetPostion(XMFLOAT3 Position);
 
 	void SetTransform(XMFLOAT4X4 Transform);
-	
+
 	void SetScale(float x, float y, float z);
 	virtual void SetRotate(float Pitch, float Yaw, float Roll);
 
@@ -391,9 +391,12 @@ public:
 	~Monster() { }
 
 	bool IsClose = false;
-	int check = 0;
+	float nInporation = 0.0f;
+	int nCheckPoint = 0;
+	XMFLOAT3 StartLook = XMFLOAT3(0.0f, 0.0f, 0.0f);
 public:
 	void SetDirection(XMFLOAT3 Position);
 	void SetLookDirection(XMFLOAT3 Look);
 	void SetLine(float ElapsedTime);
+	void SetinterPolation(XMFLOAT3 DesLook);
 };
