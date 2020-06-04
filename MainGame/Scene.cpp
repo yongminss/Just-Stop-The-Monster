@@ -709,53 +709,55 @@ void GameScene::Animate(float ElapsedTime)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
-			float DistanceWithPlayer = Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition());
+			XMFLOAT3 PlayerPos = m_Player->GetPosition();
+			XMFLOAT3 OrcPos = (*iter)->GetPosition();
+			float DistanceWithPlayer = Vector3::Distance(PlayerPos, OrcPos);
 			if (DistanceWithPlayer > 200.0f) {
 				(*iter)->SetLine(ElapsedTime);
 				(*iter)->MoveForward(200.f * ElapsedTime);
 				(*iter)->SetEnable(2);
 			}
 			else if (DistanceWithPlayer <= 200.0f && DistanceWithPlayer >= 70.0f) {
-				(*iter)->nCheckPoint = 0;
-				(*iter)->SetDirection(m_Player->GetPosition());
-				(*iter)->MoveForward(200.f * ElapsedTime);
+				if ((*iter)->nCheckPoint != 0) { (*iter)->nCheckPoint = 0; (*iter)->nInporation = 0.0f; (*iter)->StartLook = (*iter)->GetLook(); }
+				PlayerPos.y = -50.f;
+				PlayerPos = Vector3::Subtract(PlayerPos, OrcPos);
 				(*iter)->SetEnable(2);
+				if ((*iter)->GetNowAnimationNum() == 2) {
+					(*iter)->SetinterPolation(Vector3::Normalize(PlayerPos));
+					(*iter)->MoveForward(200.f * ElapsedTime);
+				}
 			}
 			else {
-				(*iter)->nCheckPoint = 0;
-				(*iter)->SetDirection(m_Player->GetPosition());
+				(*iter)->SetDirection(PlayerPos);
 				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
 				(*iter)->SetEnable(3);
 			}
-			//if (temp == true) {
-			//	if (Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition()) > 50.f) {
-			//		(*iter)->SetEnable(2);
-			//		(*iter)->MoveForward(100.f * ElapsedTime);
-			//	}
-			//	else
-			//		(*iter)->SetEnable(3);
-			//}
 		}
 
 	for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
-			float DistanceWithPlayer = Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition());
+			XMFLOAT3 PlayerPos = m_Player->GetPosition();
+			XMFLOAT3 ShamanPos = (*iter)->GetPosition();
+			float DistanceWithPlayer = Vector3::Distance(PlayerPos, ShamanPos);
 			if (DistanceWithPlayer > 300.0f) {
 				(*iter)->SetLine(ElapsedTime);
 				(*iter)->MoveForward(200.f * ElapsedTime);
 				(*iter)->SetEnable(2);
 			}
 			else if (DistanceWithPlayer <= 300.0f && DistanceWithPlayer >= 200.0f) {
-				(*iter)->nCheckPoint = 0;
-				(*iter)->SetDirection(m_Player->GetPosition());
-				(*iter)->MoveForward(200.f * ElapsedTime);
+				if ((*iter)->nCheckPoint != 0) { (*iter)->nCheckPoint = 0; (*iter)->nInporation = 0.0f; (*iter)->StartLook = (*iter)->GetLook(); }
+				PlayerPos.y = -50.f;
+				PlayerPos = Vector3::Subtract(PlayerPos, ShamanPos);
 				(*iter)->SetEnable(2);
+				if ((*iter)->GetNowAnimationNum() == 2) {
+					(*iter)->SetinterPolation(Vector3::Normalize(PlayerPos));
+					(*iter)->MoveForward(200.f * ElapsedTime);
+				}
 			}
 			else {
-				(*iter)->nCheckPoint = 0;
-				(*iter)->SetDirection(m_Player->GetPosition());
+				(*iter)->SetDirection(PlayerPos);
 				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
 				(*iter)->SetEnable(3);
 			}
@@ -765,22 +767,26 @@ void GameScene::Animate(float ElapsedTime)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
-			float DistanceWithPlayer = Vector3::Distance(m_Player->GetPosition(), (*iter)->GetPosition());
+			XMFLOAT3 PlayerPos = m_Player->GetPosition();
+			XMFLOAT3 WolfPos = (*iter)->GetPosition();
+			float DistanceWithPlayer = Vector3::Distance(PlayerPos, WolfPos);
 			if (DistanceWithPlayer > 200.0f) {
 				(*iter)->SetLine(ElapsedTime);
 				(*iter)->MoveForward(200.f * ElapsedTime);
 				(*iter)->SetEnable(2);
 			}
 			else if (DistanceWithPlayer <= 200.0f && DistanceWithPlayer >= 90.0f) {
-
-				(*iter)->nCheckPoint = 0;
-				(*iter)->SetDirection(m_Player->GetPosition());
+				if ((*iter)->nCheckPoint != 0) { (*iter)->nCheckPoint = 0; (*iter)->nInporation = 0.0f; (*iter)->StartLook = (*iter)->GetLook(); }
+				PlayerPos.y = -50.f;
+				PlayerPos = Vector3::Subtract(PlayerPos, WolfPos);
 				(*iter)->SetEnable(2);
-				(*iter)->MoveForward(300.f * ElapsedTime);
+				if ((*iter)->GetNowAnimationNum() == 2) {
+					(*iter)->SetinterPolation(Vector3::Normalize(PlayerPos));
+					(*iter)->MoveForward(200.f * ElapsedTime);
+				}
 			}
 			else {
-				(*iter)->nCheckPoint = 0;
-				(*iter)->SetDirection(m_Player->GetPosition());
+				(*iter)->SetDirection(PlayerPos);
 				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
 				(*iter)->SetEnable(3);
 			}
@@ -956,8 +962,8 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			else temp = true;
 			break;
 		case '3':
-			cout << "ÁÂÇ¥ x: " << m_Player->GetPosition().x << " y: " << m_Player->GetPosition().y << " z: " << m_Player->GetPosition().z << endl;
-			cout << "·èº¤ÅÍ x: " << m_Player->GetLook().x << " y: " << m_Player->GetLook().y << " z: " << m_Player->GetLook().z << endl;
+			//cout << "ÁÂÇ¥ x: " << m_Player->GetPosition().x << " y: " << m_Player->GetPosition().y << " z: " << m_Player->GetPosition().z << endl;
+			//cout << "·èº¤ÅÍ x: " << m_Player->GetLook().x << " y: " << m_Player->GetLook().y << " z: " << m_Player->GetLook().z << endl;
 			break;
 		case '5':
 			m_Player->SetAnimateType(27, ANIMATION_TYPE_ONCE);

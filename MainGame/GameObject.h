@@ -337,6 +337,18 @@ public:
 
 	short GetAnimateState() { return m_AnimateState; }
 
+	int GetNowAnimationNum() {
+		if (m_AnimationController) return m_AnimationController->m_nNowAnimation;
+		if (m_Sibling) return m_Sibling->GetNowAnimationNum();
+		if (m_Child) return m_Child->GetNowAnimationNum();
+		 }
+
+	int GetNextAnimationNum() {
+		if (m_AnimationController) return m_AnimationController->m_nNextAnimation;
+		if (m_Sibling) return m_Sibling->GetNextAnimationNum();
+		if (m_Child) return m_Child->GetNextAnimationNum();
+	}
+
 	virtual void OnPrepareRender() { }
 
 	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);

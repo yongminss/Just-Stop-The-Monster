@@ -433,7 +433,6 @@ void AnimationController::AdvanceTime(float ElapsedTime, AnimationCallbackHandle
 
 		if (!(pAnimationSet->m_bAnimateChange)) {
 			if (m_nNextAnimation != -1 && pAnimationSet->m_nType == ANIMATION_TYPE_LOOP) {
-				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == NULL) { return; }
 				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_LOOP) {
 					pAnimationSet->m_bAnimateChange = true;
 					m_AnimationTrack[m_nNextAnimation].m_Position = pAnimationSet->m_Position;
@@ -918,7 +917,7 @@ void GameObject::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, XM
 
 void GameObject::SetEnable(int nAnimationSet)
 {
-	if (nAnimationSet < 0) nAnimationSet = 0;
+	if (nAnimationSet > 29  && nAnimationSet < 0) return;
 	m_AnimateState = short(nAnimationSet);
 
 	if (m_AnimationController) m_AnimationController->SetAnimationEnable(nAnimationSet);
@@ -1301,7 +1300,7 @@ void Monster::SetinterPolation(XMFLOAT3 DesLook)
 {
 	XMFLOAT3 NowLook = StartLook;
 	float alpha = XMScalarACos(Vector3::DotProduct(NowLook, DesLook));
-	cout << nCheckPoint << " 각도: " << alpha * nInporation << endl;
+	//cout << nCheckPoint << " 각도: " << alpha * nInporation << endl;
 	XMMATRIX Rotate = XMMatrixRotationAxis(XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&NowLook), XMLoadFloat3(&DesLook))), alpha*nInporation);
 	NowLook = Vector3::TransformNormal(NowLook, Rotate);
 	//SetRotate(0.0f, alpha * (1.0f - nInporation), 0.0f);
@@ -1327,7 +1326,7 @@ void Monster::SetLine(float ElapsedTime)
 		if (nCheckPoint != 2) { nCheckPoint = 2; nInporation = 0.0f; StartLook = GetLook(); }
 		if (nInporation < 1.0f) {
 			nInporation += 0.02f;
-			XMFLOAT3 Look = Vector3::Subtract(XMFLOAT3(360.0f, 15.0f, 50.0f), GetPosition());
+			XMFLOAT3 Look = Vector3::Subtract(XMFLOAT3(360.0f, -50.0f, 50.0f), pos);
 			SetinterPolation(Vector3::Normalize(Look));
 		}
 	}
