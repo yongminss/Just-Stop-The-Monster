@@ -387,13 +387,16 @@ public:
 	~Trap() { }
 
 private:
-	bool IsAnimate = false;
+	bool IsBuildTrap = false;
+	bool IsActive = false;
 
 public:
-	void SetAnimate(bool Input) { IsAnimate = Input; }
-	bool GetAnimate() { return IsAnimate; }
+	void BuildTrap(bool Input) { IsBuildTrap = Input; }
+	void ActiveTrap(bool Input) { IsActive = Input; }
 
-	void Animate(GameObject *Player);
+	bool GetIsBuildTrap() { return IsBuildTrap; }
+
+	void Animate(GameObject *Player, float ElapsedTime, XMFLOAT4X4 *Parent);
 };
 
 class Monster : public GameObject

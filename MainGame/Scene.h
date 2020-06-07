@@ -126,7 +126,10 @@ private:
 
 	// Trap
 	GameObject					*m_NeedleTrapModel = NULL;
-	list<Trap*>					m_NeedleTrap;
+	GameObject					*m_FireTrapModel = NULL;
+	GameObject					*m_SlowTrapModel = NULL;
+	GameObject					*m_ArrowTrapModel = NULL;
+	list<Trap*>					m_Trap;
 
 	// Monster Model
 	GameObject					*m_OrcModel = NULL;
