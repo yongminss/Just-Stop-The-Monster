@@ -1329,14 +1329,22 @@ void Monster::SetLine(float ElapsedTime)
 		else {
 			SetLookDirection(XMFLOAT3(-1.0f, 0.0f, 0.0f));
 		}
-		SetLookDirection(XMFLOAT3(-1.0f, 0.0f, 0.0f));
 	}
 	else if (360.0f < pos.x && pos.x <= 880.0f) {
 		if (nCheckPoint != 2) { nCheckPoint = 2; nInporation = 0.0f; StartLook = GetLook(); }
-		if (nInporation < 1.0f) {
-			nInporation += 0.02f;
-			XMFLOAT3 Look = Vector3::Subtract(XMFLOAT3(360.0f, -50.0f, 50.0f), pos);
-			SetinterPolation(Vector3::Normalize(Look));
+		if (pos.z < 280.0f) {
+			if (nInporation < 1.0f) {
+				nInporation += 0.02f;
+				XMFLOAT3 Look = Vector3::Subtract(XMFLOAT3(-400.0f, -50.0f, 800.0f), pos);
+				SetinterPolation(Vector3::Normalize(Look));
+			}
+		}
+		else {
+			if (nInporation < 1.0f) {
+				nInporation += 0.02f;
+				XMFLOAT3 Look = Vector3::Subtract(XMFLOAT3(-400.0f, -50.0f, -500.0f), pos);
+				SetinterPolation(Vector3::Normalize(Look));
+			}
 		}
 	}
 	else {

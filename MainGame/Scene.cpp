@@ -345,8 +345,16 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 
 	// 기본 오크
 	m_Orc.emplace_back(new Monster());
-	m_Orc.back()->SetChild(m_OrcModel, true);
+	m_Orc.back()->SetChild(m_OrcModel, false);
 	m_Orc.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -150.f));
+
+	m_Orc.emplace_back(new Monster());
+	m_Orc.back()->SetChild(m_OrcModel, false);
+	m_Orc.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -300.f));
+
+	m_Orc.emplace_back(new Monster());
+	m_Orc.back()->SetChild(m_OrcModel, false);
+	m_Orc.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -500.f));
 
 	// 마법사 오크
 	m_Shaman.emplace_back(new Monster());
@@ -356,7 +364,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	// 늑대 오크
 	m_WolfRider.emplace_back(new Monster());
 	m_WolfRider.back()->SetChild(m_WolfRiderModel, true);
-	m_WolfRider.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -600.f));
+	m_WolfRider.back()->SetPostion(XMFLOAT3(2200.f, -50.f, 1020.f));
 
 	m_OtherPlayerModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Soldier_Player.bin", NULL, true);
 	m_OtherPlayerModel->SetPostion(XMFLOAT3(-1000.f, -15.f, 0.f));
@@ -717,7 +725,7 @@ void GameScene::Animate(float ElapsedTime)
 
 	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
 		if (*iter) {
-			(*iter)->UpdateTransform(NULL);
+			//(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
 			XMFLOAT3 PlayerPos = m_Player->GetPosition();
 			XMFLOAT3 OrcPos = (*iter)->GetPosition();
@@ -844,12 +852,17 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 	// Trap Objects
 	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
-		(*iter)->Render(CommandList);
-
+	{
+		if(*iter){
+			(*iter)->Render(CommandList);
+		}
+	}
 	// Monster Objects
 	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
+	{
+		(*iter)->UpdateTransform(NULL);
 		(*iter)->Render(CommandList);
-
+	}
 	for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
 		(*iter)->Render(CommandList);
 
@@ -994,6 +1007,9 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		}
 		break;
 
+		case '5':
+			cout << "현위치:  " << m_Player->GetPosition().x <<"  "<<m_Player->GetPosition().y <<"  "<<m_Player->GetPosition().z << endl;
+			break;
 		case VK_SHIFT:
 			m_Player->SetAnimateType(27, ANIMATION_TYPE_ONCE);
 			m_Player->SetEnable(27);
