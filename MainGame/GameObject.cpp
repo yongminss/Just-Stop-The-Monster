@@ -570,6 +570,8 @@ void GameObject::Release()
 {
 	if (m_Child) m_Child->Release();
 	if (m_Sibling) m_Sibling->Release();
+
+	if (--m_nReference <= 0) delete this;
 }
 
 void GameObject::SetMesh(Mesh *Mesh)

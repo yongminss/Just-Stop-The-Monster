@@ -853,7 +853,8 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	// Trap Objects
 	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
 	{
-		if(*iter){
+		if (*iter) {
+			(*iter)->UpdateTransform(NULL);
 			(*iter)->Render(CommandList);
 		}
 	}
