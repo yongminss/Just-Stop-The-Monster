@@ -346,15 +346,8 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	// 기본 오크
 	m_Orc.emplace_back(new Monster());
 	m_Orc.back()->SetChild(m_OrcModel, false);
-	m_Orc.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -150.f));
-
-	m_Orc.emplace_back(new Monster());
-	m_Orc.back()->SetChild(m_OrcModel, false);
-	m_Orc.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -300.f));
-
-	m_Orc.emplace_back(new Monster());
-	m_Orc.back()->SetChild(m_OrcModel, false);
-	m_Orc.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -500.f));
+	//m_Orc.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -150.f));
+	m_Orc.back()->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
 
 	// 마법사 오크
 	m_Shaman.emplace_back(new Monster());
@@ -725,9 +718,9 @@ void GameScene::Animate(float ElapsedTime)
 
 	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
 		if (*iter) {
-			//(*iter)->UpdateTransform(NULL);
+			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
-			XMFLOAT3 PlayerPos = m_Player->GetPosition();
+			/*XMFLOAT3 PlayerPos = m_Player->GetPosition();
 			XMFLOAT3 OrcPos = (*iter)->GetPosition();
 			float DistanceWithPlayer = Vector3::Distance(PlayerPos, OrcPos);
 			if (DistanceWithPlayer > 200.0f) {
@@ -749,7 +742,7 @@ void GameScene::Animate(float ElapsedTime)
 				(*iter)->SetDirection(PlayerPos);
 				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
 				(*iter)->SetEnable(3);
-			}
+			}*/
 		}
 
 	for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
@@ -978,7 +971,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_Trap.emplace_back(new Trap());
 			m_Trap.back()->SetChild(m_NeedleTrapModel, false);
 			m_Trap.back()->BuildTrap(true);
-			m_Trap.back()->ActiveTrap(true);
+			m_Trap.back()->ActiveTrap(false);
 			m_Trap.back()->SetEnable(1);
 			m_Trap.back()->SetScale(0.8f, 0.8f, 0.8f);
 		}
@@ -1009,8 +1002,13 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		break;
 
 		case '5':
-			cout << "현위치:  " << m_Player->GetPosition().x <<"  "<<m_Player->GetPosition().y <<"  "<<m_Player->GetPosition().z << endl;
-			break;
+		{
+			//cout << "현위치:  " << m_Player->GetPosition().x <<"  "<<m_Player->GetPosition().y <<"  "<<m_Player->GetPosition().z << endl;
+			m_Trap.back()->ActiveTrap(true);
+			m_Orc.back()->SetEnable(5);
+		}
+		break;
+
 		case VK_SHIFT:
 			m_Player->SetAnimateType(27, ANIMATION_TYPE_ONCE);
 			m_Player->SetEnable(27);
