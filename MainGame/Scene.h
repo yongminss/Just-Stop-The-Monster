@@ -121,8 +121,18 @@ private:
 
 	// Map
 	SkyBox						*m_SkyBox[5];
-	GameObject					*m_StageWall = NULL;
+	//GameObject					*m_StageWall = NULL;
 	GameObject					*m_StageFloor = NULL;
+
+	GameObject					*m_Stage_01 = NULL;
+	GameObject					*m_Stage_02 = NULL;
+	GameObject					*m_Stage_03 = NULL;
+	GameObject					*m_Stage_04 = NULL;
+
+	bool is_rend_01 = false;
+	bool is_rend_02 = false;
+	bool is_rend_03 = false;
+	bool is_rend_04 = false;
 
 	// Trap
 	GameObject					*m_NeedleTrapModel = NULL;

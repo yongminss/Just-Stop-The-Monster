@@ -317,13 +317,26 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
 
 	// 스테이지의 벽과 바닥
-	m_StageWall = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/allwall.bin", NULL, false);
-	m_StageWall->SetPostion(XMFLOAT3(820.f, 150.f, -100.f));
-	m_StageWall->SetScale(100.f, 100.f, 100.f);
+	//m_StageWall = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_Wall4.bin", NULL, false);
+	//m_StageWall->SetPostion(XMFLOAT3(820.f, 150.f, -100.f));
+	//m_StageWall->SetScale(100.f, 100.f, 100.f);
 
-	m_StageFloor = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/allfloor.bin", NULL, false);
-	m_StageFloor->SetPostion(XMFLOAT3(2500.f, -50.f, 0.f));
-	m_StageFloor->SetScale(100.f, 100.f, 100.f);
+	//m_StageFloor = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/4.bin", NULL, false);
+	//m_StageFloor->SetPostion(XMFLOAT3(2500.f, -50.f, 0.f));
+	//m_StageFloor->SetScale(100.f, 100.f, 100.f);
+
+	// 스테이지
+	m_Stage_01 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_01.bin", NULL, false);
+	m_Stage_01->SetScale(100.f, 100.f, 100.f);
+
+	m_Stage_02 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_02.bin", NULL, false);
+	m_Stage_02->SetScale(100.f, 100.f, 100.f);
+
+	m_Stage_03 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_03.bin", NULL, false);
+	m_Stage_03->SetScale(100.f, 100.f, 100.f);
+
+	m_Stage_04 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_04.bin", NULL, false);
+	m_Stage_04->SetScale(100.f, 100.f, 100.f);
 
 	// 함정
 	m_NeedleTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
@@ -840,8 +853,13 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	if (m_TrapListUi) m_TrapListUi->Render(CommandList);
 
 	// GameScene에 등장할 오브젝트 렌더링
-	if (m_StageWall) m_StageWall->Render(CommandList);
-	if (m_StageFloor) m_StageFloor->Render(CommandList);
+	/*if (m_StageWall) m_StageWall->Render(CommandList);
+	if (m_StageFloor) m_StageFloor->Render(CommandList);*/
+
+	if (is_rend_01) if (m_Stage_01) m_Stage_01->Render(CommandList);
+	if (is_rend_02) if (m_Stage_02) m_Stage_02->Render(CommandList);
+	if (is_rend_03) if (m_Stage_03) m_Stage_03->Render(CommandList);
+	if (is_rend_04) if (m_Stage_04) m_Stage_04->Render(CommandList);
 
 	// Trap Objects
 	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
@@ -1001,11 +1019,31 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		}
 		break;
 
-		case '5':
+		case '7':
 		{
-			//cout << "현위치:  " << m_Player->GetPosition().x <<"  "<<m_Player->GetPosition().y <<"  "<<m_Player->GetPosition().z << endl;
-			m_Trap.back()->ActiveTrap(true);
-			m_Orc.back()->SetEnable(5);
+			if (is_rend_01) is_rend_01 = false;
+			else is_rend_01 = true;
+		}
+		break;
+
+		case '8':
+		{
+			if (is_rend_02) is_rend_02 = false;
+			else is_rend_02 = true;
+		}
+		break;
+
+		case '9':
+		{
+			if (is_rend_03) is_rend_03 = false;
+			else is_rend_03 = true;
+		}
+		break;
+
+		case '0':
+		{
+			if (is_rend_04) is_rend_04 = false;
+			else is_rend_04 = true;
 		}
 		break;
 
