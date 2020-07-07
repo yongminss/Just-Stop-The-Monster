@@ -327,15 +327,20 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 
 	// 스테이지
 	m_Stage_01 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_01.bin", NULL, false);
+	m_Stage_01->SetPostion(XMFLOAT3(820.f, -50.f, -100.f));
 	m_Stage_01->SetScale(100.f, 100.f, 100.f);
 
 	m_Stage_02 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_02.bin", NULL, false);
+	m_Stage_02->SetPostion(XMFLOAT3(730.f, -50.f, 300.f));
 	m_Stage_02->SetScale(100.f, 100.f, 100.f);
 
 	m_Stage_03 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_03.bin", NULL, false);
+	m_Stage_03->SetPostion(XMFLOAT3(730.f, -50.f, 300.f));
 	m_Stage_03->SetScale(100.f, 100.f, 100.f);
 
 	m_Stage_04 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_04.bin", NULL, false);
+	//m_Stage_04->SetPostion(XMFLOAT3(-900.f, -50.f, 500.f));
+	m_Stage_04->SetPostion(XMFLOAT3(-0.f, -50.f, 0.f));
 	m_Stage_04->SetScale(100.f, 100.f, 100.f);
 
 	// 함정
@@ -721,6 +726,8 @@ void GameScene::Animate(float ElapsedTime)
 	if (m_Player) {
 		m_Player->UpdateTransform(NULL);
 		m_Player->Update(ElapsedTime);
+		XMFLOAT3 p_pos = m_Player->GetPosition();
+		cout << "x: " << p_pos.x << ", z: " << p_pos.z << endl;
 	}
 
 	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
