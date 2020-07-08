@@ -151,12 +151,24 @@ void network_manager::PacketProccess(void * buf)
 			m_my_info.room_number = make_room_ok_packet->room_number;
 			m_my_info.player_state = PLAYER_STATE_in_room;
 		}
-
+		break;
 	}
+	case SC_MONSTER_POS: {
+		sc_packet_monster_pos *monster_pos_packet = reinterpret_cast<sc_packet_monster_pos*>(buf);
+		//cout << "id: " << monster_pos_packet->monsterArr[0].id << endl;
+		//cout << "id: " << monster_pos_packet->monsterArr[10].id << endl;
+		//cout << "id: " << monster_pos_packet->monsterArr[90].id << endl;
+		//cout << "id: " << monster_pos_packet->monsterArr[99].id << endl;
+		memcpy_s(m_monster_pool, sizeof(m_monster_pool), monster_pos_packet->monsterArr, sizeof(monster_pos_packet->monsterArr));
+		//cout << "x:" << m_monster_pool[0].world_pos._41 << ", y: " << m_monster_pool[0].world_pos._42 << ", z: " << 
+			//m_monster_pool[0].world_pos._43 << endl;
+		break;
+	}
+
 	}
 }
 
-void network_manager::send_change_state_packet(char state)
+void network_manager::send_change_state_packet(const char& state)
 {
 	cs_packet_client_state_change packet;
 	packet.type = CS_CLIENT_STATE_CHANGE;
@@ -166,7 +178,7 @@ void network_manager::send_change_state_packet(char state)
 	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
 }
 
-void network_manager::send_my_world_pos_packet(DirectX::XMFLOAT4X4 world_pos, short animation_state)
+void network_manager::send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_pos, const short& animation_state)
 {
 	cs_packet_pos packet;
 	packet.type = CS_POS;
@@ -186,7 +198,7 @@ void network_manager::send_make_room_packet()
 	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
 }
 
-void network_manager::send_request_join_room(short room_number)
+void network_manager::send_request_join_room(const short& room_number)
 {
 	cs_packet_request_join_room packet;
 	packet.type = CS_REQUEST_JOIN_ROOM;
@@ -195,6 +207,8 @@ void network_manager::send_request_join_room(short room_number)
 	packet.size = sizeof(packet);
 	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
 }
+
+
 
 void network_manager::socket_err_display(const char * msg, int err_no)
 {

@@ -35,10 +35,10 @@ public:
 	void ReadBuffer(SOCKET sock);
 	void PacketProccess(void * buf);
 
-	void send_change_state_packet(char state);
-	void send_my_world_pos_packet(DirectX::XMFLOAT4X4 world_pos, short animation_state);
+	void send_change_state_packet(const char& state);
+	void send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_pos, const short& animation_state);
 	void send_make_room_packet();
-	void send_request_join_room(short room_number);
+	void send_request_join_room(const short& room_number);
 
 	void socket_err_display(const char * msg, int err_no);
 
@@ -55,6 +55,7 @@ public:
 	PLAYER_INFO m_OtherInfo;
 
 	vector<GAME_ROOM*> m_vec_gameRoom;
+	MONSTER m_monster_pool[MAX_MONSTER];
 
 public:
 	bool IsConnect() { return m_OtherInfo.is_connect; }
