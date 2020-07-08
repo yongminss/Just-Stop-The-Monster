@@ -432,10 +432,7 @@ void AnimationController::AdvanceTime(float ElapsedTime, AnimationCallbackHandle
 		pAnimationSet->m_Position += (ElapsedTime * pAnimationSet->m_Speed);
 
 		if (!(pAnimationSet->m_bAnimateChange)) {
-			if (m_nNextAnimation != -1 && pAnimationSet->m_nType == ANIMATION_TYPE_LOOP) {
-				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == NULL) {
-					return;
-				}
+			if (m_nNextAnimation >= 0 && m_nNextAnimation <= 29 && pAnimationSet->m_nType == ANIMATION_TYPE_LOOP) {
 				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_LOOP) {
 					pAnimationSet->m_bAnimateChange = true;
 					m_AnimationTrack[m_nNextAnimation].m_Position = pAnimationSet->m_Position;
@@ -447,10 +444,7 @@ void AnimationController::AdvanceTime(float ElapsedTime, AnimationCallbackHandle
 					pAnimationSet->m_bAnimateChange = true;
 				}
 			}
-			else if (m_nNextAnimation != -1 && pAnimationSet->m_nType == ANIMATION_TYPE_RELOAD) {
-				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == NULL) {
-					return;
-				}
+			else if (m_nNextAnimation >= 0 && m_nNextAnimation <= 29 && pAnimationSet->m_nType == ANIMATION_TYPE_RELOAD) {
 				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_RELOAD) {
 					pAnimationSet->m_bAnimateChange = true;
 					m_AnimationTrack[m_nNextAnimation].m_Position = pAnimationSet->m_Position;
@@ -458,10 +452,7 @@ void AnimationController::AdvanceTime(float ElapsedTime, AnimationCallbackHandle
 					m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_StartPosition = pAnimationSet->m_StartPosition;
 				}
 			}
-			else if (m_nNextAnimation != -1 && pAnimationSet->m_nType == ANIMATION_TYPE_SHOOT) {
-				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == NULL) {
-					return;
-				}
+			else if (m_nNextAnimation >= 0 && m_nNextAnimation <= 29 && pAnimationSet->m_nType == ANIMATION_TYPE_SHOOT) {
 				if (m_AnimationTrack[m_nNextAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_SHOOT) {
 					pAnimationSet->m_bAnimateChange = true;
 					m_AnimationTrack[m_nNextAnimation].m_Position = pAnimationSet->m_Position;
