@@ -738,8 +738,12 @@ void GameScene::Animate(float ElapsedTime)
 
 	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
 		if (*iter) {
+			(*iter)->SetTransform(network_manager::GetInst()->m_monster_pool[0].world_pos);
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
+			//(*iter)->SetEnable(network_manager::GetInst()->m_monster_pool[0].animation_state);
+			/*(*iter)->UpdateTransform(NULL);
+			(*iter)->Animate(ElapsedTime, NULL);*/
 			/*XMFLOAT3 PlayerPos = m_Player->GetPosition();
 			XMFLOAT3 OrcPos = (*iter)->GetPosition();
 			float DistanceWithPlayer = Vector3::Distance(PlayerPos, OrcPos);
