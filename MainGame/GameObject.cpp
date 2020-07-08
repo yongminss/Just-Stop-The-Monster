@@ -319,6 +319,7 @@ void AnimationController::SetAnimationSet(int nAnimationSet)
 void AnimationController::SetAnimationEnable(int nAnimationSet)
 {
 	if (m_AnimationTrack) {
+		cout << "nextanim:" << m_nNextAnimation << endl;
 		if (m_nNowAnimation != nAnimationSet && m_nNextAnimation == -1)
 		{
 			if (m_AnimationTrack[m_nNowAnimation].m_AnimationSet->m_nType == ANIMATION_TYPE_RELOAD)
@@ -376,6 +377,7 @@ void AnimationController::SetAnimationEnable(int nAnimationSet)
 				else
 				{
 					m_nNextAnimation = nAnimationSet;
+					//cout << "anim: " << nAnimationSet << endl;
 				}
 			}
 			else

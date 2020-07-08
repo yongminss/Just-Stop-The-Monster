@@ -50,7 +50,7 @@ void network_manager::ReadBuffer(SOCKET sock)
 		if (WSA_IO_PENDING != err_no)
 			socket_err_display("WSASend Error :", err_no);
 	}
-	cout << "iobyte: " << iobyte << endl;
+	//cout << "iobyte: " << iobyte << endl;
 	
 	unsigned short * temp_size = reinterpret_cast<unsigned short*>(m_buffer);
 	char * temp = reinterpret_cast<char*>(m_buffer);
@@ -160,6 +160,7 @@ void network_manager::PacketProccess(void * buf)
 		//cout << "id: " << monster_pos_packet->monsterArr[90].id << endl;
 		//cout << "id: " << monster_pos_packet->monsterArr[99].id << endl;
 		memcpy_s(m_monster_pool, sizeof(m_monster_pool), monster_pos_packet->monsterArr, sizeof(monster_pos_packet->monsterArr));
+		//cout << "anim: " << m_monster_pool[0].animation_state << endl;
 		//cout << "x:" << m_monster_pool[0].world_pos._41 << ", y: " << m_monster_pool[0].world_pos._42 << ", z: " << 
 			//m_monster_pool[0].world_pos._43 << endl;
 		break;
