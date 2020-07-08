@@ -1069,6 +1069,15 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 
 	case WM_KEYUP:
 		switch (wParam) {
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+			if (m_Trap.size() != 0) {
+				m_Trap.pop_back();
+			}
+		break;
+
 		case 'w':
 		case 'W':
 			m_Player->SetMoveUp(false);
