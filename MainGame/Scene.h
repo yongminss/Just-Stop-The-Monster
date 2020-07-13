@@ -139,7 +139,8 @@ private:
 	GameObject					*m_FireTrapModel = NULL;
 	GameObject					*m_SlowTrapModel = NULL;
 	GameObject					*m_ArrowTrapModel = NULL;
-	list<Trap*>					m_Trap;
+	//list<Trap*>					m_Trap;
+	StandardShader				*m_Trap = NULL;
 
 	// Monster Model
 	GameObject					*m_OrcModel = NULL;

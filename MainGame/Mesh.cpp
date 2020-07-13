@@ -49,6 +49,22 @@ void Mesh::Render(ID3D12GraphicsCommandList *CommandList, int nSubSet)
 		CommandList->DrawInstanced(m_nVertices, 1, m_nOffset, 0);
 }
 
+void Mesh::Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView)
+{
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[] = { m_InstanceBufferView[0], m_InstanceBufferView[1], m_InstanceBufferView[2], InstanceBufferView };
+
+	CommandList->IASetVertexBuffers(m_nSlot, _countof(VertexBufferView), VertexBufferView);
+
+	CommandList->IASetPrimitiveTopology(m_PrimitiveTopology);
+	if (m_IndexBuffer) {
+		CommandList->IASetIndexBuffer(&m_IndexBufferView);
+		CommandList->DrawIndexedInstanced(m_nIndices, InstanceNum, 0, 0, 0);
+	}
+	else {
+		CommandList->DrawInstanced(m_nVertices, InstanceNum, m_nOffset, 0);
+	}
+}
+
 // 텍스쳐 맵핑을 진행할 메쉬
 TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, float width, float height, float depth, float x, float y, float z, int type, int ImageType)
 {
@@ -327,6 +343,20 @@ void StandardMesh::LoadMeshFromFile(ID3D12Device *Device, ID3D12GraphicsCommandL
 			break;
 		}
 	}
+	// Instance
+	m_InstanceBufferView = new D3D12_VERTEX_BUFFER_VIEW[3];
+
+	m_InstanceBufferView[0].BufferLocation = m_PositionBuffer->GetGPUVirtualAddress();
+	m_InstanceBufferView[0].StrideInBytes = sizeof(XMFLOAT3);
+	m_InstanceBufferView[0].SizeInBytes = sizeof(XMFLOAT3) * m_nVertices;
+
+	m_InstanceBufferView[1].BufferLocation = m_NormalBuffer->GetGPUVirtualAddress();
+	m_InstanceBufferView[1].StrideInBytes = sizeof(XMFLOAT3);
+	m_InstanceBufferView[1].SizeInBytes = sizeof(XMFLOAT3) * m_nVertices;
+
+	m_InstanceBufferView[2].BufferLocation = m_TextureCoord0Buffer->GetGPUVirtualAddress();
+	m_InstanceBufferView[2].StrideInBytes = sizeof(XMFLOAT2);
+	m_InstanceBufferView[2].SizeInBytes = sizeof(XMFLOAT2) * m_nVertices;
 }
 
 // 애니메이션을 하는 3D 모델에 사용할 메쉬

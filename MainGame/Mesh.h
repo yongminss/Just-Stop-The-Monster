@@ -94,6 +94,9 @@ protected:
 	ID3D12Resource					**m_SubSetIndexUploadBuffer = NULL;
 	D3D12_INDEX_BUFFER_VIEW			*m_SubSetIndexBufferView = NULL;
 
+	// 인스턴싱
+	D3D12_VERTEX_BUFFER_VIEW		*m_InstanceBufferView = NULL;
+
 private:
 	int								m_nReferences = 0;
 
@@ -110,6 +113,7 @@ public:
 	
 	void Render(ID3D12GraphicsCommandList *CommandList);
 	void Render(ID3D12GraphicsCommandList *CommandList, int nSubSet);
+	void Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
 };
 
 // 텍스쳐 맵핑을 진행할 메쉬

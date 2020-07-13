@@ -95,12 +95,23 @@ public:
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
 };
 
+struct VS_VB_INSTANCE
+{
+	XMFLOAT4X4 m_Transform;
+};
 
 class StandardShader : public Shader
 {
 public:
 	StandardShader() { }
 	~StandardShader() { }
+
+private:
+	list<Trap*> m_Trap;
+
+	ID3D12Resource *m_cbGameObject = NULL;
+	VS_VB_INSTANCE *m_MappedGameObject = NULL;
+	D3D12_VERTEX_BUFFER_VIEW m_InstanceBufferView;
 
 public:
 	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
@@ -109,6 +120,12 @@ public:
 
 	virtual void OnPrepareRender(ID3D12GraphicsCommandList *CommandList, int nPipelineState);
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+
+	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+	void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
+
+	void UpdateShaderVariable();
+	void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
 class SkinnedAnimationShader : public StandardShader

@@ -351,6 +351,10 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_ArrowTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Arrow.bin", NULL, false);
 	m_ArrowTrapModel->SetScale(0.8f, 0.8f, 0.8f);
 
+	m_Trap = new StandardShader();
+	m_Trap->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	m_Trap->BuildObject(Device, CommandList, m_GraphicsRootSignature);
+
 	// 몬스터 모델
 	m_OrcModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
 	m_ShamanModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Shaman.bin", NULL, true);
@@ -723,11 +727,11 @@ void GameScene::Animate(float ElapsedTime)
 		m_Player->Update(ElapsedTime);
 	}
 
-	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
+	/*for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(m_Player, ElapsedTime, NULL);
-		}
+		}*/
 
 	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
 		if (*iter) {
@@ -862,13 +866,15 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	if (is_rend_04) if (m_Stage_04) m_Stage_04->Render(CommandList);
 
 	// Trap Objects
-	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
+	/*for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
 	{
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Render(CommandList);
 		}
-	}
+	}*/
+	if (m_Trap) m_Trap->Render(CommandList);
+
 	// Monster Objects
 	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
 	{
@@ -914,14 +920,14 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		::SetCapture(hWnd);
 		::GetCursorPos(&m_OldCursourPos);
 		// 플레이어가 공격 버튼을 클릭했을 때, 함정 설치 중이었다면 더 이상 따라오지 않도록 함
-		if (m_Trap.size() != 0) {
+		/*if (m_Trap.size() != 0) {
 			if (m_Trap.back()->GetIsBuildTrap() == true) m_Trap.back()->BuildTrap(false);
 			else m_Player->SetEnable(9);
 		}
 		else {
 			m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
 			m_Player->SetEnable(9);
-		}
+		}*/
 		break;
 
 	case WM_LBUTTONUP:
@@ -986,36 +992,30 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			// 함정 설치 준비
 		case '1':
 		{
-			m_Trap.emplace_back(new Trap());
-			m_Trap.back()->SetChild(m_NeedleTrapModel, false);
-			m_Trap.back()->BuildTrap(true);
-			m_Trap.back()->ActiveTrap(false);
-			m_Trap.back()->SetEnable(1);
-			m_Trap.back()->SetScale(0.8f, 0.8f, 0.8f);
+			//m_Trap.emplace_back(new Trap());
+			//m_Trap.back()->SetChild(m_NeedleTrapModel, false);
+			//m_Trap.back()->BuildTrap(true);
+			//m_Trap.back()->ActiveTrap(false);
+			//m_Trap.back()->SetEnable(1);
+			//m_Trap.back()->SetScale(0.8f, 0.8f, 0.8f);
 		}
 		break;
 
 		case '2':
 		{
-			m_Trap.emplace_back(new Trap());
-			m_Trap.back()->SetChild(m_FireTrapModel, false);
-			m_Trap.back()->BuildTrap(true);
+
 		}
 		break;
 
 		case '3':
 		{
-			m_Trap.emplace_back(new Trap());
-			m_Trap.back()->SetChild(m_SlowTrapModel, false);
-			m_Trap.back()->BuildTrap(true);
+
 		}
 		break;
 
 		case '4':
 		{
-			m_Trap.emplace_back(new Trap());
-			m_Trap.back()->SetChild(m_ArrowTrapModel, false);
-			m_Trap.back()->BuildTrap(true);
+
 		}
 		break;
 

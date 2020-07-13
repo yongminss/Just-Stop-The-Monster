@@ -397,6 +397,7 @@ public:
 	bool GetIsBuildTrap() { return IsBuildTrap; }
 
 	void Animate(GameObject *Player, float ElapsedTime, XMFLOAT4X4 *Parent);
+	void Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
 };
 
 class Monster : public GameObject

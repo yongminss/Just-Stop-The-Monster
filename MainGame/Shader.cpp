@@ -291,7 +291,7 @@ void SkyBoxShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList 
 // 3D 오브젝트에 사용할 쉐이더
 D3D12_INPUT_LAYOUT_DESC StandardShader::CreateInputLayout()
 {
-	UINT nInputElementDescs = 5;
+	UINT nInputElementDescs = 9;
 	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
 
 	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
@@ -299,6 +299,11 @@ D3D12_INPUT_LAYOUT_DESC StandardShader::CreateInputLayout()
 	pd3dInputElementDescs[2] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 2, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
 	pd3dInputElementDescs[3] = { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 3, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
 	pd3dInputElementDescs[4] = { "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 4, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	pd3dInputElementDescs[5] = { "WORLDMATRIX", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 5, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[6] = { "WORLDMATRIX", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 5, 16, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[7] = { "WORLDMATRIX", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 5, 32, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[8] = { "WORLDMATRIX", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 5, 48, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
 
 	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
 	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
@@ -329,6 +334,46 @@ void StandardShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandLis
 	m_PipelineStates = new ID3D12PipelineState*[m_nPipelineState];
 
 	Shader::CreateShader(Device, CommandList, GraphicsRootSignature);
+}
+
+void StandardShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+{
+	GameObject *NeedleModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, false);
+
+	for (int i = 0; i < 1000; ++i) {
+		m_Trap.emplace_back(new Trap());
+		m_Trap.back()->SetChild(NeedleModel, false);
+		m_Trap.back()->SetPostion(XMFLOAT3(-1000.f + (i * 50), 0.f, -1000.f + (i * 50)));
+	}
+
+	CreateShaderVariable(Device, CommandList);
+}
+
+void StandardShader::CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
+{
+	m_cbGameObject = ::CreateBufferResource(Device, CommandList, NULL, sizeof(VS_VB_INSTANCE) * 1000, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
+
+	m_cbGameObject->Map(0, NULL, (void**)&m_MappedGameObject);
+	m_InstanceBufferView.BufferLocation = m_cbGameObject->GetGPUVirtualAddress();
+	m_InstanceBufferView.StrideInBytes = sizeof(VS_VB_INSTANCE);
+	m_InstanceBufferView.SizeInBytes = sizeof(VS_VB_INSTANCE) * 1000;
+}
+
+void StandardShader::UpdateShaderVariable()
+{
+	int i = 0;
+	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter) {
+		XMStoreFloat4x4(&m_MappedGameObject[i++].m_Transform, XMMatrixTranspose(XMLoadFloat4x4(&(*iter)->m_TransformPos)));
+	}
+}
+
+void StandardShader::Render(ID3D12GraphicsCommandList *CommandList)
+{
+	Shader::OnPrepareRender(CommandList, 0);
+
+	UpdateShaderVariable();
+
+	m_Trap.front()->Render(CommandList, 1000, m_InstanceBufferView);
 }
 
 // 애니메이션을 하는 3D 오브젝트에서 사용할 쉐이더

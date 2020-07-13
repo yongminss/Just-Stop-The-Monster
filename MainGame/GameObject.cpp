@@ -1268,6 +1268,13 @@ void Trap::Animate(GameObject *Player, float ElapsedTime, XMFLOAT4X4 *Parent)
 	}
 }
 
+void Trap::Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView)
+{
+	//OnPrepareRender();
+
+	if (m_Mesh) m_Mesh->Render(CommandList, InstanceNum, InstanceBufferView);
+}
+
 
 // Monster
 void Monster::SetDirection(XMFLOAT3 Position)

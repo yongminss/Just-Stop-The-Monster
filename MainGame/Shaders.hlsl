@@ -152,7 +152,18 @@ struct VS_STANDARD_OUTPUT
     float2 uv : TEXCOORD;
 };
 
-VS_STANDARD_OUTPUT VSStandard(VS_STANDARD_INPUT input)
+struct VS_INSTANCING_STANDARD_INPUT
+{
+    float3 position : POSITION;
+    float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
+    
+    float4x4 Transform : WORLDMATRIX;
+};
+
+VS_STANDARD_OUTPUT VSStandard(VS_INSTANCING_STANDARD_INPUT input)
 {
     VS_STANDARD_OUTPUT output;
 
