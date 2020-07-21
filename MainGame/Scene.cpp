@@ -326,26 +326,24 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	//m_StageFloor->SetScale(100.f, 100.f, 100.f);
 
 	// 스테이지
-	m_Stage_01 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage02.bin", NULL, false);
+	m_Stage_01 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage01.bin", NULL, false);
 	//m_Stage_01->SetRotate(90.0f, 0.0f, 0.0f);
 	m_Stage_01->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
 	//m_Stage_01->SetScale(100.f, 100.f, 100.f);
 
-	m_Stage_02 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_02.bin", NULL, false);
+	m_Stage_02 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage02.bin", NULL, false);
 	//m_Stage_02->SetRotate(-90.0f, 0.0f,0.0f);
-	m_Stage_02->SetPostion(XMFLOAT3(730.f, -50.f, 300.f));
-	m_Stage_02->SetScale(100.f, 100.f, 100.f);
+	m_Stage_02->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
+	
 
-	m_Stage_03 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_03.bin", NULL, false);
-	m_Stage_03->SetRotate(0.0f, 0.0f, 90.0f);
-	m_Stage_03->SetPostion(XMFLOAT3(730.f, -50.f, 300.f));
-	m_Stage_03->SetScale(100.f, 100.f, 100.f);
+	m_Stage_03 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage03.bin", NULL, false);
 
-	m_Stage_04 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_04.bin", NULL, false);
+	m_Stage_03->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
+	
+	m_Stage_04 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage04.bin", NULL, false);
 	//m_Stage_04->SetPostion(XMFLOAT3(-900.f, -50.f, 500.f));
 	m_Stage_04->SetPostion(XMFLOAT3(-0.f, -50.f, 0.f));
-	m_Stage_04->SetScale(100.f, 100.f, 100.f);
-
+	
 	// 함정
 	m_NeedleTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
 	m_NeedleTrapModel->SetScale(1.4f, 1.4f, 1.4f);
@@ -1151,7 +1149,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_Trap.emplace_back(new Trap());
 			m_Trap.back()->SetChild(m_NeedleTrapModel, false);
 			m_Trap.back()->BuildTrap(true);
-			m_Trap.back()->ActiveTrap(false);
+			m_Trap.back()->ActiveTrap(true);
 			m_Trap.back()->SetEnable(1);
 			m_Trap.back()->SetTrapKind(TRAP_NEEDLE);
 		}
