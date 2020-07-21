@@ -169,6 +169,26 @@ void network_manager::PacketProccess(void * buf)
 	}
 }
 
+void network_manager::send_packet(void * buf)
+{
+	char* packet = reinterpret_cast<char*>(buf);
+	int packet_size = packet[0];
+	OVER_EX *send_over = new OVER_EX;
+	memset(send_over, 0x00, sizeof(OVER_EX));
+	send_over->event_type = EV_SEND;
+	memcpy(send_over->net_buf, packet, packet_size);
+	send_over->wsabuf[0].buf = send_over->net_buf;
+	send_over->wsabuf[0].len = packet_size;
+
+	int ret = WSASend(m_serverSocket, send_over->wsabuf, 1, 0, 0, &send_over->over, 0);
+	if (0 != ret) {
+		int err_no = WSAGetLastError();
+		if (WSA_IO_PENDING != err_no)
+			socket_err_display("WSASend Error :", err_no);
+	}
+
+}
+
 void network_manager::send_change_state_packet(const char& state)
 {
 	cs_packet_client_state_change packet;
@@ -176,7 +196,8 @@ void network_manager::send_change_state_packet(const char& state)
 	packet.id = m_my_info.id;
 	packet.change_state = state;
 	packet.size = sizeof(packet);
-	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	send_packet(&packet);
 }
 
 void network_manager::send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_pos, const short& animation_state)
@@ -187,7 +208,8 @@ void network_manager::send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_
 	packet.player_world_pos = world_pos;
 	packet.animation_state = animation_state;
 	packet.size = sizeof(packet);
-	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	send_packet(&packet);
 }
 
 void network_manager::send_make_room_packet()
@@ -196,7 +218,8 @@ void network_manager::send_make_room_packet()
 	packet.type = CS_MAKE_ROOM;
 	packet.id = m_my_info.id;
 	packet.size = sizeof(packet);
-	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	send_packet(&packet);
 }
 
 void network_manager::send_request_join_room(const short& room_number)
@@ -206,7 +229,8 @@ void network_manager::send_request_join_room(const short& room_number)
 	packet.joiner_id = m_my_info.id;
 	packet.room_number = room_number;
 	packet.size = sizeof(packet);
-	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	send_packet(&packet);
 }
 
 

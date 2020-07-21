@@ -728,7 +728,7 @@ void GameScene::Animate(float ElapsedTime)
 		m_Player->UpdateTransform(NULL);
 		m_Player->Update(ElapsedTime);
 		XMFLOAT3 p_pos = m_Player->GetPosition();
-		//cout << "x: " << p_pos.x << ", z: " << p_pos.z << endl;
+		cout << "x: " << p_pos.x << ", z: " << p_pos.z << endl;
 	}
 
 	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
@@ -739,13 +739,14 @@ void GameScene::Animate(float ElapsedTime)
 
 	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
 		if (*iter) {
-			//if (network_manager::GetInst()->m_monster_pool[0].isLive == false) {
-			//	continue;
-			//}
+			if (network_manager::GetInst()->m_monster_pool[0].isLive == false) {
+				continue;
+			}
 			(*iter)->SetTransform(network_manager::GetInst()->m_monster_pool[0].world_pos);
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
 			(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
+			cout << "ainm:" << network_manager::GetInst()->m_monster_pool[0].animation_state << endl;
 			(*iter)->SetEnable(network_manager::GetInst()->m_monster_pool[0].animation_state);
 			/*(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);*/
@@ -962,7 +963,7 @@ void GameScene::ProcessInput(HWND hWnd)
 				}
 				if (is_rend_01) {
 
-					GameObject *TileObject;
+					GameObject *TileObject = new GameObject;
 					switch (m_Trap.back()->GetTrapKind()) {
 					case TRAP_NEEDLE:
 					case TRAP_SLOW:

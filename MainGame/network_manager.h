@@ -2,6 +2,9 @@
 //#include "globals.h"
 #include "stdafx.h"
 
+enum EVENT_TYPE {
+	EV_RECV, EV_SEND
+};
 
 struct PLAYER_INFO
 {
@@ -13,12 +16,11 @@ struct PLAYER_INFO
 	XMFLOAT4X4 Transform;
 };
 
-
 struct OVER_EX {
 	WSAOVERLAPPED over;
 	WSABUF wsabuf[1];
 	char net_buf[MAX_BUFFER];
-	//EVENT_TYPE event_type;
+	EVENT_TYPE event_type;
 };
 
 class network_manager
@@ -35,6 +37,7 @@ public:
 	void ReadBuffer(SOCKET sock);
 	void PacketProccess(void * buf);
 
+	void send_packet(void *buf);
 	void send_change_state_packet(const char& state);
 	void send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_pos, const short& animation_state);
 	void send_make_room_packet();
