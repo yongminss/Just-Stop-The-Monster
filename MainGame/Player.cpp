@@ -9,7 +9,7 @@ Player::Player(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3
 	m_Right = XMFLOAT3(1.f, 0.f, 0.f);
 	m_Up = XMFLOAT3(0.f, 1.f, 0.f);
 	m_Look = XMFLOAT3(0.f, 0.f, 1.f);
-	m_Position = XMFLOAT3(-1200.f, -15.f, 100.f);
+	m_Position = XMFLOAT3(0.f, -15.f, 0.f);
 
 	m_Camera = new Camera();
 

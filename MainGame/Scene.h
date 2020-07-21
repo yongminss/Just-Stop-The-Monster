@@ -139,6 +139,8 @@ private:
 	GameObject					*m_FireTrapModel = NULL;
 	GameObject					*m_SlowTrapModel = NULL;
 	GameObject					*m_ArrowTrapModel = NULL;
+	
+	list<Trap*> testTrap;
 	//list<Trap*>					m_Trap;
 	StandardShader				*m_Trap = NULL;
 
@@ -151,6 +153,9 @@ private:
 
 	GameObject					*m_WolfRiderModel = NULL;
 	list<Monster*>				m_WolfRider;
+
+	// Instancing Monster
+	SkinnedAnimationShader		*m_Monster = NULL;
 
 	// Other Player
 	GameObject					*m_OtherPlayerModel = NULL;

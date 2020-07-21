@@ -27,6 +27,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <vector>
 
 // DirectX12를 사용하기 위한 헤더
 #include <d3d12.h>
@@ -48,6 +49,8 @@ using namespace std;
 
 #define FRAME_BUFFER_WIDTH 800
 #define FRAME_BUFFER_HEIGHT 600
+
+#define INSTANCE_NUM 1000
 
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "d3d12.lib")

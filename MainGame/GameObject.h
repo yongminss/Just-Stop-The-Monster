@@ -275,11 +275,11 @@ protected:
 	XMFLOAT3						m_Position;
 
 	ID3D12Resource					*m_cbGameObject = NULL;
-	CB_GAMEOBJECT_INFO				*m_cbMappedGameObject = NULL;
 
 	short							m_AnimateState = 0;
 
 public:
+	CB_GAMEOBJECT_INFO				*m_cbMappedGameObject = NULL;
 	GameObject * m_Parent = NULL;
 
 	AnimationController				*m_AnimationController = NULL;
@@ -295,6 +295,7 @@ public:
 	void SetChild(GameObject *Child, bool ReferenceUpdate = false);
 
 	void UpdateTransform(XMFLOAT4X4 *Parent);
+	void UpdateTransform(CB_GAMEOBJECT_INFO* Buffer, int InstanceNum, XMFLOAT4X4 *Parent);
 
 	void SetRight(XMFLOAT3 Right);
 	void SetUp(XMFLOAT3 Up);
@@ -353,6 +354,7 @@ public:
 
 	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
+	void Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
 
 	// 애니메이션
 	void CacheSkinningBoneFrame(GameObject *RootFrame);
@@ -397,7 +399,7 @@ public:
 	bool GetIsBuildTrap() { return IsBuildTrap; }
 
 	void Animate(GameObject *Player, float ElapsedTime, XMFLOAT4X4 *Parent);
-	void Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
+	//void Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
 };
 
 class Monster : public GameObject

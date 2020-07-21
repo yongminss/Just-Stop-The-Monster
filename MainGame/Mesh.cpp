@@ -51,18 +51,18 @@ void Mesh::Render(ID3D12GraphicsCommandList *CommandList, int nSubSet)
 
 void Mesh::Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView)
 {
-	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[] = { m_InstanceBufferView[0], m_InstanceBufferView[1], m_InstanceBufferView[2], InstanceBufferView };
+	OnPreRender(CommandList, NULL, InstanceBufferView);
 
-	CommandList->IASetVertexBuffers(m_nSlot, _countof(VertexBufferView), VertexBufferView);
+	UpdateShaderVariable(CommandList);
 
 	CommandList->IASetPrimitiveTopology(m_PrimitiveTopology);
-	if (m_IndexBuffer) {
-		CommandList->IASetIndexBuffer(&m_IndexBufferView);
-		CommandList->DrawIndexedInstanced(m_nIndices, InstanceNum, 0, 0, 0);
+
+	if (m_nSubMesh > 0) {
+		CommandList->IASetIndexBuffer(&(m_SubSetIndexBufferView[0]));
+		CommandList->DrawIndexedInstanced(m_pnSubSetIndices[0], InstanceNum, 0, 0, 0);
 	}
-	else {
+	else
 		CommandList->DrawInstanced(m_nVertices, InstanceNum, m_nOffset, 0);
-	}
 }
 
 // 텍스쳐 맵핑을 진행할 메쉬
@@ -193,6 +193,12 @@ void StandardMesh::OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Con
 {
 	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[5] = { m_PositionBufferView, m_TextureCoord0BufferView, m_NormalBufferView, m_TangentBufferView, m_BiTangentBufferView };
 	CommandList->IASetVertexBuffers(m_nSlot, 5, VertexBufferView);
+}
+
+void StandardMesh::OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView)
+{
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[6] = { m_PositionBufferView, m_TextureCoord0BufferView, m_NormalBufferView, m_TangentBufferView, m_BiTangentBufferView, InstanceBufferView };
+	CommandList->IASetVertexBuffers(m_nSlot, 6, VertexBufferView);
 }
 
 void StandardMesh::LoadMeshFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile)
@@ -343,20 +349,6 @@ void StandardMesh::LoadMeshFromFile(ID3D12Device *Device, ID3D12GraphicsCommandL
 			break;
 		}
 	}
-	// Instance
-	m_InstanceBufferView = new D3D12_VERTEX_BUFFER_VIEW[3];
-
-	m_InstanceBufferView[0].BufferLocation = m_PositionBuffer->GetGPUVirtualAddress();
-	m_InstanceBufferView[0].StrideInBytes = sizeof(XMFLOAT3);
-	m_InstanceBufferView[0].SizeInBytes = sizeof(XMFLOAT3) * m_nVertices;
-
-	m_InstanceBufferView[1].BufferLocation = m_NormalBuffer->GetGPUVirtualAddress();
-	m_InstanceBufferView[1].StrideInBytes = sizeof(XMFLOAT3);
-	m_InstanceBufferView[1].SizeInBytes = sizeof(XMFLOAT3) * m_nVertices;
-
-	m_InstanceBufferView[2].BufferLocation = m_TextureCoord0Buffer->GetGPUVirtualAddress();
-	m_InstanceBufferView[2].StrideInBytes = sizeof(XMFLOAT2);
-	m_InstanceBufferView[2].SizeInBytes = sizeof(XMFLOAT2) * m_nVertices;
 }
 
 // 애니메이션을 하는 3D 모델에 사용할 메쉬
@@ -397,8 +389,14 @@ void SkinnedMesh::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
 
 void SkinnedMesh::OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context)
 {
-	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[7] = { m_PositionBufferView, m_TextureCoord0BufferView, m_NormalBufferView, m_TangentBufferView, m_BiTangentBufferView,m_BoneIndexBufferView , m_BoneWeightBufferView };
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[7] = { m_PositionBufferView, m_TextureCoord0BufferView, m_NormalBufferView, m_TangentBufferView, m_BiTangentBufferView, m_BoneIndexBufferView, m_BoneWeightBufferView };
 	CommandList->IASetVertexBuffers(m_nSlot, 7, VertexBufferView);
+}
+
+void SkinnedMesh::OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView)
+{
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[8] = { m_PositionBufferView, m_TextureCoord0BufferView, m_NormalBufferView, m_TangentBufferView, m_BiTangentBufferView, m_BoneIndexBufferView, m_BoneWeightBufferView, InstanceBufferView };
+	CommandList->IASetVertexBuffers(m_nSlot, 8, VertexBufferView);
 }
 
 void SkinnedMesh::LoadSkinInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile)

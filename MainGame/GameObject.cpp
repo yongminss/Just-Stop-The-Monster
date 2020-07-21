@@ -971,6 +971,19 @@ void GameObject::Render(ID3D12GraphicsCommandList *CommandList)
 	if (m_Child) m_Child->Render(CommandList);
 }
 
+void GameObject::Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView)
+{
+	if (m_nMaterial > 0) {
+		for (int i = 0; i < m_nMaterial; ++i) {
+			m_Material[i]->UpdateShaderVariable(CommandList);
+		}
+	}
+	if (m_Mesh) m_Mesh->Render(CommandList, InstanceNum, InstanceBufferView);
+
+	if (m_Sibling) m_Sibling->Render(CommandList, InstanceNum, InstanceBufferView);
+	if (m_Child) m_Child->Render(CommandList, InstanceNum, InstanceBufferView);
+}
+
 void GameObject::CacheSkinningBoneFrame(GameObject *RootFrame)
 {
 	if (m_Mesh && (m_Mesh->GetType() & VERTEXT_BONE_INDEX_WEIGHT)) {
@@ -1266,13 +1279,6 @@ void Trap::Animate(GameObject *Player, float ElapsedTime, XMFLOAT4X4 *Parent)
 		if (m_Sibling) m_Sibling->Animate(ElapsedTime, Parent);
 		if (m_Child) m_Child->Animate(ElapsedTime, &m_WorldPos);
 	}
-}
-
-void Trap::Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView)
-{
-	//OnPrepareRender();
-
-	if (m_Mesh) m_Mesh->Render(CommandList, InstanceNum, InstanceBufferView);
 }
 
 

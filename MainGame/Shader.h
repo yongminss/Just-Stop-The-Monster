@@ -107,8 +107,7 @@ public:
 	~StandardShader() { }
 
 private:
-	list<Trap*> m_Trap;
-
+	vector<GameObject*> m_Trap;
 	ID3D12Resource *m_cbGameObject = NULL;
 	VS_VB_INSTANCE *m_MappedGameObject = NULL;
 	D3D12_VERTEX_BUFFER_VIEW m_InstanceBufferView;
@@ -121,11 +120,11 @@ public:
 	virtual void OnPrepareRender(ID3D12GraphicsCommandList *CommandList, int nPipelineState);
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
 
-	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+	virtual void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
 	void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 
-	void UpdateShaderVariable();
-	void Render(ID3D12GraphicsCommandList *CommandList);
+	virtual void UpdateShaderVariable();
+	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
 class SkinnedAnimationShader : public StandardShader
@@ -134,7 +133,19 @@ public:
 	SkinnedAnimationShader() { }
 	~SkinnedAnimationShader() { }
 
+private:
+	vector<GameObject*> m_Orc;
+	ID3D12Resource *m_cbGameObject = NULL;
+	VS_VB_INSTANCE *m_MappedGameObject = NULL;
+	D3D12_VERTEX_BUFFER_VIEW m_InstanceBufferView;
+
 public:
 	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+
+	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+	void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
+	
+	void UpdateShaderVariable();
+	void Render(ID3D12GraphicsCommandList *CommandList);
 };

@@ -339,43 +339,49 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_Stage_04->SetScale(100.f, 100.f, 100.f);
 
 	// 함정
-	m_NeedleTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
-	//m_NeedleTrapModel->SetScale(0.8f, 0.8f, 0.8f);
+	/*m_NeedleTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
+	m_NeedleTrapModel->SetScale(0.8f, 0.8f, 0.8f);*/
 
-	m_FireTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Fire.bin", NULL, false);
-	m_FireTrapModel->SetScale(0.8f, 0.8f, 0.8f);
+	//m_FireTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Fire.bin", NULL, false);
+	//m_FireTrapModel->SetScale(0.8f, 0.8f, 0.8f);
 
-	m_SlowTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Slow.bin", NULL, false);
-	m_SlowTrapModel->SetScale(0.8f, 0.8f, 0.8f);
+	//m_SlowTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Slow.bin", NULL, false);
+	//m_SlowTrapModel->SetScale(0.8f, 0.8f, 0.8f);
 
-	m_ArrowTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Arrow.bin", NULL, false);
-	m_ArrowTrapModel->SetScale(0.8f, 0.8f, 0.8f);
+	//m_ArrowTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Arrow.bin", NULL, false);
+	//m_ArrowTrapModel->SetScale(0.8f, 0.8f, 0.8f);
 
+	// 몬스터 모델
+	//m_OrcModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
+	/*m_ShamanModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Shaman.bin", NULL, true);
+	m_WolfRiderModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_WolfRider.bin", NULL, true);*/
+
+	// 기본 오크
+	//m_Orc.emplace_back(new Monster());
+	//m_Orc.back()->SetChild(m_OrcModel, false);
+	////m_Orc.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -150.f));
+	//m_Orc.back()->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
+
+	//// 마법사 오크
+	//m_Shaman.emplace_back(new Monster());
+	//m_Shaman.back()->SetChild(m_ShamanModel, true);
+	//m_Shaman.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -400.f));
+
+	//// 늑대 오크
+	//m_WolfRider.emplace_back(new Monster());
+	//m_WolfRider.back()->SetChild(m_WolfRiderModel, true);
+	//m_WolfRider.back()->SetPostion(XMFLOAT3(2200.f, -50.f, 1020.f));
+
+	// Instancing Object
 	m_Trap = new StandardShader();
 	m_Trap->CreateShader(Device, CommandList, m_GraphicsRootSignature);
 	m_Trap->BuildObject(Device, CommandList, m_GraphicsRootSignature);
+	
+	m_Monster = new SkinnedAnimationShader();
+	m_Monster->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	m_Monster->BuildObject(Device, CommandList, m_GraphicsRootSignature);
 
-	// 몬스터 모델
-	m_OrcModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
-	m_ShamanModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Shaman.bin", NULL, true);
-	m_WolfRiderModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_WolfRider.bin", NULL, true);
-
-	// 기본 오크
-	m_Orc.emplace_back(new Monster());
-	m_Orc.back()->SetChild(m_OrcModel, false);
-	//m_Orc.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -150.f));
-	m_Orc.back()->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
-
-	// 마법사 오크
-	m_Shaman.emplace_back(new Monster());
-	m_Shaman.back()->SetChild(m_ShamanModel, true);
-	m_Shaman.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -400.f));
-
-	// 늑대 오크
-	m_WolfRider.emplace_back(new Monster());
-	m_WolfRider.back()->SetChild(m_WolfRiderModel, true);
-	m_WolfRider.back()->SetPostion(XMFLOAT3(2200.f, -50.f, 1020.f));
-
+	// Server - Other Player
 	m_OtherPlayerModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Soldier_Player.bin", NULL, true);
 	m_OtherPlayerModel->SetPostion(XMFLOAT3(-1000.f, -15.f, 0.f));
 
@@ -733,92 +739,92 @@ void GameScene::Animate(float ElapsedTime)
 			(*iter)->Animate(m_Player, ElapsedTime, NULL);
 		}*/
 
-	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
-		if (*iter) {
-			(*iter)->UpdateTransform(NULL);
-			(*iter)->Animate(ElapsedTime, NULL);
-			/*XMFLOAT3 PlayerPos = m_Player->GetPosition();
-			XMFLOAT3 OrcPos = (*iter)->GetPosition();
-			float DistanceWithPlayer = Vector3::Distance(PlayerPos, OrcPos);
-			if (DistanceWithPlayer > 200.0f) {
-				(*iter)->SetLine(ElapsedTime);
-				(*iter)->MoveForward(200.f * ElapsedTime);
-				(*iter)->SetEnable(2);
-			}
-			else if (DistanceWithPlayer <= 200.0f && DistanceWithPlayer >= 70.0f) {
-				if ((*iter)->nCheckPoint != 0) { (*iter)->nCheckPoint = 0; (*iter)->nInporation = 0.0f; (*iter)->StartLook = (*iter)->GetLook(); }
-				PlayerPos.y = -50.f;
-				PlayerPos = Vector3::Subtract(PlayerPos, OrcPos);
-				(*iter)->SetEnable(2);
-				if ((*iter)->GetNowAnimationNum() == 2) {
-					(*iter)->SetinterPolation(Vector3::Normalize(PlayerPos));
-					(*iter)->MoveForward(200.f * ElapsedTime);
-				}
-			}
-			else {
-				(*iter)->SetDirection(PlayerPos);
-				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
-				(*iter)->SetEnable(3);
-			}*/
-		}
+	//for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
+	//	if (*iter) {
+	//		(*iter)->UpdateTransform(NULL);
+	//		(*iter)->Animate(ElapsedTime, NULL);
+	//		/*XMFLOAT3 PlayerPos = m_Player->GetPosition();
+	//		XMFLOAT3 OrcPos = (*iter)->GetPosition();
+	//		float DistanceWithPlayer = Vector3::Distance(PlayerPos, OrcPos);
+	//		if (DistanceWithPlayer > 200.0f) {
+	//			(*iter)->SetLine(ElapsedTime);
+	//			(*iter)->MoveForward(200.f * ElapsedTime);
+	//			(*iter)->SetEnable(2);
+	//		}
+	//		else if (DistanceWithPlayer <= 200.0f && DistanceWithPlayer >= 70.0f) {
+	//			if ((*iter)->nCheckPoint != 0) { (*iter)->nCheckPoint = 0; (*iter)->nInporation = 0.0f; (*iter)->StartLook = (*iter)->GetLook(); }
+	//			PlayerPos.y = -50.f;
+	//			PlayerPos = Vector3::Subtract(PlayerPos, OrcPos);
+	//			(*iter)->SetEnable(2);
+	//			if ((*iter)->GetNowAnimationNum() == 2) {
+	//				(*iter)->SetinterPolation(Vector3::Normalize(PlayerPos));
+	//				(*iter)->MoveForward(200.f * ElapsedTime);
+	//			}
+	//		}
+	//		else {
+	//			(*iter)->SetDirection(PlayerPos);
+	//			(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
+	//			(*iter)->SetEnable(3);
+	//		}*/
+	//	}
 
-	for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
-		if (*iter) {
-			(*iter)->UpdateTransform(NULL);
-			(*iter)->Animate(ElapsedTime, NULL);
-			XMFLOAT3 PlayerPos = m_Player->GetPosition();
-			XMFLOAT3 ShamanPos = (*iter)->GetPosition();
-			float DistanceWithPlayer = Vector3::Distance(PlayerPos, ShamanPos);
-			if (DistanceWithPlayer > 300.0f) {
-				(*iter)->SetLine(ElapsedTime);
-				(*iter)->MoveForward(200.f * ElapsedTime);
-				(*iter)->SetEnable(2);
-			}
-			else if (DistanceWithPlayer <= 300.0f && DistanceWithPlayer >= 200.0f) {
-				if ((*iter)->nCheckPoint != 0) { (*iter)->nCheckPoint = 0; (*iter)->nInporation = 0.0f; (*iter)->StartLook = (*iter)->GetLook(); }
-				PlayerPos.y = -50.f;
-				PlayerPos = Vector3::Subtract(PlayerPos, ShamanPos);
-				(*iter)->SetEnable(2);
-				if ((*iter)->GetNowAnimationNum() == 2) {
-					(*iter)->SetinterPolation(Vector3::Normalize(PlayerPos));
-					(*iter)->MoveForward(200.f * ElapsedTime);
-				}
-			}
-			else {
-				(*iter)->SetDirection(PlayerPos);
-				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
-				(*iter)->SetEnable(3);
-			}
-		}
+	//for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
+	//	if (*iter) {
+	//		(*iter)->UpdateTransform(NULL);
+	//		(*iter)->Animate(ElapsedTime, NULL);
+	//		XMFLOAT3 PlayerPos = m_Player->GetPosition();
+	//		XMFLOAT3 ShamanPos = (*iter)->GetPosition();
+	//		float DistanceWithPlayer = Vector3::Distance(PlayerPos, ShamanPos);
+	//		if (DistanceWithPlayer > 300.0f) {
+	//			(*iter)->SetLine(ElapsedTime);
+	//			(*iter)->MoveForward(200.f * ElapsedTime);
+	//			(*iter)->SetEnable(2);
+	//		}
+	//		else if (DistanceWithPlayer <= 300.0f && DistanceWithPlayer >= 200.0f) {
+	//			if ((*iter)->nCheckPoint != 0) { (*iter)->nCheckPoint = 0; (*iter)->nInporation = 0.0f; (*iter)->StartLook = (*iter)->GetLook(); }
+	//			PlayerPos.y = -50.f;
+	//			PlayerPos = Vector3::Subtract(PlayerPos, ShamanPos);
+	//			(*iter)->SetEnable(2);
+	//			if ((*iter)->GetNowAnimationNum() == 2) {
+	//				(*iter)->SetinterPolation(Vector3::Normalize(PlayerPos));
+	//				(*iter)->MoveForward(200.f * ElapsedTime);
+	//			}
+	//		}
+	//		else {
+	//			(*iter)->SetDirection(PlayerPos);
+	//			(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
+	//			(*iter)->SetEnable(3);
+	//		}
+	//	}
 
-	for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
-		if (*iter) {
-			(*iter)->UpdateTransform(NULL);
-			(*iter)->Animate(ElapsedTime, NULL);
-			XMFLOAT3 PlayerPos = m_Player->GetPosition();
-			XMFLOAT3 WolfPos = (*iter)->GetPosition();
-			float DistanceWithPlayer = Vector3::Distance(PlayerPos, WolfPos);
-			if (DistanceWithPlayer > 200.0f) {
-				(*iter)->SetLine(ElapsedTime);
-				(*iter)->MoveForward(200.f * ElapsedTime);
-				(*iter)->SetEnable(2);
-			}
-			else if (DistanceWithPlayer <= 200.0f && DistanceWithPlayer >= 90.0f) {
-				if ((*iter)->nCheckPoint != 0) { (*iter)->nCheckPoint = 0; (*iter)->nInporation = 0.0f; (*iter)->StartLook = (*iter)->GetLook(); }
-				PlayerPos.y = -50.f;
-				PlayerPos = Vector3::Subtract(PlayerPos, WolfPos);
-				(*iter)->SetEnable(2);
-				if ((*iter)->GetNowAnimationNum() == 2) {
-					(*iter)->SetinterPolation(Vector3::Normalize(PlayerPos));
-					(*iter)->MoveForward(200.f * ElapsedTime);
-				}
-			}
-			else {
-				(*iter)->SetDirection(PlayerPos);
-				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
-				(*iter)->SetEnable(3);
-			}
-		}
+	//for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
+	//	if (*iter) {
+	//		(*iter)->UpdateTransform(NULL);
+	//		(*iter)->Animate(ElapsedTime, NULL);
+	//		XMFLOAT3 PlayerPos = m_Player->GetPosition();
+	//		XMFLOAT3 WolfPos = (*iter)->GetPosition();
+	//		float DistanceWithPlayer = Vector3::Distance(PlayerPos, WolfPos);
+	//		if (DistanceWithPlayer > 200.0f) {
+	//			(*iter)->SetLine(ElapsedTime);
+	//			(*iter)->MoveForward(200.f * ElapsedTime);
+	//			(*iter)->SetEnable(2);
+	//		}
+	//		else if (DistanceWithPlayer <= 200.0f && DistanceWithPlayer >= 90.0f) {
+	//			if ((*iter)->nCheckPoint != 0) { (*iter)->nCheckPoint = 0; (*iter)->nInporation = 0.0f; (*iter)->StartLook = (*iter)->GetLook(); }
+	//			PlayerPos.y = -50.f;
+	//			PlayerPos = Vector3::Subtract(PlayerPos, WolfPos);
+	//			(*iter)->SetEnable(2);
+	//			if ((*iter)->GetNowAnimationNum() == 2) {
+	//				(*iter)->SetinterPolation(Vector3::Normalize(PlayerPos));
+	//				(*iter)->MoveForward(200.f * ElapsedTime);
+	//			}
+	//		}
+	//		else {
+	//			(*iter)->SetDirection(PlayerPos);
+	//			(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
+	//			(*iter)->SetEnable(3);
+	//		}
+	//	}
 
 	// Ohter Player
 	if (network_manager::GetInst()->IsConnect()) {
@@ -873,10 +879,13 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 			(*iter)->Render(CommandList);
 		}
 	}*/
+
 	if (m_Trap) m_Trap->Render(CommandList);
 
+	if (m_Monster) m_Monster->Render(CommandList);
+
 	// Monster Objects
-	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
+	/*for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
 	{
 		(*iter)->UpdateTransform(NULL);
 		(*iter)->Render(CommandList);
@@ -885,7 +894,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		(*iter)->Render(CommandList);
 
 	for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
-		(*iter)->Render(CommandList);
+		(*iter)->Render(CommandList);*/
 
 	// Ohter Player
 	if (network_manager::GetInst()->IsConnect())

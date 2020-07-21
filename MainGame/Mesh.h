@@ -82,6 +82,7 @@ protected:
 	ID3D12Resource					*m_VertexUploadBuffer = NULL;
 
 	ID3D12Resource					*m_IndexBuffer = NULL;
+	ID3D12Resource					*m_IndexUploadBuffer = NULL;
 
 	D3D12_VERTEX_BUFFER_VIEW		m_VertexBufferView;
 	D3D12_INDEX_BUFFER_VIEW			m_IndexBufferView;
@@ -110,6 +111,7 @@ public:
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList) { }
 
 	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context) { }
+	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView) { }
 	
 	void Render(ID3D12GraphicsCommandList *CommandList);
 	void Render(ID3D12GraphicsCommandList *CommandList, int nSubSet);
@@ -164,6 +166,7 @@ public:
 	void LoadMeshFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile);
 
 	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context);
+	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
 };
 
 #define SKINNED_ANIMATION_BONES 128
@@ -211,6 +214,7 @@ public:
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList);
 
 	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context);
+	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
 
 	void LoadSkinInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile);
 };

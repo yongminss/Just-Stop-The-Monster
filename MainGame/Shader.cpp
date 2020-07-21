@@ -338,12 +338,20 @@ void StandardShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandLis
 
 void StandardShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
 {
-	GameObject *NeedleModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, false);
+	m_Trap.reserve(1000);
 
-	for (int i = 0; i < 1000; ++i) {
-		m_Trap.emplace_back(new Trap());
-		m_Trap.back()->SetChild(NeedleModel, false);
-		m_Trap.back()->SetPostion(XMFLOAT3(-1000.f + (i * 50), 0.f, -1000.f + (i * 50)));
+	GameObject *NeedleTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
+
+	Trap *Obj = NULL;
+
+	for (int i = 0; i < 50; ++i) {
+		for (int j = 0; j < 20; ++j) {
+			Obj = new Trap();
+			Obj->SetChild(NeedleTrapModel, false);
+			Obj->SetScale(100.f, 100.f, 100.f);
+			Obj->SetPostion(XMFLOAT3(0.f + (i * 50), -50.f, 0.f + (j * 50)));
+			m_Trap.emplace_back(Obj);
+		}
 	}
 
 	CreateShaderVariable(Device, CommandList);
@@ -351,19 +359,18 @@ void StandardShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList
 
 void StandardShader::CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
 {
-	m_cbGameObject = ::CreateBufferResource(Device, CommandList, NULL, sizeof(VS_VB_INSTANCE) * 1000, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
+	m_cbGameObject = ::CreateBufferResource(Device, CommandList, NULL, sizeof(VS_VB_INSTANCE) * INSTANCE_NUM, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
 
 	m_cbGameObject->Map(0, NULL, (void**)&m_MappedGameObject);
 	m_InstanceBufferView.BufferLocation = m_cbGameObject->GetGPUVirtualAddress();
 	m_InstanceBufferView.StrideInBytes = sizeof(VS_VB_INSTANCE);
-	m_InstanceBufferView.SizeInBytes = sizeof(VS_VB_INSTANCE) * 1000;
+	m_InstanceBufferView.SizeInBytes = sizeof(VS_VB_INSTANCE) * INSTANCE_NUM;
 }
 
 void StandardShader::UpdateShaderVariable()
 {
-	int i = 0;
-	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter) {
-		XMStoreFloat4x4(&m_MappedGameObject[i++].m_Transform, XMMatrixTranspose(XMLoadFloat4x4(&(*iter)->m_TransformPos)));
+	for (int i = 0; i < m_Trap.size(); ++i) {
+		XMStoreFloat4x4(&m_MappedGameObject[i].m_Transform, XMMatrixTranspose(XMLoadFloat4x4(&m_Trap[i]->m_WorldPos)));
 	}
 }
 
@@ -373,13 +380,14 @@ void StandardShader::Render(ID3D12GraphicsCommandList *CommandList)
 
 	UpdateShaderVariable();
 
-	m_Trap.front()->Render(CommandList, 1000, m_InstanceBufferView);
+	m_Trap[0]->UpdateTransform(NULL);
+	m_Trap[0]->Render(CommandList, INSTANCE_NUM, m_InstanceBufferView);
 }
 
 // 애니메이션을 하는 3D 오브젝트에서 사용할 쉐이더
 D3D12_INPUT_LAYOUT_DESC SkinnedAnimationShader::CreateInputLayout()
 {
-	UINT nInputElementDescs = 7;
+	UINT nInputElementDescs = 11;
 	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
 
 	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
@@ -389,6 +397,11 @@ D3D12_INPUT_LAYOUT_DESC SkinnedAnimationShader::CreateInputLayout()
 	pd3dInputElementDescs[4] = { "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 4, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
 	pd3dInputElementDescs[5] = { "BONEINDEX", 0, DXGI_FORMAT_R32G32B32A32_UINT, 5, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
 	pd3dInputElementDescs[6] = { "BONEWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 6, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	pd3dInputElementDescs[7] = { "WORLDMATRIX", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 7, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[8] = { "WORLDMATRIX", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 7, 16, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[9] = { "WORLDMATRIX", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 7, 32, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[10] = { "WORLDMATRIX", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 7, 48, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
 
 	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
 	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
@@ -400,4 +413,52 @@ D3D12_INPUT_LAYOUT_DESC SkinnedAnimationShader::CreateInputLayout()
 D3D12_SHADER_BYTECODE SkinnedAnimationShader::CreateVertexShader()
 {
 	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "VSSkinnedAnimationStandard", "vs_5_1", &m_VertexShaderBlob));
+}
+
+void SkinnedAnimationShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+{
+	m_Orc.reserve(1000);
+
+	GameObject *Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
+
+	Monster *Orc = NULL;
+
+	for (int i = 0; i < 50; ++i) {
+		for (int j = 0; j < 20; ++j) {
+			Orc = new Monster();
+			Orc->SetChild(Model, true);
+			Orc->SetScale(50.f, 50.f, 50.f);
+			Orc->SetRotate(-90.f, 0.f, 0.f);
+			Orc->SetPostion(XMFLOAT3(0.f + (i * 50), 0.f, 0.f + (j * 50)));
+			m_Orc.emplace_back(Orc);
+		}
+	}
+	CreateShaderVariable(Device, CommandList);
+}
+
+void SkinnedAnimationShader::CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
+{
+	m_cbGameObject = ::CreateBufferResource(Device, CommandList, NULL, sizeof(VS_VB_INSTANCE) * INSTANCE_NUM, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
+
+	m_cbGameObject->Map(0, NULL, (void**)&m_MappedGameObject);
+	m_InstanceBufferView.BufferLocation = m_cbGameObject->GetGPUVirtualAddress();
+	m_InstanceBufferView.StrideInBytes = sizeof(VS_VB_INSTANCE);
+	m_InstanceBufferView.SizeInBytes = sizeof(VS_VB_INSTANCE) * INSTANCE_NUM;
+}
+
+void SkinnedAnimationShader::UpdateShaderVariable()
+{
+	for (int i = 0; i < m_Orc.size(); ++i) {
+		XMStoreFloat4x4(&m_MappedGameObject[i].m_Transform, XMMatrixTranspose(XMLoadFloat4x4(&m_Orc[i]->m_WorldPos)));
+	}
+}
+
+void SkinnedAnimationShader::Render(ID3D12GraphicsCommandList *CommandList)
+{
+	Shader::OnPrepareRender(CommandList, 0);
+
+	UpdateShaderVariable();
+
+	//m_Orc[0]->UpdateTransform(NULL);
+	m_Orc[0]->Render(CommandList, 1000, m_InstanceBufferView);
 }
