@@ -129,7 +129,7 @@ private:
 	GameObject					*m_Stage_03 = NULL;
 	GameObject					*m_Stage_04 = NULL;
 
-	bool is_rend_01 = false;
+	bool is_rend_01 = true;
 	bool is_rend_02 = false;
 	bool is_rend_03 = false;
 	bool is_rend_04 = false;
@@ -140,6 +140,7 @@ private:
 	GameObject					*m_SlowTrapModel = NULL;
 	GameObject					*m_ArrowTrapModel = NULL;
 	list<Trap*>					m_Trap;
+	Trap						*m_TrapModel = NULL;
 
 	// Monster Model
 	GameObject					*m_OrcModel = NULL;
@@ -168,7 +169,10 @@ private:
 	static D3D12_GPU_DESCRIPTOR_HANDLE m_SrvGPUDescriptorNextHandle;
 
 	// 마우스 입력
-	POINT m_OldCursourPos;
+	POINT m_ptOldCursorPos;
+	POINT m_ptTrapCursorPos;
+
+	bool	m_bClick = false;
 
 public:
 	bool temp = false;
@@ -190,6 +194,8 @@ public:
 	void Render(ID3D12GraphicsCommandList *CommandList);
 
 	void ProcessInput(HWND hWnd);
+
+	void CheckTile();
 
 	bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);

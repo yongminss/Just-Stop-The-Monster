@@ -883,6 +883,68 @@ GameObject *GameObject::FindFrame(char *FrameName)
 	return NULL;
 }
 
+GameObject *GameObject::CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool IsFloor)
+{
+	GameObject *TileObject = NULL;
+	GameObject *TileSibling = NULL;
+	GameObject *TileChild = NULL;
+	if (m_Mesh) {
+		if (IsFloor) {
+			// 바닥 타일
+			if (strstr(m_FrameName, "Floor")) {
+				BoundingBox TileBound = m_Mesh->GetBounds();
+				TileBound.Transform(TileBound, XMLoadFloat4x4(&m_WorldPos));
+				if (TileBound.Intersects(XMLoadFloat3(&startpos), XMLoadFloat3(&endpos), m_Mesh->m_fDistance) == true) {
+					TileObject = this;
+				}
+			}
+		}
+		else {
+			// 벽 타일
+			if (strstr(m_FrameName, "Normal")) {
+				BoundingBox TileBound = m_Mesh->GetBounds();
+				TileBound.Transform(TileBound, XMLoadFloat4x4(&m_WorldPos));
+				if (TileBound.Intersects(XMLoadFloat3(&startpos), XMLoadFloat3(&endpos), m_Mesh->m_fDistance) == true) {
+					TileObject = this;
+				}
+			}
+		}
+	}
+	if (m_Sibling)
+		TileSibling = m_Sibling->CheckTileBound(startpos, endpos, IsFloor);
+	if (m_Child)
+		TileChild = m_Child->CheckTileBound(startpos, endpos, IsFloor);
+
+	if (TileObject) {
+		if (TileSibling) {
+			if (TileObject->m_Mesh->m_fDistance > TileSibling->m_Mesh->m_fDistance)
+				TileObject = TileSibling;
+		}
+		if (TileChild) {
+			if (TileObject->m_Mesh->m_fDistance > TileChild->m_Mesh->m_fDistance)
+				TileObject = TileChild;
+		}
+	}
+	else {
+		if (TileSibling && TileChild) {
+			if (TileSibling->m_Mesh->m_fDistance > TileChild->m_Mesh->m_fDistance)
+				TileObject = TileChild;
+			else
+				TileObject = TileSibling;
+		}
+		else if (TileSibling)
+			TileObject = TileSibling;
+		else if (TileChild)
+			TileObject = TileChild;
+	}
+
+	if (TileObject)
+		return TileObject; 
+
+	return NULL;
+
+}
+
 Texture *GameObject::FindReplicatedTexture(_TCHAR *TextureName)
 {
 	for (int i = 0; i < m_nMaterial; ++i) {
@@ -1255,12 +1317,12 @@ void SkyBox::Render(ID3D12GraphicsCommandList *CommandList)
 void Trap::Animate(GameObject *Player, float ElapsedTime, XMFLOAT4X4 *Parent)
 {
 	// 함정의 위치를 설정하는 함수
-	if (IsBuildTrap) {
-		SetPostion(Vector3::Add(Player->GetPosition(), Vector3::ScalarProduct(Player->GetLook(), 100)));
-		m_TransformPos._42 = -50.f;
-
-		UpdateTransform(NULL);
-	}
+	//if (IsBuildTrap) {
+	//	SetPostion(Vector3::Add(Player->GetPosition(), Vector3::ScalarProduct(Player->GetLook(), 100)));
+	//	m_TransformPos._42 = -50.f;
+	//
+	//	UpdateTransform(NULL);
+	//}
 
 	// 함정 활성화
 	if (IsActive) {
@@ -1270,7 +1332,6 @@ void Trap::Animate(GameObject *Player, float ElapsedTime, XMFLOAT4X4 *Parent)
 		if (m_Child) m_Child->Animate(ElapsedTime, &m_WorldPos);
 	}
 }
-
 
 // Monster
 void Monster::SetDirection(XMFLOAT3 Position)
@@ -1315,8 +1376,12 @@ void Monster::SetinterPolation(XMFLOAT3 DesLook)
 	XMFLOAT3 NowLook = StartLook;
 	float alpha = XMScalarACos(Vector3::DotProduct(NowLook, DesLook));
 	//cout << nCheckPoint << " 각도: " << alpha * nInporation << endl;
-	XMMATRIX Rotate = XMMatrixRotationAxis(XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&NowLook), XMLoadFloat3(&DesLook))), alpha*nInporation);
-	NowLook = Vector3::TransformNormal(NowLook, Rotate);
+	if (!XMVector3Equal(XMLoadFloat3(&NowLook), XMLoadFloat3(&DesLook))) {
+		XMMATRIX Rotate = XMMatrixRotationAxis(XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&NowLook), XMLoadFloat3(&DesLook))), alpha*nInporation);
+		NowLook = Vector3::TransformNormal(NowLook, Rotate);
+	}
+	else
+		return;
 	//SetRotate(0.0f, alpha * (1.0f - nInporation), 0.0f);
 	//XMMATRIX Rotate = XMMatrixRotationRollPitchYaw(0.0f, XMConvertToRadians(alpha * nInporation), 0.0f);
 	SetLookDirection(NowLook);

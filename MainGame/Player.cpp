@@ -10,7 +10,7 @@ Player::Player(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3
 	m_Up = XMFLOAT3(0.f, 1.f, 0.f);
 	m_Look = XMFLOAT3(0.f, 0.f, 1.f);
 	//m_Position = XMFLOAT3(-1200.f, -15.f, 100.f);
-	m_Position = XMFLOAT3(0.f, -15.f, 0.f);
+	m_Position = XMFLOAT3(0.f, 0.f, 0.f);
 
 	m_Camera = new Camera();
 
@@ -41,19 +41,28 @@ void Player::UpdateCameraSet(ID3D12GraphicsCommandList *CommandList)
 
 void Player::SetRotate(float Pitch, float Yaw, float Roll)
 {
+	if (Pitch != 0.f) {
+		XMMATRIX Rotate = XMMatrixRotationAxis(XMLoadFloat3(&m_Right), XMConvertToRadians(Pitch));
+		m_Look = Vector3::TransformNormal(m_Look, Rotate);
+		m_Up = Vector3::TransformNormal(m_Up, Rotate);
+
+	}
 	if (Yaw != 0.f) {
 		XMMATRIX Rotate = XMMatrixRotationAxis(XMLoadFloat3(&m_Up), XMConvertToRadians(Yaw));
 		m_Look = Vector3::TransformNormal(m_Look, Rotate);
 		m_Right = Vector3::TransformNormal(m_Right, Rotate);
-
-		m_Camera->SetRotate(-Pitch, -Yaw, -Roll);
 	}
+	m_Look = Vector3::Normalize(m_Look);
+	m_Right = Vector3::CrossProduct(m_Up, m_Look, true);
+	m_Up = Vector3::CrossProduct(m_Look, m_Right, true);
+	m_Camera->SetRotate(-Pitch, -Yaw, -Roll);
 }
 
 void Player::MoveForward(float Distance)
 {
 	XMFLOAT3 Shift = XMFLOAT3(0.f, 0.f, 0.f);
 	Shift = Vector3::Add(Shift, m_Look, Distance);
+	//Shift = Vector3::Add(Shift, m_Up, 5.0f);
 
 	m_Position = Vector3::Add(m_Position, Shift);
 }
@@ -62,6 +71,7 @@ void Player::MoveRight(float Distance)
 {
 	XMFLOAT3 Shift = XMFLOAT3(0.f, 0.f, 0.f);
 	Shift = Vector3::Add(Shift, m_Right, Distance);
+	//Shift = Vector3::Add(Shift, m_Up, -5.0f);
 
 	m_Position = Vector3::Add(m_Position, Shift);
 }

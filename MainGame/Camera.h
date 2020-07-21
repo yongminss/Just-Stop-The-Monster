@@ -46,9 +46,15 @@ private:
 
 
 public:
+	XMFLOAT4X4 & GetViewMatrix() { return(m_View); }
+	XMFLOAT4X4& GetProjectionMatrix() { return(m_Projection); }
+
+
 	void SetViewport(float TopLeftX, float TopLeftY, float Width, float Height, float MinDepth, float MaxDepth);
 	void SetScissorRect(LONG Left, LONG Top, LONG Right, LONG Bottom);
 	void SetLookAt(XMFLOAT3& LookAt);
+
+	XMFLOAT3 GetLook() { return m_Look; };
 
 	void GenerateProjectionMatrix(float NearPlaneDistance, float FarPlaneDistance, float AspectRatio, float FoVAngle);
 
@@ -66,6 +72,8 @@ public:
 	void SetOffset(XMFLOAT3 Offset) { m_Offset = Offset; }
 	void SetPosition(XMFLOAT3 Position) { m_Position = Position; }
 	void SetRotate(float Pitch, float Yaw, float Roll);
+
+	XMFLOAT3& GetPosition() { return(m_Position); }
 
 	XMFLOAT3& GetOffset() { return m_Offset; }
 

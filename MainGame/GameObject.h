@@ -316,6 +316,9 @@ public:
 	XMFLOAT3 GetPosition() { return XMFLOAT3(m_TransformPos._41, m_TransformPos._42, m_TransformPos._43); }
 	XMFLOAT4X4 GetTransform() { return m_TransformPos; }
 
+	Mesh *GetMesh() { return m_Mesh; }
+
+
 	virtual void MoveForward(float Distance);
 	virtual void MoveRight(float Distance);
 
@@ -325,6 +328,8 @@ public:
 	static GameObject *LoadGeometryAndAnimationFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, char *FileName, Shader *Shader, bool Animation);
 
 	GameObject *FindFrame(char *FrameName);
+
+	GameObject *CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool IsFloor);
 
 	Texture *FindReplicatedTexture(_TCHAR *TextureName);
 
@@ -379,6 +384,11 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
+#define TRAP_NEEDLE		0
+#define TRAP_FIRE		1
+#define TRAP_SLOW		2
+#define TRAP_ARROW		3
+
 // 3D ¸ðµ¨
 class Trap : public GameObject
 {
@@ -390,6 +400,8 @@ private:
 	bool IsBuildTrap = false;
 	bool IsActive = false;
 
+	int m_nTrapKind;
+
 public:
 	void BuildTrap(bool Input) { IsBuildTrap = Input; }
 	void ActiveTrap(bool Input) { IsActive = Input; }
@@ -397,6 +409,10 @@ public:
 	bool GetIsBuildTrap() { return IsBuildTrap; }
 
 	void Animate(GameObject *Player, float ElapsedTime, XMFLOAT4X4 *Parent);
+
+	void SetTrapKind(int nKindnum) { m_nTrapKind = nKindnum; }
+
+	int GetTrapKind() { return m_nTrapKind; }
 };
 
 class Monster : public GameObject

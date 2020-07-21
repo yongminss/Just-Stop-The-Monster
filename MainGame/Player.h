@@ -21,6 +21,9 @@ protected:
 	POINT			m_OldCursorPos{};
 
 public:
+	
+	Camera *GetCamera() { return(m_Camera); }
+
 	void SetMoveUp(bool IsTrue) { m_MoveUp = IsTrue; }
 	void SetMoveDown(bool IsTrue) { m_MoveDown = IsTrue; }
 	void SetMoveLeft(bool IsTrue) { m_MoveLeft = IsTrue; }

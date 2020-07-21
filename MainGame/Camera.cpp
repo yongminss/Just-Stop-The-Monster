@@ -91,6 +91,7 @@ void Camera::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
 {
 	XMFLOAT4X4 View;
 	XMStoreFloat4x4(&View, XMMatrixTranspose(XMLoadFloat4x4(&m_View)));
+
 	::memcpy(&m_MappedCamera->m_View, &View, sizeof(XMFLOAT4X4));
 
 	XMFLOAT4X4 Projection;
@@ -137,11 +138,12 @@ void Camera::Update(XMFLOAT3& LookAt, float ElapsedTime)
 		Direction = Vector3::Normalize(Direction);
 		float TimeLegScale = (m_TimeLeg) ? ElapsedTime * (1.f / m_TimeLeg) : 1.f;
 		float Distance = Length * TimeLegScale;
-
+		//cout << "distance" << Distance << endl;
 		if (Distance > Length) Distance = Length;
 		if (Length < 0.01f) Distance = Length;
 		if (Distance > 0.f) {
 			m_Position = Vector3::Add(m_Position, Direction, Distance);
+			//SetLookAt(LookAt);
 		}
 	}
 }

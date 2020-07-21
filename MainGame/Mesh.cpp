@@ -199,6 +199,8 @@ void StandardMesh::LoadMeshFromFile(ID3D12Device *Device, ID3D12GraphicsCommandL
 		if (!strcmp(Token, "<Bounds>:")) {
 			nRead = (UINT)::fread(&m_AABBCenter, sizeof(XMFLOAT3), 1, InFile);
 			nRead = (UINT)::fread(&m_AABBExtent, sizeof(XMFLOAT3), 1, InFile);
+			m_xmBoundingBox.Center = m_AABBCenter;
+			m_xmBoundingBox.Extents = m_AABBExtent;
 		}
 		else if (!strcmp(Token, "<Positions>:")) {
 			nRead = (UINT)::fread(&nPosition, sizeof(int), 1, InFile);

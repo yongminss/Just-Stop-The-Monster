@@ -58,8 +58,12 @@ public:
 	Mesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 	~Mesh();
 
+	float			m_fDistance;
+
 protected:
 	char			m_strMeshName[64] = { 0 };
+
+	BoundingBox		m_xmBoundingBox;
 
 	XMFLOAT3		m_AABBCenter = XMFLOAT3(0.f, 0.f, 0.f);
 	XMFLOAT3		m_AABBExtent = XMFLOAT3(0.f, 0.f, 0.f);
@@ -102,6 +106,8 @@ public:
 	void Release() { if (--m_nReferences <= 0) delete this; }
 
 	UINT GetType() { return m_nType; }
+
+	BoundingBox GetBounds() { return m_xmBoundingBox; }
 	
 	virtual void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList) { }
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList) { }
