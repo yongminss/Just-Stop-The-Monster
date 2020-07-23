@@ -142,7 +142,7 @@ private:
 	
 	list<Trap*> testTrap;
 	//list<Trap*>					m_Trap;
-	StandardShader				*m_Trap = NULL;
+	NeedleInstancingShader				*m_Trap = NULL;
 
 	// Monster Model
 	GameObject					*m_OrcModel = NULL;
@@ -155,7 +155,7 @@ private:
 	list<Monster*>				m_WolfRider;
 
 	// Instancing Monster
-	SkinnedAnimationShader		*m_Monster = NULL;
+	OrcInstancingShader		*m_Monster = NULL;
 
 	// Other Player
 	GameObject					*m_OtherPlayerModel = NULL;

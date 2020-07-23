@@ -373,11 +373,11 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	//m_WolfRider.back()->SetPostion(XMFLOAT3(2200.f, -50.f, 1020.f));
 
 	// Instancing Object
-	m_Trap = new StandardShader();
+	m_Trap = new NeedleInstancingShader();
 	m_Trap->CreateShader(Device, CommandList, m_GraphicsRootSignature);
 	m_Trap->BuildObject(Device, CommandList, m_GraphicsRootSignature);
 	
-	m_Monster = new SkinnedAnimationShader();
+	m_Monster = new OrcInstancingShader();
 	m_Monster->CreateShader(Device, CommandList, m_GraphicsRootSignature);
 	m_Monster->BuildObject(Device, CommandList, m_GraphicsRootSignature);
 
@@ -879,7 +879,6 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 			(*iter)->Render(CommandList);
 		}
 	}*/
-
 	if (m_Trap) m_Trap->Render(CommandList);
 
 	if (m_Monster) m_Monster->Render(CommandList);
