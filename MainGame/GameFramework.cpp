@@ -420,7 +420,6 @@ void GameFramework::FrameAdvance()
 	default:
 		break;
 	}
-
 	ResourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	ResourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 	ResourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;

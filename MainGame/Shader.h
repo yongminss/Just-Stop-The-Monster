@@ -126,11 +126,12 @@ struct VS_VB_INSTANCE
 	XMFLOAT4X4 m_Transform;
 };
 
-class NeedleInstancingShader : public Shader
+// Instancing Object
+class TrapInstancingShader : public Shader
 {
 public:
-	NeedleInstancingShader() { }
-	~NeedleInstancingShader() { }
+	TrapInstancingShader() { }
+	~TrapInstancingShader() { }
 
 private:
 	vector<GameObject*> m_Trap;
@@ -155,11 +156,11 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
-class OrcInstancingShader : public NeedleInstancingShader
+class MonsterInstancingShader : public TrapInstancingShader
 {
 public:
-	OrcInstancingShader() { }
-	~OrcInstancingShader() { }
+	MonsterInstancingShader() { }
+	~MonsterInstancingShader() { }
 
 private:
 	vector<GameObject*> m_Orc;

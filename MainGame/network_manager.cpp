@@ -50,8 +50,8 @@ void network_manager::ReadBuffer(SOCKET sock)
 		if (WSA_IO_PENDING != err_no)
 			socket_err_display("WSASend Error :", err_no);
 	}
-	cout << "iobyte: " << iobyte << endl;
-	
+	//cout << "iobyte: " << iobyte << endl;
+
 	unsigned short * temp_size = reinterpret_cast<unsigned short*>(m_buffer);
 	char * temp = reinterpret_cast<char*>(m_buffer);
 
@@ -142,7 +142,7 @@ void network_manager::PacketProccess(void * buf)
 			new_room->players_id[i] = room_info_packet->game_room.players_id[i];
 		}
 		m_vec_gameRoom.emplace_back(new_room);
-		cout << "new room"<< new_room->room_number << endl;
+		cout << "new room" << new_room->room_number << endl;
 		break;
 	}
 	case SC_MAKE_ROOM_OK: {
@@ -151,22 +151,56 @@ void network_manager::PacketProccess(void * buf)
 			m_my_info.room_number = make_room_ok_packet->room_number;
 			m_my_info.player_state = PLAYER_STATE_in_room;
 		}
-
+		break;
 	}
+	case SC_MONSTER_POS: {
+		sc_packet_monster_pos *monster_pos_packet = reinterpret_cast<sc_packet_monster_pos*>(buf);
+		//cout << "id: " << monster_pos_packet->monsterArr[0].id << endl;
+		//cout << "id: " << monster_pos_packet->monsterArr[10].id << endl;
+		//cout << "id: " << monster_pos_packet->monsterArr[90].id << endl;
+		//cout << "id: " << monster_pos_packet->monsterArr[99].id << endl;
+		memcpy_s(m_monster_pool, sizeof(m_monster_pool), monster_pos_packet->monsterArr, sizeof(monster_pos_packet->monsterArr));
+		//cout << "anim: " << m_monster_pool[0].animation_state << endl;
+		//cout << "x:" << m_monster_pool[0].world_pos._41 << ", y: " << m_monster_pool[0].world_pos._42 << ", z: " << 
+			//m_monster_pool[0].world_pos._43 << endl;
+		break;
+	}
+
 	}
 }
 
-void network_manager::send_change_state_packet(char state)
+void network_manager::send_packet(void * buf)
+{
+	char* packet = reinterpret_cast<char*>(buf);
+	int packet_size = packet[0];
+	OVER_EX *send_over = new OVER_EX;
+	memset(send_over, 0x00, sizeof(OVER_EX));
+	send_over->event_type = EV_SEND;
+	memcpy(send_over->net_buf, packet, packet_size);
+	send_over->wsabuf[0].buf = send_over->net_buf;
+	send_over->wsabuf[0].len = packet_size;
+
+	int ret = WSASend(m_serverSocket, send_over->wsabuf, 1, 0, 0, &send_over->over, 0);
+	if (0 != ret) {
+		int err_no = WSAGetLastError();
+		if (WSA_IO_PENDING != err_no)
+			socket_err_display("WSASend Error :", err_no);
+	}
+
+}
+
+void network_manager::send_change_state_packet(const char& state)
 {
 	cs_packet_client_state_change packet;
 	packet.type = CS_CLIENT_STATE_CHANGE;
 	packet.id = m_my_info.id;
 	packet.change_state = state;
 	packet.size = sizeof(packet);
-	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
-void network_manager::send_my_world_pos_packet(DirectX::XMFLOAT4X4 world_pos, short animation_state)
+void network_manager::send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_pos, const short& animation_state)
 {
 	cs_packet_pos packet;
 	packet.type = CS_POS;
@@ -174,7 +208,8 @@ void network_manager::send_my_world_pos_packet(DirectX::XMFLOAT4X4 world_pos, sh
 	packet.player_world_pos = world_pos;
 	packet.animation_state = animation_state;
 	packet.size = sizeof(packet);
-	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
 void network_manager::send_make_room_packet()
@@ -183,18 +218,22 @@ void network_manager::send_make_room_packet()
 	packet.type = CS_MAKE_ROOM;
 	packet.id = m_my_info.id;
 	packet.size = sizeof(packet);
-	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
-void network_manager::send_request_join_room(short room_number)
+void network_manager::send_request_join_room(const short& room_number)
 {
 	cs_packet_request_join_room packet;
 	packet.type = CS_REQUEST_JOIN_ROOM;
 	packet.joiner_id = m_my_info.id;
 	packet.room_number = room_number;
 	packet.size = sizeof(packet);
-	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
+
+
 
 void network_manager::socket_err_display(const char * msg, int err_no)
 {

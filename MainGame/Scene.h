@@ -142,7 +142,7 @@ private:
 	
 	list<Trap*> testTrap;
 	//list<Trap*>					m_Trap;
-	NeedleInstancingShader				*m_Trap = NULL;
+	TrapInstancingShader				*m_Trap = NULL;
 
 	// Monster Model
 	GameObject					*m_OrcModel = NULL;
@@ -155,7 +155,7 @@ private:
 	list<Monster*>				m_WolfRider;
 
 	// Instancing Monster
-	OrcInstancingShader		*m_Monster = NULL;
+	MonsterInstancingShader		*m_Monster = NULL;
 
 	// Other Player
 	GameObject					*m_OtherPlayerModel = NULL;
