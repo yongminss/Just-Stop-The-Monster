@@ -17,7 +17,8 @@ cbuffer cbGameObjectInfo : register(b2)
 {
 	matrix					gmtxGameObject : packoffset(c0);
 	MATERIAL				gMaterial : packoffset(c4);
-    uint                    gnTexturesMask : packoffset(c8);
+    uint                    gnTexturesMask : packoffset(c8.x);
+	uint					gbRed : packoffset(c8.y);
 };
 
 #include "Light.hlsl"
@@ -109,6 +110,7 @@ VS_TEXTURED_OUTPUT VSTrap(VS_TEXTURED_INPUT input)
 float4 PSPictureColor(VS_TEXTURED_OUTPUT input) : SV_TARGET
 {
     float4 Color = gtxtTexture.Sample(gSamplerState, input.uv);
+
     //clip(Color.a - 0.f);
     
     return Color;
@@ -198,6 +200,10 @@ float4 PSStandard(VS_STANDARD_OUTPUT input) : SV_TARGET
     }
     float4 cIllumination = Lighting(input.positionW, normalW);
     
+	if (gbRed & 0x01) {
+		cColor.x = 1.0f;
+		cColor.w = 0.3f;
+	}
     return (lerp(cColor, cIllumination, 0.5f));
 
 }

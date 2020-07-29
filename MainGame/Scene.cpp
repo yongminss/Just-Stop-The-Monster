@@ -512,7 +512,7 @@ ID3D12RootSignature *GameScene::CreateGraphicsRootSignature(ID3D12Device *Device
 	RootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
 	RootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-	RootParameter[1].Constants.Num32BitValues = 33;
+	RootParameter[1].Constants.Num32BitValues = 34;
 	RootParameter[1].Constants.ShaderRegister = 2; // GameObject
 	RootParameter[1].Constants.RegisterSpace = 0;
 	RootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
@@ -941,26 +941,6 @@ void GameScene::ProcessInput(HWND hWnd)
 				xmf3EndProject = Vector3::Subtract(xmf3EndProject, StartPos);
 				NormalEnd = Vector3::Normalize(xmf3EndProject);
 				NormalEnd = m_Player->GetLook();
-
-				if (is_rend_02) {
-					GameObject *TileObject = m_Stage_02->CheckTileBound(StartPos, NormalEnd, true);
-					if (TileObject != NULL) {
-						BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
-						cout << "박스 Up벡터 x: " << TileObject->GetUp().x << " y: " << TileObject->GetUp().y  << " z: " << TileObject->GetUp().z << endl;
-						BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
-						XMFLOAT3 TilePos = BoundTile.Center;
-						
-						m_Trap.back()->SetPostion(TilePos);
-						m_Trap.back()->UpdateTransform(NULL);
-					}
-					else {
-						m_Trap.back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
-						XMFLOAT3 ypos = m_Trap.back()->GetPosition();
-						ypos.y = -50.0f;
-						m_Trap.back()->SetPostion(ypos);
-						m_Trap.back()->UpdateTransform(NULL);
-					}
-				}
 				if (is_rend_01) {
 
 					GameObject *TileObject = new GameObject;
@@ -978,8 +958,9 @@ void GameScene::ProcessInput(HWND hWnd)
 						BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
 						BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
 						XMFLOAT3 TilePos = BoundTile.Center;
-					
-						if (TRAP_FIRE || TRAP_ARROW) {
+						bool IsTrapPlaced = false;
+
+						if (TRAP_FIRE || TRAP_ARROW) { // 벽타일
 							if (BoundTile.Extents.x < BoundTile.Extents.z) {
 								if (StartPos.x < TilePos.x) {
 									m_Trap.back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
@@ -1009,15 +990,46 @@ void GameScene::ProcessInput(HWND hWnd)
 								}
 							}
 						}
-						else {
+						else { // 바닥 타일
 							TilePos.y += 10.0f;
 						}
-
+						m_Trap.back()->SetPostion(TilePos);
+						for (auto iter = m_Trap.begin(); (*iter) != m_Trap.back(); ++iter) {
+							if (XMVector3Equal(XMLoadFloat3(&(*iter)->GetPosition()), XMLoadFloat3(&TilePos))) {
+								m_Trap.back()->MoveUp(5.f);
+								IsTrapPlaced = true;
+								break;
+							}
+						}
+						m_Trap.back()->UpdateTransform(NULL);
+						if (IsTrapPlaced == true) {
+							m_Trap.back()->SetRed(0x01);
+						}
+						else {
+							m_Trap.back()->SetRed(0x00);
+						}
+					}
+					else {
+						//cout << "tile 안맞음" << endl;
+						m_Trap.back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
+						XMFLOAT3 ypos = m_Trap.back()->GetPosition();
+						ypos.y = -50.0f;
+						m_Trap.back()->SetPostion(ypos);
+						m_Trap.back()->UpdateTransform(NULL);
+					}
+				}
+				if (is_rend_02) {
+					GameObject *TileObject = m_Stage_02->CheckTileBound(StartPos, NormalEnd, true);
+					if (TileObject != NULL) {
+						BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
+						cout << "박스 Up벡터 x: " << TileObject->GetUp().x << " y: " << TileObject->GetUp().y  << " z: " << TileObject->GetUp().z << endl;
+						BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
+						XMFLOAT3 TilePos = BoundTile.Center;
+						
 						m_Trap.back()->SetPostion(TilePos);
 						m_Trap.back()->UpdateTransform(NULL);
 					}
 					else {
-						//cout << "tile 안맞음" << endl;
 						m_Trap.back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
 						XMFLOAT3 ypos = m_Trap.back()->GetPosition();
 						ypos.y = -50.0f;

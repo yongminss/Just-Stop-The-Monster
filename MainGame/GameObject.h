@@ -101,6 +101,8 @@ private:
 
 	int				m_nType = 0x00;
 
+	int				m_bRed = 0x00;
+
 	static Shader	*m_IlluminatedShader;
 	static Shader	*m_StandardShader;
 	static Shader	*m_SkinnedAnimationShader;
@@ -119,6 +121,8 @@ public:
 	void SetTexture(Texture *Texture, UINT nTexture = 0);
 	void SetShader(Shader *Shader);
 	void SetType(UINT nType) { m_nType |= nType; }
+
+	void SetRed(UINT bRed) { m_bRed = bRed; }
 
 	void SetIlluminatedShader() { SetShader(m_IlluminatedShader); }
 	void SetStandardShader() { SetShader(m_StandardShader); }
@@ -285,6 +289,19 @@ public:
 	AnimationController				*m_AnimationController = NULL;
 
 public:
+
+	void SetRed(UINT bRed) {
+		if (m_nMaterial > 0) {
+			for (int i = 0; i < m_nMaterial; ++i) {
+				if (m_Material[i]) {
+					m_Material[i]->SetRed(bRed);
+				}
+			}
+		}
+		if (m_Child) m_Child->SetRed(bRed);
+		if (m_Sibling) m_Sibling->SetRed(bRed);
+	}
+
 	void AddRef();
 	void Release();
 
@@ -319,6 +336,7 @@ public:
 	Mesh *GetMesh() { return m_Mesh; }
 
 
+	virtual void MoveUp(float Distance);
 	virtual void MoveForward(float Distance);
 	virtual void MoveRight(float Distance);
 
@@ -403,6 +421,9 @@ private:
 	int m_nTrapKind;
 
 public:
+
+	
+
 	void BuildTrap(bool Input) { IsBuildTrap = Input; }
 	void ActiveTrap(bool Input) { IsActive = Input; }
 

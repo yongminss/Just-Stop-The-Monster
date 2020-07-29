@@ -16,6 +16,15 @@ struct PLAYER_INFO
 	XMFLOAT4X4 Transform;
 };
 
+struct GAME_ROOM_C {
+	short room_number;
+	char room_state;
+	short wave_count;
+	short stage_number;
+	short portalLife;
+	int players_id[4];
+};
+
 struct OVER_EX {
 	WSAOVERLAPPED over;
 	WSABUF wsabuf[1];
@@ -57,7 +66,7 @@ public:
 	PLAYER_INFO m_my_info;
 	PLAYER_INFO m_OtherInfo;
 
-	vector<GAME_ROOM*> m_vec_gameRoom;
+	vector<GAME_ROOM_C*> m_vec_gameRoom;
 	MONSTER m_monster_pool[MAX_MONSTER];
 
 public:

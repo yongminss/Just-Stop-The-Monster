@@ -45,7 +45,6 @@ void Player::SetRotate(float Pitch, float Yaw, float Roll)
 		XMMATRIX Rotate = XMMatrixRotationAxis(XMLoadFloat3(&m_Right), XMConvertToRadians(Pitch));
 		m_Look = Vector3::TransformNormal(m_Look, Rotate);
 		m_Up = Vector3::TransformNormal(m_Up, Rotate);
-
 	}
 	if (Yaw != 0.f) {
 		XMMATRIX Rotate = XMMatrixRotationAxis(XMLoadFloat3(&m_Up), XMConvertToRadians(Yaw));

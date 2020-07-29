@@ -119,6 +119,9 @@ void Material::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
 
 	CommandList->SetGraphicsRoot32BitConstants(1, 1, &m_nType, 32);
 
+	CommandList->SetGraphicsRoot32BitConstants(1, 1, &m_bRed, 33);
+
+
 	for (int i = 0; i < m_nTexture; ++i)
 		if (m_Texture[i]) m_Texture[i]->UpdateShaderVariable(CommandList, i);
 }
@@ -698,6 +701,14 @@ BYTE ReadStringFromFile(FILE *File, char* Token)
 	Token[nStrLength] = '\0';
 
 	return nStrLength;
+}
+
+void GameObject::MoveUp(float Distance)
+{
+	XMFLOAT3 Position = GetPosition();
+	XMFLOAT3 Up = GetUp();
+	Position = Vector3::Add(Position, Up, Distance);
+	GameObject::SetPostion(Position);
 }
 
 void GameObject::MoveForward(float Distance)

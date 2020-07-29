@@ -51,7 +51,7 @@ void network_manager::ReadBuffer(SOCKET sock)
 			socket_err_display("WSASend Error :", err_no);
 	}
 	//cout << "iobyte: " << iobyte << endl;
-	
+
 	unsigned short * temp_size = reinterpret_cast<unsigned short*>(m_buffer);
 	char * temp = reinterpret_cast<char*>(m_buffer);
 
@@ -129,20 +129,20 @@ void network_manager::PacketProccess(void * buf)
 	case SC_SEND_ROOM_LIST: {
 		sc_packet_room_info *room_info_packet = reinterpret_cast<sc_packet_room_info*>(buf);
 		for (auto rw : m_vec_gameRoom) {
-			if (rw->room_number == room_info_packet->game_room.room_number) { // 원래있는방 업데이트
+			if (rw->room_number == room_info_packet->room_number) { // 원래있는방 업데이트
 				for (int i = 0; i < 4; ++i) {
-					rw->players_id[i] = room_info_packet->game_room.players_id[i];
+					rw->players_id[i] = room_info_packet->players_id[i];
 					return;
 				}
 			}
 		}
-		GAME_ROOM *new_room = new GAME_ROOM;
-		new_room->room_number = room_info_packet->game_room.room_number;
+		GAME_ROOM_C *new_room = new GAME_ROOM_C;
+		new_room->room_number = room_info_packet->room_number;
 		for (int i = 0; i < 4; ++i) {
-			new_room->players_id[i] = room_info_packet->game_room.players_id[i];
+			new_room->players_id[i] = room_info_packet->players_id[i];
 		}
 		m_vec_gameRoom.emplace_back(new_room);
-		cout << "new room"<< new_room->room_number << endl;
+		cout << "new room" << new_room->room_number << endl;
 		break;
 	}
 	case SC_MAKE_ROOM_OK: {
@@ -162,7 +162,7 @@ void network_manager::PacketProccess(void * buf)
 		memcpy_s(m_monster_pool, sizeof(m_monster_pool), monster_pos_packet->monsterArr, sizeof(monster_pos_packet->monsterArr));
 		//cout << "anim: " << m_monster_pool[0].animation_state << endl;
 		//cout << "x:" << m_monster_pool[0].world_pos._41 << ", y: " << m_monster_pool[0].world_pos._42 << ", z: " << 
-			//m_monster_pool[0].world_pos._43 << endl;
+		//m_monster_pool[0].world_pos._43 << endl;
 		break;
 	}
 
@@ -196,8 +196,8 @@ void network_manager::send_change_state_packet(const char& state)
 	packet.id = m_my_info.id;
 	packet.change_state = state;
 	packet.size = sizeof(packet);
-	//send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
-	send_packet(&packet);
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
 void network_manager::send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_pos, const short& animation_state)
@@ -208,8 +208,8 @@ void network_manager::send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_
 	packet.player_world_pos = world_pos;
 	packet.animation_state = animation_state;
 	packet.size = sizeof(packet);
-	//send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
-	send_packet(&packet);
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
 void network_manager::send_make_room_packet()
@@ -218,8 +218,8 @@ void network_manager::send_make_room_packet()
 	packet.type = CS_MAKE_ROOM;
 	packet.id = m_my_info.id;
 	packet.size = sizeof(packet);
-	//send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
-	send_packet(&packet);
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
 void network_manager::send_request_join_room(const short& room_number)
@@ -229,8 +229,8 @@ void network_manager::send_request_join_room(const short& room_number)
 	packet.joiner_id = m_my_info.id;
 	packet.room_number = room_number;
 	packet.size = sizeof(packet);
-	//send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
-	send_packet(&packet);
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
 

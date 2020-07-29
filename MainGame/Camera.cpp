@@ -118,7 +118,7 @@ void Camera::SetRotate(float Pitch, float Yaw, float Roll)
 	m_Projection = Matrix4x4::Multiply(Rotate, m_Projection);
 }
 
-void Camera::Update(XMFLOAT3& LookAt, float ElapsedTime)
+void Camera::Update (XMFLOAT3& LookAt, float ElapsedTime)
 {
 	if (m_Player) {
 		XMFLOAT4X4 Rotate = Matrix4x4::Identity();
