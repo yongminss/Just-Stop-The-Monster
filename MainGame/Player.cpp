@@ -9,10 +9,18 @@ Player::Player(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3
 	m_Right = XMFLOAT3(1.f, 0.f, 0.f);
 	m_Up = XMFLOAT3(0.f, 1.f, 0.f);
 	m_Look = XMFLOAT3(0.f, 0.f, 1.f);
-	//m_Position = XMFLOAT3(-1200.f, -15.f, 100.f);
+
 	m_Position = XMFLOAT3(0.f, 0.f, 0.f);
 
+	m_CamRight = XMFLOAT3(1.f, 0.f, 0.f);
+	m_CamUp = XMFLOAT3(0.f, 1.f, 0.f);
+	m_CamLook = XMFLOAT3(0.f, 0.f, 1.f);
+
 	m_Camera = new Camera();
+
+	m_fPitch = 0.0f;
+	m_fRoll = 0.0f;
+	m_fYaw = 0.0f;
 
 	CreateCameraSet(Device, CommandList);
 }
@@ -39,6 +47,115 @@ void Player::UpdateCameraSet(ID3D12GraphicsCommandList *CommandList)
 	}
 }
 
+void Player::CamRotate(float x, float y, float z)
+{
+	m_CamLook.x = m_Look.x;
+	m_CamLook.z = m_Look.z;
+	m_CamRight = m_Right;
+	if (x != 0.0f)
+	{
+		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_CamRight), XMConvertToRadians(x));
+		m_CamLook = Vector3::TransformNormal(m_CamLook, xmmtxRotate);
+		m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
+		//m_CamRight = Vector3::TransformNormal(m_CamRight, xmmtxRotate);
+	}
+	//if (y != 0.0f)
+	//{
+	//	XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_CamUp), XMConvertToRadians(y));
+	//	m_CamLook = Vector3::TransformNormal(m_CamLook, xmmtxRotate);
+	//	m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
+	//	m_CamRight = Vector3::TransformNormal(m_CamRight, xmmtxRotate);
+	//}
+	//if (z != 0.0f)
+	//{
+	//	XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_CamLook), XMConvertToRadians(z));
+	//	m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
+	//	m_CamRight = Vector3::TransformNormal(m_CamRight, xmmtxRotate);
+	//}
+	//if (x != 0.0f)
+	//{
+	//	//카메라의 로컬 x-축을 기준으로 회전하는 행렬을 생성한다. 사람의 경우 고개를 끄떡이는 동작이다. 
+	//	XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_Right), XMConvertToRadians(x));
+	//
+	//	//카메라의 로컬 x-축, y-축, z-축을 회전 행렬을 사용하여 회전한다.
+	//	m_CamLook = Vector3::TransformNormal(m_CamLook, xmmtxRotate);
+	//	m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
+	//	m_CamRight = m_Right;//Vector3::TransformNormal(m_CamRight, xmmtxRotate);
+	//}
+	//if (y != 0.0f)
+	//{
+	//	//플레이어의 로컬 y-축을 기준으로 회전하는 행렬을 생성한다.
+	//	XMFLOAT3 xmf3Up = m_Up;
+	//	XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_CamUp), XMConvertToRadians(y));
+	//	//카메라의 로컬 x-축, y-축, z-축을 회전 행렬을 사용하여 회전한다. 
+	//	m_CamLook = Vector3::TransformNormal(m_CamLook, xmmtxRotate);
+	//	m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
+	//	m_CamRight = m_Right; // Vector3::TransformNormal(m_CamRight, xmmtxRotate);
+	//}
+	//if (z != 0.0f)
+	//{
+	//	//플레이어의 로컬 z-축을 기준으로 회전하는 행렬을 생성한다.
+	//	//XMFLOAT3 xmf3Look = GetLookVector();
+	//	XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_CamLook), XMConvertToRadians(z));
+	//	//카메라의 위치 벡터를 플레이어 좌표계로 표현한다(오프셋 벡터).
+	//	//m_xmf3Position = Vector3::Subtract(m_xmf3Position, m_pPlayer->GetPosition());
+	//	////오프셋 벡터 벡터를 회전한다. 
+	//	//m_xmf3Position = Vector3::TransformCoord(m_xmf3Position, xmmtxRotate);
+	//	////회전한 카메라의 위치를 월드 좌표계로 표현한다.
+	//	//m_xmf3Position = Vector3::Add(m_xmf3Position, m_pPlayer->GetPosition());
+	//	//카메라의 로컬 x-축, y-축, z-축을 회전한다.
+	//	m_CamLook = Vector3::TransformNormal(m_CamLook, xmmtxRotate);
+	//	m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
+	//	m_CamRight = m_Right;//Vector3::TransformNormal(m_CamRight, xmmtxRotate);
+	//}
+	//m_CamRight = Vector3::Normalize(m_CamRight);
+	m_CamUp = Vector3::CrossProduct(m_CamLook, m_CamRight, true);
+	m_CamLook = Vector3::CrossProduct(m_CamRight, m_CamUp, true);
+	//cout << "CamRight x: " << m_CamRight.x << " y: " << m_CamRight.y << " z: " << m_CamRight.z << endl;
+
+	//cout << "Look x: " << m_CamLook.x << " y: " << m_CamLook.y << " z: " << m_CamLook.z << endl;
+}
+
+void Player::PRotate(float x, float y, float z)
+{
+	/*로컬 x-축을 중심으로 회전하는 것은 고개를 앞뒤로 숙이는 동작에 해당한다. 그러므로 x-축을 중심으로 회전하는
+	각도는 -89.0~+89.0도 사이로 제한한다. x는 현재의 m_fPitch에서 실제 회전하는 각도이므로 x만큼 회전한 다음
+	Pitch가 +89도 보다 크거나 -89도 보다 작으면 m_fPitch가 +89도 또는 -89도가 되도록 회전각도(x)를 수정한다.*/
+	if (x != 0.0f)
+	{
+		m_fPitch += x;
+		if (m_fPitch >= +80.0f) { x = 0.0f; m_fPitch = 80.0f; }
+		if (m_fPitch <= -80.0f) { x = 0.0f; m_fPitch = -80.0f; }
+		cout << "x: " << x <<" Pitch" << m_fPitch << endl;
+	}
+	if (y != 0.0f)
+	{
+		//로컬 y-축을 중심으로 회전하는 것은 몸통을 돌리는 것이므로 회전 각도의 제한이 없다. 
+		m_fYaw += y;
+		if (m_fYaw > 360.0f) m_fYaw -= 360.0f;
+		if (m_fYaw < 0.0f) m_fYaw += 360.0f;
+	}
+
+	//카메라를 x, y, z 만큼 회전한다. 플레이어를 회전하면 카메라가 회전하게 된다. m_pCamera->Rotate(x, y, z);
+	/*플레이어를 회전한다. 1인칭 카메라 또는 3인칭 카메라에서 플레이어의 회전은 로컬 y-축에서만 일어난다. 플레이어
+	의 로컬 y-축(Up 벡터)을 기준으로 로컬 z-축(Look 벡터)와 로컬 x-축(Right 벡터)을 회전시킨다. 기본적으로 Up 벡
+	터를 기준으로 회전하는 것은 플레이어가 똑바로 서있는 것을 가정한다는 의미이다.*/
+	
+	if (y != 0.0f)
+	{
+		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_Up), XMConvertToRadians(y));
+		m_Look = Vector3::TransformNormal(m_Look, xmmtxRotate);
+		m_Right = Vector3::TransformNormal(m_Right, xmmtxRotate);
+	}
+	m_Look = Vector3::Normalize(m_Look);
+	m_Right = Vector3::CrossProduct(m_Up, m_Look, true);
+	m_Up = Vector3::CrossProduct(m_Look, m_Right, true);
+
+	//cout << "Right x: " << m_Right.x << " y: " << m_Right.y << " z: " << m_Right.z << endl;
+
+	CamRotate(x, y, z);
+}
+
 void Player::SetRotate(float Pitch, float Yaw, float Roll)
 {
 	if (Pitch != 0.f) {
@@ -54,14 +171,13 @@ void Player::SetRotate(float Pitch, float Yaw, float Roll)
 	m_Look = Vector3::Normalize(m_Look);
 	m_Right = Vector3::CrossProduct(m_Up, m_Look, true);
 	m_Up = Vector3::CrossProduct(m_Look, m_Right, true);
-	m_Camera->SetRotate(-Pitch, -Yaw, -Roll);
+	//m_Camera->SetRotate(-Pitch, -Yaw, -Roll);
 }
 
 void Player::MoveForward(float Distance)
 {
 	XMFLOAT3 Shift = XMFLOAT3(0.f, 0.f, 0.f);
 	Shift = Vector3::Add(Shift, m_Look, Distance);
-	//Shift = Vector3::Add(Shift, m_Up, 5.0f);
 
 	m_Position = Vector3::Add(m_Position, Shift);
 }
@@ -70,7 +186,6 @@ void Player::MoveRight(float Distance)
 {
 	XMFLOAT3 Shift = XMFLOAT3(0.f, 0.f, 0.f);
 	Shift = Vector3::Add(Shift, m_Right, Distance);
-	//Shift = Vector3::Add(Shift, m_Up, -5.0f);
 
 	m_Position = Vector3::Add(m_Position, Shift);
 }

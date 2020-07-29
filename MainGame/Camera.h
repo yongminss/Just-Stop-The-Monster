@@ -71,7 +71,9 @@ public:
 	
 	void SetOffset(XMFLOAT3 Offset) { m_Offset = Offset; }
 	void SetPosition(XMFLOAT3 Position) { m_Position = Position; }
-	void SetRotate(float Pitch, float Yaw, float Roll);
+	//void SetRotate(float Pitch, float Yaw, float Roll);
+
+	//void Rotate(float fPitch = 0.0f, float fYaw = 0.0f, float fRoll = 0.0f);
 
 	XMFLOAT3& GetPosition() { return(m_Position); }
 

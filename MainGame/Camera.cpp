@@ -46,7 +46,9 @@ void Camera::SetScissorRect(LONG Left, LONG Top, LONG Right, LONG Bottom)
 
 void Camera::SetLookAt(XMFLOAT3& LookAt)
 {
-	XMFLOAT4X4 MatrixLookAt = Matrix4x4::LookAtLH(m_Position, LookAt, m_Player->GetUp());
+	XMFLOAT4X4 MatrixLookAt = Matrix4x4::LookAtLH(m_Position, LookAt, m_Player->GetCamUp());
+	
+	//cout << "Look x:" << 
 
 	m_Right = XMFLOAT3(MatrixLookAt._11, MatrixLookAt._21, MatrixLookAt._31);
 	m_Up = XMFLOAT3(MatrixLookAt._12, MatrixLookAt._22, MatrixLookAt._32);
@@ -109,23 +111,65 @@ void Camera::SetCameraOption()
 	GenerateProjectionMatrix(1.01f, 5000.f, ASPECT_RATIO, 60.f);
 	SetViewport(0.f, 0.f, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.f, 1.f);
 	SetScissorRect(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
-	SetOffset(XMFLOAT3(0.f, 50.f, -180.f));
+	SetOffset(XMFLOAT3(0.f, 70.f, -150.f));
 }
 
-void Camera::SetRotate(float Pitch, float Yaw, float Roll)
+/*void Camera::Rotate(float x, float y, float z)
+{
+	if (x != 0.0f)
+	{
+		//카메라의 로컬 x-축을 기준으로 회전하는 행렬을 생성한다. 사람의 경우 고개를 끄떡이는 동작이다. 
+		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_Right), XMConvertToRadians(x));
+
+		//카메라의 로컬 x-축, y-축, z-축을 회전 행렬을 사용하여 회전한다.
+		m_Look = Vector3::TransformNormal(m_Look, xmmtxRotate);
+		m_Up = Vector3::TransformNormal(m_Up, xmmtxRotate);
+		m_Right = Vector3::TransformNormal(m_Right, xmmtxRotate);
+	}
+	if (m_Player && (y != 0.0f))
+	{
+		//플레이어의 로컬 y-축을 기준으로 회전하는 행렬을 생성한다.
+		XMFLOAT3 xmf3Up = m_Player->GetUp();
+		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&xmf3Up), XMConvertToRadians(y));
+		//카메라의 로컬 x-축, y-축, z-축을 회전 행렬을 사용하여 회전한다. 
+		m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
+		m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
+		m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
+	}
+	if (m_Player && (z != 0.0f))
+	{
+		//플레이어의 로컬 z-축을 기준으로 회전하는 행렬을 생성한다.
+		XMFLOAT3 xmf3Look = m_pPlayer->GetLookVector();
+		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&xmf3Look), XMConvertToRadians(z));
+		//카메라의 위치 벡터를 플레이어 좌표계로 표현한다(오프셋 벡터).
+		m_xmf3Position = Vector3::Subtract(m_xmf3Position, m_pPlayer->GetPosition());
+		//오프셋 벡터 벡터를 회전한다. 
+		m_xmf3Position = Vector3::TransformCoord(m_xmf3Position, xmmtxRotate);
+		//회전한 카메라의 위치를 월드 좌표계로 표현한다.
+		m_xmf3Position = Vector3::Add(m_xmf3Position, m_pPlayer->GetPosition());
+		//카메라의 로컬 x-축, y-축, z-축을 회전한다.
+		m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
+		m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
+		m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
+	}
+}*/
+
+/*void Camera::SetRotate(float Pitch, float Yaw, float Roll)
 {
 	XMMATRIX Rotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(Pitch), XMConvertToRadians(Yaw), XMConvertToRadians(Roll));
 	m_Projection = Matrix4x4::Multiply(Rotate, m_Projection);
-}
+}*/
 
-void Camera::Update (XMFLOAT3& LookAt, float ElapsedTime)
+void Camera::Update(XMFLOAT3& LookAt, float ElapsedTime)
 {
 	if (m_Player) {
 		XMFLOAT4X4 Rotate = Matrix4x4::Identity();
 
-		XMFLOAT3 Right = m_Player->GetRight();
-		XMFLOAT3 Up = m_Player->GetUp();
-		XMFLOAT3 Look = m_Player->GetLook();
+		XMFLOAT3 Right = m_Player->GetCamRight();
+		XMFLOAT3 Up = m_Player->GetCamUp();
+		XMFLOAT3 Look = m_Player->GetCamLook();
+
+		//cout << "Right x: " << m_Player->GetRight().x << " y: " << m_Player->GetRight().y << " z: " << m_Player->GetRight().z << endl;
 
 		Rotate._11 = Right.x, Rotate._12 = Right.y, Rotate._13 = Right.z;
 		Rotate._21 = Up.x, Rotate._22 = Up.y, Rotate._23 = Up.z;
@@ -138,12 +182,14 @@ void Camera::Update (XMFLOAT3& LookAt, float ElapsedTime)
 		Direction = Vector3::Normalize(Direction);
 		float TimeLegScale = (m_TimeLeg) ? ElapsedTime * (1.f / m_TimeLeg) : 1.f;
 		float Distance = Length * TimeLegScale;
-		//cout << "distance" << Distance << endl;
 		if (Distance > Length) Distance = Length;
 		if (Length < 0.01f) Distance = Length;
 		if (Distance > 0.f) {
 			m_Position = Vector3::Add(m_Position, Direction, Distance);
-			//SetLookAt(LookAt);
+			XMFLOAT3 Shift = XMFLOAT3(0.f, 0.f, 0.f);
+			Shift = Vector3::Add(Shift, Look, 1000.0f);
+			LookAt = Vector3::Add(LookAt, Shift);
+			SetLookAt(LookAt);
 		}
 	}
 }

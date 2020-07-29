@@ -278,6 +278,10 @@ protected:
 	XMFLOAT3						m_Look;
 	XMFLOAT3						m_Position;
 
+	XMFLOAT3						m_CamRight;
+	XMFLOAT3						m_CamUp;
+	XMFLOAT3						m_CamLook;
+
 	ID3D12Resource					*m_cbGameObject = NULL;
 	CB_GAMEOBJECT_INFO				*m_cbMappedGameObject = NULL;
 
@@ -332,6 +336,10 @@ public:
 	XMFLOAT3 GetLook() { return XMFLOAT3(m_TransformPos._31, m_TransformPos._32, m_TransformPos._33); }
 	XMFLOAT3 GetPosition() { return XMFLOAT3(m_TransformPos._41, m_TransformPos._42, m_TransformPos._43); }
 	XMFLOAT4X4 GetTransform() { return m_TransformPos; }
+
+	XMFLOAT3 GetCamUp() { return m_CamUp; }
+	XMFLOAT3 GetCamRight() { return m_CamRight; }
+	XMFLOAT3 GetCamLook() { return m_CamLook; }
 
 	Mesh *GetMesh() { return m_Mesh; }
 

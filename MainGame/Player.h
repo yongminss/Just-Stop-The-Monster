@@ -12,6 +12,10 @@ public:
 protected:
 	Camera			*m_Camera = NULL;
 
+	float           m_fPitch;
+	float  			m_fYaw;
+	float           m_fRoll;
+
 	bool			m_MoveUp = false;
 	bool			m_MoveDown = false;
 	bool			m_MoveLeft = false;
@@ -37,6 +41,9 @@ public:
 	
 	virtual void SetRotate(float Pitch, float Yaw, float Roll);
 
+	void PRotate(float x, float y, float z);
+	void CamRotate(float x, float y, float z);
+	
 	virtual void MoveForward(float Distance);
 	virtual void MoveRight(float Distance);
 
