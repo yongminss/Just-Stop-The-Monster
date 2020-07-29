@@ -288,7 +288,7 @@ void SkyBoxShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList 
 }
 
 
-// 3D 오브젝트에 사용할 쉐이더
+// Standard & Skinned Animation Shader
 D3D12_INPUT_LAYOUT_DESC StandardShader::CreateInputLayout()
 {
 	UINT nInputElementDescs = 5;
@@ -331,7 +331,7 @@ void StandardShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandLis
 	Shader::CreateShader(Device, CommandList, GraphicsRootSignature);
 }
 
-// 애니메이션을 하는 3D 오브젝트에서 사용할 쉐이더
+
 D3D12_INPUT_LAYOUT_DESC SkinnedAnimationShader::CreateInputLayout()
 {
 	UINT nInputElementDescs = 7;
@@ -355,4 +355,164 @@ D3D12_INPUT_LAYOUT_DESC SkinnedAnimationShader::CreateInputLayout()
 D3D12_SHADER_BYTECODE SkinnedAnimationShader::CreateVertexShader()
 {
 	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "VSSkinnedAnimationStandard", "vs_5_1", &m_VertexShaderBlob));
+}
+
+// Instancing Object Shader (Trap, Monster)
+D3D12_INPUT_LAYOUT_DESC TrapInstancingShader::CreateInputLayout()
+{
+	UINT nInputElementDescs = 9;
+	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
+
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[2] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 2, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[3] = { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 3, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[4] = { "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 4, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	pd3dInputElementDescs[5] = { "WORLDMATRIX", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 5, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[6] = { "WORLDMATRIX", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 5, 16, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[7] = { "WORLDMATRIX", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 5, 32, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[8] = { "WORLDMATRIX", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 5, 48, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+
+	return(d3dInputLayoutDesc);
+}
+
+D3D12_SHADER_BYTECODE TrapInstancingShader::CreateVertexShader()
+{
+	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "VSInstancingStandard", "vs_5_1", &m_VertexShaderBlob));
+}
+
+D3D12_SHADER_BYTECODE TrapInstancingShader::CreatePixelShader()
+{
+	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "PSStandard", "ps_5_1", &m_PixelShaderBlob));
+}
+
+void TrapInstancingShader::OnPrepareRender(ID3D12GraphicsCommandList *CommandList, int nPipelineState)
+{
+	if (m_PipelineStates)
+		CommandList->SetPipelineState(m_PipelineStates[nPipelineState]);
+}
+
+void TrapInstancingShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+{
+	m_nPipelineState = 1;
+	m_PipelineStates = new ID3D12PipelineState*[m_nPipelineState];
+
+	Shader::CreateShader(Device, CommandList, GraphicsRootSignature);
+}
+
+void TrapInstancingShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+{
+	m_Trap.reserve(INSTANCE_NUM);
+
+	GameObject *Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
+
+	Trap *Obj = NULL;
+
+	for (int i = 0; i < INSTANCE_NUM; ++i) {
+		Obj = new Trap();
+		Obj->SetChild(Model, false);
+		Obj->SetScale(100.f, 100.f, 100.f);
+		Obj->SetPostion(XMFLOAT3(0.f + (i * 100), -50.f, 0.f));
+		m_Trap.emplace_back(Obj);
+	}
+	CreateShaderVariable(Device, CommandList);
+}
+
+void TrapInstancingShader::CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
+{
+	m_cbGameObject = ::CreateBufferResource(Device, CommandList, NULL, sizeof(VS_VB_INSTANCE) * INSTANCE_NUM, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, NULL);
+
+	m_cbGameObject->Map(0, NULL, (void**)&m_MappedGameObject);
+	m_InstanceBufferView.BufferLocation = m_cbGameObject->GetGPUVirtualAddress();
+	m_InstanceBufferView.StrideInBytes = sizeof(VS_VB_INSTANCE);
+	m_InstanceBufferView.SizeInBytes = sizeof(VS_VB_INSTANCE) * INSTANCE_NUM;
+}
+
+void TrapInstancingShader::UpdateShaderVariable()
+{
+	for (int i = 0; i < m_Trap.size(); ++i) {
+		XMStoreFloat4x4(&m_MappedGameObject[i].m_Transform, XMMatrixTranspose(XMLoadFloat4x4(&m_Trap[i]->m_WorldPos)));
+	}
+}
+
+void TrapInstancingShader::Render(ID3D12GraphicsCommandList *CommandList)
+{
+	Shader::OnPrepareRender(CommandList, 0);
+
+	UpdateShaderVariable();
+
+	m_Trap[0]->Render(CommandList, INSTANCE_NUM, m_InstanceBufferView);
+}
+
+// 애니메이션을 하는 3D 오브젝트에서 사용할 쉐이더
+D3D12_INPUT_LAYOUT_DESC MonsterInstancingShader::CreateInputLayout()
+{
+	UINT nInputElementDescs = 11;
+	D3D12_INPUT_ELEMENT_DESC *pd3dInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
+
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[2] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 2, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[3] = { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 3, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[4] = { "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 4, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[5] = { "BONEINDEX", 0, DXGI_FORMAT_R32G32B32A32_UINT, 5, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[6] = { "BONEWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 6, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	pd3dInputElementDescs[7] = { "WORLDMATRIX", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 7, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[8] = { "WORLDMATRIX", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 7, 16, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[9] = { "WORLDMATRIX", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 7, 32, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+	pd3dInputElementDescs[10] = { "WORLDMATRIX", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 7, 48, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 };
+
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+
+	return d3dInputLayoutDesc;
+}
+
+D3D12_SHADER_BYTECODE MonsterInstancingShader::CreateVertexShader()
+{
+	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "VSSkinnedAnimation_InstancingStandard", "vs_5_1", &m_VertexShaderBlob));
+}
+
+void MonsterInstancingShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+{
+	m_Orc.reserve(INSTANCE_NUM);
+
+	GameObject *Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
+
+	Monster *Orc = NULL;
+
+	int rand_num = 0;
+
+	for (int i = 0; i < INSTANCE_NUM; ++i) {
+		Orc = new Monster();
+		Orc->SetChild(Model, true);
+		Orc->SetScale(50.f, 50.f, 50.f);
+		Orc->SetRotate(-90.f, 0.f, 0.f);
+		Orc->SetPostion(XMFLOAT3(0.f + (i * 100), -50.f, 50.f));
+		m_Orc.emplace_back(Orc);
+	}
+	CreateShaderVariable(Device, CommandList);
+}
+
+void MonsterInstancingShader::UpdateShaderVariable()
+{
+	for (int i = 0; i < m_Orc.size(); ++i) {
+		XMStoreFloat4x4(&m_MappedGameObject[i].m_Transform, XMMatrixTranspose(XMLoadFloat4x4(&m_Orc[i]->m_WorldPos)));
+	}
+}
+
+void MonsterInstancingShader::Render(ID3D12GraphicsCommandList *CommandList)
+{
+	Shader::OnPrepareRender(CommandList, 0);
+
+	UpdateShaderVariable();
+
+	m_Orc[0]->Render(CommandList, INSTANCE_NUM, m_InstanceBufferView);
 }

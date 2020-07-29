@@ -56,6 +56,8 @@ using namespace std;
 
 #include "DDSTextureLoader12.h"
 
+#define INSTANCE_NUM 100
+
 // Texture Image
 enum {
 	// Title Scene

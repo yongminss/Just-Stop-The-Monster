@@ -376,6 +376,7 @@ public:
 
 	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
+	void Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
 
 	// 애니메이션
 	void CacheSkinningBoneFrame(GameObject *RootFrame);
