@@ -725,6 +725,9 @@ void GameScene::Animate(float ElapsedTime)
 		cout << "x: " << p_pos.x << ", z: " << p_pos.z << endl;
 	}
 
+	// Trap Object
+	if (m_Trap) m_Trap->Animate(ElapsedTime, NULL);
+
 	/*for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
@@ -742,7 +745,6 @@ void GameScene::Animate(float ElapsedTime)
 			(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
 			cout << "ainm:" << network_manager::GetInst()->m_monster_pool[0].animation_state << endl;
 			(*iter)->SetEnable(network_manager::GetInst()->m_monster_pool[0].animation_state);*/
-
 
 			/*(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);*/
@@ -1167,6 +1169,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_Trap.back()->ActiveTrap(true);
 			m_Trap.back()->SetEnable(1);
 			m_Trap.back()->SetTrapKind(TRAP_NEEDLE);*/
+			if (m_Trap) m_Trap->BuildTrap();
 		}
 		break;
 

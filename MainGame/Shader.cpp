@@ -409,17 +409,8 @@ void TrapInstancingShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsComma
 {
 	m_Trap.reserve(INSTANCE_NUM);
 
-	GameObject *Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
+	Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
 
-	Trap *Obj = NULL;
-
-	for (int i = 0; i < INSTANCE_NUM; ++i) {
-		Obj = new Trap();
-		Obj->SetChild(Model, false);
-		Obj->SetScale(100.f, 100.f, 100.f);
-		Obj->SetPostion(XMFLOAT3(0.f + (i * 100), -50.f, 0.f));
-		m_Trap.emplace_back(Obj);
-	}
 	CreateShaderVariable(Device, CommandList);
 }
 
@@ -440,16 +431,39 @@ void TrapInstancingShader::UpdateShaderVariable()
 	}
 }
 
-void TrapInstancingShader::Render(ID3D12GraphicsCommandList *CommandList)
+void TrapInstancingShader::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
 {
-	Shader::OnPrepareRender(CommandList, 0);
-
-	UpdateShaderVariable();
-
-	m_Trap[0]->Render(CommandList, INSTANCE_NUM, m_InstanceBufferView);
+	for (int i = 0; i < m_Trap.size(); ++i) {
+		m_Trap[i]->UpdateTransform(NULL);
+		m_Trap[i]->Animate(ElapsedTime, NULL);
+	}
 }
 
-// 애니메이션을 하는 3D 오브젝트에서 사용할 쉐이더
+void TrapInstancingShader::Render(ID3D12GraphicsCommandList *CommandList)
+{
+	if (m_Trap.size() != 0) {
+		Shader::OnPrepareRender(CommandList, 0);
+
+		UpdateShaderVariable();
+
+		m_Trap[0]->Render(CommandList, INSTANCE_NUM, m_InstanceBufferView);
+	}
+}
+
+void TrapInstancingShader::BuildTrap()
+{
+	Trap *Obj = NULL;
+
+	if (m_Trap.size() < INSTANCE_NUM) {
+		Obj = new Trap();
+		Obj->SetChild(Model, false);
+		Obj->SetScale(100.f, 100.f, 100.f);
+		if (m_Trap.size() == 0) Obj->SetPostion(XMFLOAT3(0.f, -50.f, -200.f));
+		else Obj->SetPostion(Vector3::Add(m_Trap.back()->GetPosition(), XMFLOAT3(100.f, 0.f, 0.f)));
+		m_Trap.emplace_back(Obj);
+	}
+}
+
 D3D12_INPUT_LAYOUT_DESC MonsterInstancingShader::CreateInputLayout()
 {
 	UINT nInputElementDescs = 11;
@@ -495,7 +509,7 @@ void MonsterInstancingShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCo
 		Orc->SetChild(Model, true);
 		Orc->SetScale(50.f, 50.f, 50.f);
 		Orc->SetRotate(-90.f, 0.f, 0.f);
-		Orc->SetPostion(XMFLOAT3(0.f + (i * 100), -50.f, 50.f));
+		Orc->SetPostion(XMFLOAT3(0.f + (i * 100), -50.f, -250.f));
 		m_Orc.emplace_back(Orc);
 	}
 	CreateShaderVariable(Device, CommandList);

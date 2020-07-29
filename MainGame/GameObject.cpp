@@ -996,7 +996,7 @@ void GameObject::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, XM
 void GameObject::SetEnable(int nAnimationSet)
 {
 	if (nAnimationSet > 29  && nAnimationSet < 0) return;
-	m_AnimateState = short(nAnimationSet);
+	m_AnimateState = nAnimationSet;
 
 	if (m_AnimationController) m_AnimationController->SetAnimationEnable(nAnimationSet);
 

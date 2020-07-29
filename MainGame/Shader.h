@@ -137,6 +137,7 @@ public:
 
 private:
 	vector<GameObject*> m_Trap;
+	GameObject			*Model = NULL;
 
 protected:
 	ID3D12Resource *m_cbGameObject = NULL;
@@ -155,7 +156,10 @@ public:
 	void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 
 	virtual void UpdateShaderVariable();
+	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
+
+	void BuildTrap();
 };
 
 class MonsterInstancingShader : public TrapInstancingShader
