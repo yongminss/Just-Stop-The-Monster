@@ -53,7 +53,7 @@ void Mesh::Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D1
 {
 	OnPreRender(CommandList, NULL, InstanceBufferView);
 
-	//UpdateShaderVariable(CommandList);
+	UpdateShaderVariable(CommandList);
 
 	CommandList->IASetPrimitiveTopology(m_PrimitiveTopology);
 

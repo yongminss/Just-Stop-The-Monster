@@ -405,11 +405,31 @@ void TrapInstancingShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsComm
 	Shader::CreateShader(Device, CommandList, GraphicsRootSignature);
 }
 
-void TrapInstancingShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+void TrapInstancingShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT Type)
 {
 	m_Trap.reserve(INSTANCE_NUM);
 
-	Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
+	switch (Type) {
+	case 0:
+		Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
+		break;
+
+	case 1:
+		Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Fire.bin", NULL, false);
+		break;
+
+	case 2:
+		Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Slow.bin", NULL, false);
+		break;
+
+	case 3:
+		Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Trap_Arrow.bin", NULL, false);
+		break;
+
+	default:
+		cout << "Trap`s Type Error!" << endl;
+		break;
+	}
 
 	CreateShaderVariable(Device, CommandList);
 }
@@ -431,11 +451,11 @@ void TrapInstancingShader::UpdateShaderVariable()
 	}
 }
 
-void TrapInstancingShader::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
+void TrapInstancingShader::Animate(float ElapsedTime, XMFLOAT3 Position)
 {
 	for (int i = 0; i < m_Trap.size(); ++i) {
 		m_Trap[i]->UpdateTransform(NULL);
-		m_Trap[i]->Animate(ElapsedTime, NULL);
+		m_Trap[i]->Animate(Position, ElapsedTime, NULL);
 	}
 }
 
@@ -458,8 +478,10 @@ void TrapInstancingShader::BuildTrap()
 		Obj = new Trap();
 		Obj->SetChild(Model, false);
 		Obj->SetScale(100.f, 100.f, 100.f);
-		if (m_Trap.size() == 0) Obj->SetPostion(XMFLOAT3(0.f, -50.f, -200.f));
-		else Obj->SetPostion(Vector3::Add(m_Trap.back()->GetPosition(), XMFLOAT3(100.f, 0.f, 0.f)));
+		Obj->BuildTrap(true);
+		Obj->ActiveTrap(true);
+		Obj->SetEnable(1);
+		Obj->SetTrapKind(TRAP_NEEDLE);
 		m_Trap.emplace_back(Obj);
 	}
 }
@@ -494,31 +516,44 @@ D3D12_SHADER_BYTECODE MonsterInstancingShader::CreateVertexShader()
 	return(Shader::CompileShaderFromFile(L"Shaders.hlsl", "VSSkinnedAnimation_InstancingStandard", "vs_5_1", &m_VertexShaderBlob));
 }
 
-void MonsterInstancingShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+void MonsterInstancingShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT Type)
 {
-	m_Orc.reserve(INSTANCE_NUM);
+	m_Monster.reserve(INSTANCE_NUM);
 
-	GameObject *Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
+	switch (Type) {
+	case 0:
+		Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
+		break;
 
+	case 1:
+		Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Monster_Shaman.bin", NULL, true);
+		break;
+
+	case 2:
+		Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Monster_WolfRider.bin", NULL, true);
+		break;
+
+	default:
+		cout << "Monster`s Type Error!" << endl;
+		break;
+	}
 	Monster *Orc = NULL;
-
-	int rand_num = 0;
 
 	for (int i = 0; i < INSTANCE_NUM; ++i) {
 		Orc = new Monster();
 		Orc->SetChild(Model, true);
 		Orc->SetScale(50.f, 50.f, 50.f);
 		Orc->SetRotate(-90.f, 0.f, 0.f);
-		Orc->SetPostion(XMFLOAT3(0.f + (i * 100), -50.f, -250.f));
-		m_Orc.emplace_back(Orc);
+		Orc->SetPostion(XMFLOAT3(0.f + (i * 100), -50.f, -250.f - (Type * 50)));
+		m_Monster.emplace_back(Orc);
 	}
 	CreateShaderVariable(Device, CommandList);
 }
 
 void MonsterInstancingShader::UpdateShaderVariable()
 {
-	for (int i = 0; i < m_Orc.size(); ++i) {
-		XMStoreFloat4x4(&m_MappedGameObject[i].m_Transform, XMMatrixTranspose(XMLoadFloat4x4(&m_Orc[i]->m_WorldPos)));
+	for (int i = 0; i < m_Monster.size(); ++i) {
+		XMStoreFloat4x4(&m_MappedGameObject[i].m_Transform, XMMatrixTranspose(XMLoadFloat4x4(&m_Monster[i]->m_WorldPos)));
 	}
 }
 
@@ -528,5 +563,9 @@ void MonsterInstancingShader::Render(ID3D12GraphicsCommandList *CommandList)
 
 	UpdateShaderVariable();
 
-	m_Orc[0]->Render(CommandList, INSTANCE_NUM, m_InstanceBufferView);
+	/*XMFLOAT3 position = XMFLOAT3(network_manager::GetInst()->m_monster_pool->world_pos._41, network_manager::GetInst()->m_monster_pool->world_pos._42, network_manager::GetInst()->m_monster_pool->world_pos._43);
+	m_Monster[0]->SetPostion(position);*/
+
+	m_Monster[0]->Render(CommandList, INSTANCE_NUM, m_InstanceBufferView);
+	cout << m_Monster[0]->GetPosition().x << " " << m_Monster[0]->GetPosition().y << " " << m_Monster[0]->GetPosition().z << endl;
 }

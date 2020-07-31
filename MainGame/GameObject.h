@@ -422,15 +422,12 @@ private:
 	int m_nTrapKind;
 
 public:
-
-	
-
 	void BuildTrap(bool Input) { IsBuildTrap = Input; }
 	void ActiveTrap(bool Input) { IsActive = Input; }
 
 	bool GetIsBuildTrap() { return IsBuildTrap; }
 
-	void Animate(GameObject *Player, float ElapsedTime, XMFLOAT4X4 *Parent);
+	void Animate(XMFLOAT3 Position, float ElapsedTime, XMFLOAT4X4 *Parent);
 
 	void SetTrapKind(int nKindnum) { m_nTrapKind = nKindnum; }
 

@@ -899,6 +899,7 @@ GameObject *GameObject::CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool 
 	GameObject *TileObject = NULL;
 	GameObject *TileSibling = NULL;
 	GameObject *TileChild = NULL;
+
 	if (m_Mesh) {
 		if (IsFloor) {
 			// 바닥 타일
@@ -1338,7 +1339,7 @@ void SkyBox::Render(ID3D12GraphicsCommandList *CommandList)
 }
 
 
-void Trap::Animate(GameObject *Player, float ElapsedTime, XMFLOAT4X4 *Parent)
+void Trap::Animate(XMFLOAT3 Position, float ElapsedTime, XMFLOAT4X4 *Parent)
 {
 	// 함정의 위치를 설정하는 함수
 	//if (IsBuildTrap) {

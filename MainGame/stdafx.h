@@ -28,6 +28,8 @@
 #include <vector>
 #include <list>
 
+#include <chrono>
+
 // DirectX12를 사용하기 위한 헤더
 #include <d3d12.h>
 #include <dxgi1_4.h>

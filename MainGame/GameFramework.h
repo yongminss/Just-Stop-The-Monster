@@ -53,6 +53,9 @@ private:
 	
 	int							SceneState = 0;
 
+	// Server에 사용할 Timer
+	double						m_CheckTime = 0;
+
 public:
 	bool OnCreate(HINSTANCE hInstance, HWND MainHwnd);
 	void OnDestroy();

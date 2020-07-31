@@ -13,6 +13,9 @@ struct PLAYER_INFO
 	char player_state;
 	short room_number;
 	short AnimateState;
+
+	short hp;
+	short gold;
 	XMFLOAT4X4 Transform;
 };
 
@@ -65,6 +68,7 @@ public:
 
 	PLAYER_INFO m_my_info;
 	PLAYER_INFO m_OtherInfo;
+	GAME_ROOM_C m_myRoomInfo;
 
 	vector<GAME_ROOM_C*> m_vec_gameRoom;
 	MONSTER m_monster_pool[MAX_MONSTER];

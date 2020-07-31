@@ -348,6 +348,8 @@ void GameFramework::MoveToNextFrame()
 
 void GameFramework::FrameAdvance()
 {
+	chrono::system_clock::time_point start = chrono::system_clock::now();
+
 	m_Timer.Tick(0.f);
 
 	Animate();
@@ -409,8 +411,8 @@ void GameFramework::FrameAdvance()
 			}
 		}
 		// 여기서 패킷을 보냄
-		if (RunTime > 1667.f) {
-			m_Timer.Reset();
+		if (m_CheckTime > 0.016) {
+			m_CheckTime = 0;
 			//network_manager::GetInst()->send_change_state_packet(PLAYER_STATE_playing_game);
 			network_manager::GetInst()->send_my_world_pos_packet(m_GameScene->GetPlayerInfo(), m_GameScene->GetPlayerAnimate());
 		}
@@ -456,6 +458,9 @@ void GameFramework::FrameAdvance()
 	_stprintf_s(m_FrameRate + Length, 70 - Length, _T(" "));
 	::SetWindowText(m_hwnd, m_FrameRate);
 
+	chrono::duration<double> sec = chrono::system_clock::now() - start;
+
+	m_CheckTime += sec.count();
 }
 
 void GameFramework::OnProcessingMouseMessage(HWND hwnd, UINT MessageID, WPARAM wParam, LPARAM lParam)
@@ -494,8 +499,8 @@ void GameFramework::OnProcessingKeyboardMessage(HWND hwnd, UINT MessageID, WPARA
 		switch (wParam)
 		{
 		case VK_RETURN:
-			SceneState = ++SceneState % 2;
-			std::cout << SceneState << std::endl;
+			/*SceneState = ++SceneState % 2;
+			std::cout << SceneState << std::endl;*/
 			break;
 
 		default:

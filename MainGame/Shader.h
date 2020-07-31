@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameObject.h"
+#include "network_manager.h"
 
 class Shader
 {
@@ -136,8 +137,8 @@ public:
 	~TrapInstancingShader() { }
 
 private:
-	vector<GameObject*> m_Trap;
-	GameObject			*Model = NULL;
+	vector<Trap*>	m_Trap;
+	GameObject		*Model = NULL;
 
 protected:
 	ID3D12Resource *m_cbGameObject = NULL;
@@ -152,14 +153,16 @@ public:
 	virtual void OnPrepareRender(ID3D12GraphicsCommandList *CommandList, int nPipelineState);
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
 
-	virtual void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+	virtual void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT Type);
 	void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 
 	virtual void UpdateShaderVariable();
-	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);
+	void Animate(float ElapsedTime, XMFLOAT3 Position);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 
 	void BuildTrap();
+
+	vector<Trap*> GetTrapObject() { return m_Trap; }
 };
 
 class MonsterInstancingShader : public TrapInstancingShader
@@ -169,13 +172,14 @@ public:
 	~MonsterInstancingShader() { }
 
 private:
-	vector<GameObject*> m_Orc;
+	vector<GameObject*> m_Monster;
+	GameObject			*Model = NULL;
 
 public:
 	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
 
-	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT Type);
 
 	void UpdateShaderVariable();
 	void Render(ID3D12GraphicsCommandList *CommandList);

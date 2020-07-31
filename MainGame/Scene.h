@@ -134,29 +134,16 @@ private:
 	bool is_rend_03 = false;
 	bool is_rend_04 = false;
 
-	// Trap
-	/*GameObject					*m_NeedleTrapModel = NULL;
-	GameObject					*m_FireTrapModel = NULL;
-	GameObject					*m_SlowTrapModel = NULL;
-	GameObject					*m_ArrowTrapModel = NULL;
-	list<Trap*>					m_Trap;
-	Trap						*m_TrapModel = NULL;*/
+	// Trap Objects
+	TrapInstancingShader		*m_Needle = NULL;
+	TrapInstancingShader		*m_Fire = NULL;
+	TrapInstancingShader		*m_Slow = NULL;
+	TrapInstancingShader		*m_Arrow = NULL;
 
-	// Trap Object
-	TrapInstancingShader		*m_Trap = NULL;
-
-	// Monster Model
-	/*GameObject					*m_OrcModel = NULL;
-	list<Monster*>				m_Orc;
-
-	GameObject					*m_ShamanModel = NULL;
-	list<Monster*>				m_Shaman;
-
-	GameObject					*m_WolfRiderModel = NULL;
-	list<Monster*>				m_WolfRider;*/
-
-	// Monster Object
-	MonsterInstancingShader		*m_Monster = NULL;
+	// Monster Objects
+	MonsterInstancingShader		*m_Orc = NULL;
+	MonsterInstancingShader		*m_Shaman = NULL;
+	MonsterInstancingShader		*m_WolfRider = NULL;
 
 	// Other Player
 	GameObject					*m_OtherPlayerModel = NULL;
