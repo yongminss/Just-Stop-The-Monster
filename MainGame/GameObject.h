@@ -394,6 +394,7 @@ public:
 
 	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
+	void Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
 
 	// 애니메이션
 	void CacheSkinningBoneFrame(GameObject *RootFrame);
@@ -422,6 +423,22 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
+class Effect : public GameObject
+{
+public:
+	Effect() {}
+	Effect(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT type);
+	~Effect() {}
+
+private:
+	float flag = 1.f;
+	float scale = 1.f;
+
+public:
+	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);
+	virtual void Render(ID3D12GraphicsCommandList *CommandList);
+};
+
 #define TRAP_NEEDLE		0
 #define TRAP_FIRE		1
 #define TRAP_SLOW		2
@@ -441,15 +458,12 @@ private:
 	int m_nTrapKind;
 
 public:
-
-	
-
 	void BuildTrap(bool Input) { IsBuildTrap = Input; }
 	void ActiveTrap(bool Input) { IsActive = Input; }
 
 	bool GetIsBuildTrap() { return IsBuildTrap; }
 
-	void Animate(GameObject *Player, float ElapsedTime, XMFLOAT4X4 *Parent);
+	void Animate(XMFLOAT3 Position, float ElapsedTime, XMFLOAT4X4 *Parent);
 
 	void SetTrapKind(int nKindnum) { m_nTrapKind = nKindnum; }
 

@@ -31,6 +31,21 @@ protected:
 
 };
 
+class DiffusedVertex
+{
+public:
+	DiffusedVertex() {}
+	DiffusedVertex(XMFLOAT3 Position, XMFLOAT4 Color) 
+	{
+		m_Position = Position;
+		m_Color = Color;
+	}
+
+protected:
+	XMFLOAT3 m_Position;
+	XMFLOAT4 m_Color;
+};
+
 class TextureVertex : public Vertex
 {
 public:
@@ -114,9 +129,19 @@ public:
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList) { }
 
 	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context) { }
+	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView) { }
 	
 	void Render(ID3D12GraphicsCommandList *CommandList);
 	void Render(ID3D12GraphicsCommandList *CommandList, int nSubSet);
+	void Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
+};
+
+// Cube Mesh
+class CubeMesh : public Mesh
+{
+public:
+	CubeMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
+	~CubeMesh() {}
 };
 
 // 텍스쳐 맵핑을 진행할 메쉬
@@ -167,6 +192,7 @@ public:
 	void LoadMeshFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile);
 
 	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context);
+	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
 };
 
 #define SKINNED_ANIMATION_BONES 128
@@ -214,6 +240,7 @@ public:
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList);
 
 	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context);
+	virtual void OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
 
 	void LoadSkinInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile);
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameObject.h"
+#include "network_manager.h"
 
 class Shader
 {
@@ -66,18 +67,6 @@ public:
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
 };
 
-class TrapShader : public Shader
-{
-public:
-	TrapShader() { }
-	~TrapShader() { }
-
-	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
-	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
-	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
-
-	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
-};
 
 class SkyBoxShader : public Shader
 {
@@ -86,13 +75,36 @@ public:
 	~SkyBoxShader() { }
 	
 public:
-	virtual D3D12_INPUT_LAYOUT_DESC		CreateInputLayout();
-	virtual D3D12_SHADER_BYTECODE		CreateVertexShader();
-	virtual D3D12_SHADER_BYTECODE		CreatePixelShader();
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
 
-	virtual D3D12_DEPTH_STENCIL_DESC	CreateDepthStencilState();
+	virtual D3D12_DEPTH_STENCIL_DESC CreateDepthStencilState();
 
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+};
+
+class EffectShader : public Shader
+{
+public:
+	EffectShader() { }
+	~EffectShader() { }
+
+private:
+	Effect *m_Effect = NULL;
+
+public:
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
+
+	virtual D3D12_BLEND_DESC CreateBlendState();
+
+	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+
+	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+
+	void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
 
@@ -120,4 +132,67 @@ public:
 public:
 	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+
+};
+
+// Instancing Object
+struct VS_VB_INSTANCE
+{
+	XMFLOAT4X4 m_Transform;
+};
+
+class TrapInstancingShader : public Shader
+{
+public:
+	TrapInstancingShader() { }
+	~TrapInstancingShader() { }
+
+private:
+	vector<Trap*>	m_Trap;
+	GameObject		*Model = NULL;
+
+protected:
+	ID3D12Resource *m_cbGameObject = NULL;
+	VS_VB_INSTANCE *m_MappedGameObject = NULL;
+	D3D12_VERTEX_BUFFER_VIEW m_InstanceBufferView;
+
+public:
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
+
+	virtual void OnPrepareRender(ID3D12GraphicsCommandList *CommandList, int nPipelineState);
+	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+
+	virtual void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT Type);
+	void CreateShaderVariable(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
+
+	virtual void UpdateShaderVariable();
+	void Animate(float ElapsedTime, XMFLOAT3 Position);
+	virtual void Render(ID3D12GraphicsCommandList *CommandList);
+
+	void BuildTrap();
+
+	vector<Trap*> GetTrapObject() { return m_Trap; }
+};
+
+class MonsterInstancingShader : public TrapInstancingShader
+{
+public:
+	MonsterInstancingShader() { }
+	~MonsterInstancingShader() { }
+
+private:
+	vector<GameObject*> m_Monster;
+	GameObject			*Model = NULL;
+
+public:
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+
+	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT Type);
+
+	void UpdateShaderVariable();
+	void Animate(float ElapsedTime);
+	void Render(ID3D12GraphicsCommandList *CommandList);
 };

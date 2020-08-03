@@ -72,6 +72,18 @@ float4 PSLighting(VS_LIGHTING_OUTPUT input) : SV_TARGET
 Texture2D gtxtTexture : register(t0);
 SamplerState gSamplerState : register(s0);
 
+struct VS_INPUT
+{
+    float3 position : POSITION;
+    float4 color : COLOR;
+};
+
+struct VS_OUTPUT
+{
+    float3 position : POSITION;
+    float4 color : COLOR;
+};
+
 struct VS_TEXTURED_INPUT
 {
 	float3 position : POSITION;
@@ -97,13 +109,22 @@ VS_TEXTURED_OUTPUT VSUserInterface(VS_TEXTURED_INPUT input)
     
     return output;
 }
-// 2. 함정
-VS_TEXTURED_OUTPUT VSTrap(VS_TEXTURED_INPUT input)
+// 2. 월드행렬이 있는 2D 이미지
+VS_TEXTURED_OUTPUT VSTexture(VS_TEXTURED_INPUT input)
 {
     VS_TEXTURED_OUTPUT output;
     output.position = mul(mul(mul(float4(input.position, 1.f), gmtxGameObject), gmtxView), gmtxProjection);
     output.uv = input.uv;
 
+    return output;
+}
+// 3. Effect
+VS_OUTPUT VSEffect(VS_INPUT input)
+{
+    VS_OUTPUT output;
+    output.position = mul(mul(mul(float4(input.position, 1.0f), gmtxGameObject), gmtxView), gmtxProjection);
+    output.color = input.color;
+    
     return output;
 }
 
@@ -122,6 +143,11 @@ float4 PSPictureColor(VS_TEXTURED_OUTPUT input) : SV_TARGET
 	//	}
 	//}
     return Color;
+}
+// 2. non-texture
+float4 PSEffect(VS_OUTPUT input) : SV_TARGET
+{
+    return input.color;
 }
 
 // 3D 오브젝트에 사용할 쉐이더 코드
@@ -152,6 +178,17 @@ struct VS_STANDARD_INPUT
     float3 bitangent : BITANGENT;
 };
 
+struct VS_INSTANCING_STANDARD_INPUT
+{
+    float3 position : POSITION;
+    float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
+    
+    float4x4 Transform : WORLDMATRIX;
+};
+
 struct VS_STANDARD_OUTPUT
 {
     float4 position : SV_POSITION;
@@ -171,6 +208,21 @@ VS_STANDARD_OUTPUT VSStandard(VS_STANDARD_INPUT input)
     output.tangentW = mul(input.tangent, (float3x3) gmtxGameObject);
     output.bitangentW = mul(input.bitangent, (float3x3) gmtxGameObject);
     output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);    
+    output.uv = input.uv;
+
+    return (output);
+}
+
+VS_STANDARD_OUTPUT VSInstancingStandard(VS_INSTANCING_STANDARD_INPUT input)
+{
+    VS_STANDARD_OUTPUT output;
+
+    output.positionW = mul(float4(input.position, 1.0f), input.Transform).xyz;
+    output.normalW = input.normal; //mul(input.normal, (float3x3) input.Transform);
+    output.tangentW = input.tangent; //mul(input.tangent, (float3x3) input.Transform);
+    output.bitangentW = input.bitangent; //mul(input.bitangent, (float3x3) input.Transform);
+    
+    output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);
     output.uv = input.uv;
 
     return (output);
@@ -240,6 +292,19 @@ struct VS_SKINNED_STANDARD_INPUT
     float4 weights : BONEWEIGHT;
 };
 
+struct VS_INSTANCING_SKINNED_STANDARD_INPUT
+{
+    float3 position : POSITION;
+    float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
+    uint4 indices : BONEINDEX;
+    float4 weights : BONEWEIGHT;
+    
+    float4x4 Transform : WORLDMATRIX;
+};
+
 VS_STANDARD_OUTPUT VSSkinnedAnimationStandard(VS_SKINNED_STANDARD_INPUT input)
 {
     VS_STANDARD_OUTPUT output;
@@ -259,6 +324,62 @@ VS_STANDARD_OUTPUT VSSkinnedAnimationStandard(VS_SKINNED_STANDARD_INPUT input)
         output.bitangentW += input.weights[i] * mul(input.bitangent, (float3x3) mtxVertexToBoneWorld);
     }
 
+    output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);
+    output.uv = input.uv;
+
+    return (output);
+}
+
+
+/*VS_STANDARD_OUTPUT SC_VSSkinnedAnimationStandard(VS_SKINNED_STANDARD_INPUT input)
+{
+    VS_STANDARD_OUTPUT output;
+
+    float4x4 mtxVertexToBoneWorld = (float4x4) 0.0f;
+    for (int i = 0; i < MAX_VERTEX_INFLUENCES; i++)
+    {
+        mtxVertexToBoneWorld += input.weights[i] * mul(gpmtxBoneOffsets[input.indices[i]], gsbBoneTransforms[(input.instanceID * SKINNED_ANIMATION_BONES) + input.indices[i]]);
+    }
+    output.positionW = mul(float4(input.position, 1.0f), mtxVertexToBoneWorld).xyz;
+    output.normalW = mul(input.normal, (float3x3) mtxVertexToBoneWorld).xyz;
+    output.tangentW = mul(input.tangent, (float3x3) mtxVertexToBoneWorld).xyz;
+    output.bitangentW = mul(input.bitangent, (float3x3) mtxVertexToBoneWorld).xyz;
+
+
+    output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);
+    output.uv = input.uv;
+
+    return (output);
+}*/
+
+VS_STANDARD_OUTPUT VSSkinnedAnimation_InstancingStandard(VS_INSTANCING_SKINNED_STANDARD_INPUT input)
+{
+    VS_STANDARD_OUTPUT output;
+
+    output.positionW = float3(0.0f, 0.0f, 0.0f);
+    output.normalW = float3(0.0f, 0.0f, 0.0f);
+    output.tangentW = float3(0.0f, 0.0f, 0.0f);
+    output.bitangentW = float3(0.0f, 0.0f, 0.0f);
+    
+    matrix mtxVertexToBoneWorld = (float4x4) 0.f;
+    
+    for (int i = 0; i < MAX_VERTEX_INFLUENCES; i++)
+    {
+        //mtxVertexToBoneWorld += input.weights[i] * mul(gpmtxBoneOffsets[input.indices[i]], gpmtxBoneTransforms[(input.instanceID * SKINNED_ANIMATION_BONES) + input.indices[i]]);
+        
+        
+        
+        mtxVertexToBoneWorld = mul(input.Transform, gpmtxBoneOffsets[input.indices[i]]);
+        //mtxVertexToBoneWorld = mul(mtxVertexToBoneWorld, gpmtxBoneTransforms[input.indices[i]]);
+        
+        mtxVertexToBoneWorld = input.Transform;
+        output.positionW = mul(float4(input.position, 1.0f), mtxVertexToBoneWorld).xyz;
+        output.normalW = mul(input.normal, (float3x3) mtxVertexToBoneWorld).xyz;
+        output.tangentW = mul(input.tangent, (float3x3) mtxVertexToBoneWorld).xyz;
+        output.bitangentW = mul(input.bitangent, (float3x3) mtxVertexToBoneWorld).xyz;
+    }    
+    
+ 
     output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);
     output.uv = input.uv;
 

@@ -30,6 +30,8 @@
 #include <vector>
 #include <list>
 
+#include <chrono>
+
 // DirectX12를 사용하기 위한 헤더
 #include <d3d12.h>
 #include <dxgi1_4.h>
@@ -57,6 +59,8 @@ using namespace std;
 #pragma comment(lib, "dxguid.lib")
 
 #include "DDSTextureLoader12.h"
+
+#define INSTANCE_NUM 100
 
 // Texture Image
 enum {

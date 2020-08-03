@@ -270,6 +270,9 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 	{
 		
 	case WM_LBUTTONDOWN:
+		MousePos.x = LOWORD(lParam);
+		MousePos.y = HIWORD(lParam);
+		/*cout << "x : " << MousePos.x << ", y : " << MousePos.y << endl;*/
 		switch (m_state) {
 		case Basic:
 			// Single Game 버튼을 클릭하면 Game Start
@@ -404,70 +407,90 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	// 스카이박스
 	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
 
-	// 스테이지의 벽과 바닥
-	//m_StageWall = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_Wall4.bin", NULL, false);
-	//m_StageWall->SetPostion(XMFLOAT3(820.f, 150.f, -100.f));
-	//m_StageWall->SetScale(100.f, 100.f, 100.f);
-
-	//m_StageFloor = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/4.bin", NULL, false);
-	//m_StageFloor->SetPostion(XMFLOAT3(2500.f, -50.f, 0.f));
-	//m_StageFloor->SetScale(100.f, 100.f, 100.f);
-
 	// 스테이지
 	m_Stage_01 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage01.bin", NULL, false);
-	//m_Stage_01->SetRotate(90.0f, 0.0f, 0.0f);
 	m_Stage_01->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
-	//m_Stage_01->SetScale(100.f, 100.f, 100.f);
 
 	m_Stage_02 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage02.bin", NULL, false);
-	//m_Stage_02->SetRotate(-90.0f, 0.0f,0.0f);
 	m_Stage_02->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
-	
 
 	m_Stage_03 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage03.bin", NULL, false);
-
 	m_Stage_03->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
 	
 	m_Stage_04 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage04.bin", NULL, false);
-	//m_Stage_04->SetPostion(XMFLOAT3(-900.f, -50.f, 500.f));
 	m_Stage_04->SetPostion(XMFLOAT3(-0.f, -50.f, 0.f));
 	
 	// 함정
-	m_NeedleTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
-	m_NeedleTrapModel->SetScale(1.4f, 1.4f, 1.4f);
+	//m_NeedleTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
+	//m_NeedleTrapModel->SetScale(1.4f, 1.4f, 1.4f);
 
-	m_FireTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Fire.bin", NULL, false);
-	m_FireTrapModel->SetScale(1.4f, 1.4f, 1.4f);
+	//m_FireTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Fire.bin", NULL, false);
+	//m_FireTrapModel->SetScale(1.4f, 1.4f, 1.4f);
 
-	m_SlowTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Slow.bin", NULL, false);
-	m_SlowTrapModel->SetScale(1.4f, 1.4f, 1.4f);
-	
-	m_ArrowTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Arrow.bin", NULL, false);
-	m_ArrowTrapModel->SetScale(1.4f, 1.4f, 1.4f);
+	//m_SlowTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Slow.bin", NULL, false);
+	//m_SlowTrapModel->SetScale(1.4f, 1.4f, 1.4f);
+	//
+	//m_ArrowTrapModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Arrow.bin", NULL, false);
+	//m_ArrowTrapModel->SetScale(1.4f, 1.4f, 1.4f);
 
-	// 몬스터 모델
-	m_OrcModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
-	m_ShamanModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Shaman.bin", NULL, true);
-	m_WolfRiderModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_WolfRider.bin", NULL, true);
+	//// 몬스터 모델
+	//m_OrcModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
+	//m_ShamanModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Shaman.bin", NULL, true);
+	//m_WolfRiderModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_WolfRider.bin", NULL, true);
 
-	// 기본 오크
-	m_Orc.emplace_back(new Monster());
-	m_Orc.back()->SetChild(m_OrcModel, false);
-	//m_Orc.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -150.f));
-	m_Orc.back()->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
+	//// 기본 오크
+	//m_Orc.emplace_back(new Monster());
+	//m_Orc.back()->SetChild(m_OrcModel, false);
+	//m_Orc.back()->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
 
-	// 마법사 오크
-	m_Shaman.emplace_back(new Monster());
-	m_Shaman.back()->SetChild(m_ShamanModel, true);
-	m_Shaman.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -400.f));
+	//// 마법사 오크
+	//m_Shaman.emplace_back(new Monster());
+	//m_Shaman.back()->SetChild(m_ShamanModel, true);
+	//m_Shaman.back()->SetPostion(XMFLOAT3(2200.f, -50.f, -400.f));
 
-	// 늑대 오크
-	m_WolfRider.emplace_back(new Monster());
-	m_WolfRider.back()->SetChild(m_WolfRiderModel, true);
-	m_WolfRider.back()->SetPostion(XMFLOAT3(2200.f, -50.f, 1020.f));
+	//// 늑대 오크
+	//m_WolfRider.emplace_back(new Monster());
+	//m_WolfRider.back()->SetChild(m_WolfRiderModel, true);
+	//m_WolfRider.back()->SetPostion(XMFLOAT3(2200.f, -50.f, 1020.f));
 
+	// Trap Objects
+	m_Needle = new TrapInstancingShader();
+	m_Needle->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	m_Needle->BuildObject(Device, CommandList, m_GraphicsRootSignature, 0);
+
+	m_Fire = new TrapInstancingShader();
+	m_Fire->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	m_Fire->BuildObject(Device, CommandList, m_GraphicsRootSignature, 1);
+
+	m_Slow = new TrapInstancingShader();
+	m_Slow->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	m_Slow->BuildObject(Device, CommandList, m_GraphicsRootSignature, 2);
+
+	m_Arrow = new TrapInstancingShader();
+	m_Arrow->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	m_Arrow->BuildObject(Device, CommandList, m_GraphicsRootSignature, 3);
+
+	// Monster Object
+	m_Orc = new MonsterInstancingShader();
+	m_Orc->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	m_Orc->BuildObject(Device, CommandList, m_GraphicsRootSignature, 0);
+
+	m_Shaman = new MonsterInstancingShader();
+	m_Shaman->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	m_Shaman->BuildObject(Device, CommandList, m_GraphicsRootSignature, 1);
+
+	m_WolfRider = new MonsterInstancingShader();
+	m_WolfRider->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	m_WolfRider->BuildObject(Device, CommandList, m_GraphicsRootSignature, 2);
+
+	// Multi-Player Object
 	m_OtherPlayerModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Soldier_Player.bin", NULL, true);
 	m_OtherPlayerModel->SetPostion(XMFLOAT3(-1000.f, -15.f, 0.f));
+
+	// Effect
+	m_FireEffect = new EffectShader();
+	m_FireEffect->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	m_FireEffect->BuildObject(Device, CommandList, m_GraphicsRootSignature);
 
 	CreateShaderVariable(Device, CommandList);
 }
@@ -849,16 +872,21 @@ void GameScene::Animate(float ElapsedTime)
 		}
 		m_Player->Update(ElapsedTime);
 		XMFLOAT3 p_pos = m_Player->GetPosition();
-		
 	}
 
-	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
+	// Trap Object
+	if (m_Needle) m_Needle->Animate(ElapsedTime, m_Player->GetPosition());
+	
+	if (m_Orc) m_Orc->Animate(ElapsedTime);
+
+	/*for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(m_Player, ElapsedTime, NULL);
-		}
+		}*/
 
-	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
+
+	/*for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
 		if (*iter) {
 			if (network_manager::GetInst()->m_monster_pool[0].isLive == false) {
 				continue;
@@ -867,8 +895,8 @@ void GameScene::Animate(float ElapsedTime)
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
 			(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
-			
 			(*iter)->SetEnable(network_manager::GetInst()->m_monster_pool[0].animation_state);
+
 			/*(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);*/
 			/*XMFLOAT3 PlayerPos = m_Player->GetPosition();
@@ -893,10 +921,10 @@ void GameScene::Animate(float ElapsedTime)
 				(*iter)->SetDirection(PlayerPos);
 				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
 				(*iter)->SetEnable(3);
-			}*/
-		}
+			}
+		}*/
 
-	for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
+	/*for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
@@ -923,9 +951,9 @@ void GameScene::Animate(float ElapsedTime)
 				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
 				(*iter)->SetEnable(3);
 			}
-		}
+		}*/
 
-	for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
+	/*for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
 		if (*iter) {
 			(*iter)->UpdateTransform(NULL);
 			(*iter)->Animate(ElapsedTime, NULL);
@@ -952,7 +980,7 @@ void GameScene::Animate(float ElapsedTime)
 				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
 				(*iter)->SetEnable(3);
 			}
-		}
+		}*/
 
 	// Ohter Player
 	if (network_manager::GetInst()->IsConnect()) {
@@ -965,6 +993,10 @@ void GameScene::Animate(float ElapsedTime)
 		m_OtherPlayerModel->SetEnable(AnimateState);
 		m_OtherPlayerModel->Animate(ElapsedTime, NULL);
 	}
+
+	// Effect
+	/*for (int i = 2; i < 4; ++i)
+		if (m_FireEffect[i]) m_FireEffect[i]->Animate(ElapsedTime, NULL);*/
 }
 
 void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
@@ -993,37 +1025,28 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	if (m_Scope) m_Scope->Render(CommandList);
 
 	// GameScene에 등장할 오브젝트 렌더링
-	/*if (m_StageWall) m_StageWall->Render(CommandList);
-	if (m_StageFloor) m_StageFloor->Render(CommandList);*/
-
 	if (is_rend_01) if (m_Stage_01) m_Stage_01->Render(CommandList);
 	if (is_rend_02) if (m_Stage_02) m_Stage_02->Render(CommandList);
 	if (is_rend_03) if (m_Stage_03) m_Stage_03->Render(CommandList);
 	if (is_rend_04) if (m_Stage_04) m_Stage_04->Render(CommandList);
 
 	// Trap Objects
-	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
-	{
-		if (*iter) {
-			(*iter)->UpdateTransform(NULL);
-			(*iter)->Render(CommandList);
-		}
-	}
-	// Monster Objects
-	for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
-	{
-		(*iter)->UpdateTransform(NULL);
-		(*iter)->Render(CommandList);
-	}
-	for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
-		(*iter)->Render(CommandList);
+	if (m_Needle) m_Needle->Render(CommandList);
+	if (m_Fire) m_Fire->Render(CommandList);
+	if (m_Slow) m_Slow->Render(CommandList);
+	if (m_Arrow) m_Arrow->Render(CommandList);
 
-	for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
-		(*iter)->Render(CommandList);
+	// Monster Objects
+	if (m_Orc) m_Orc->Render(CommandList);
+	if (m_Shaman) m_Shaman->Render(CommandList);
+	if (m_WolfRider) m_WolfRider->Render(CommandList);
 
 	// Ohter Player
 	if (network_manager::GetInst()->IsConnect())
 		m_OtherPlayerModel->Render(CommandList);
+
+	// Effect
+	if (m_FireEffect) m_FireEffect->Render(CommandList);
 }
 
 void GameScene::CheckTile()
@@ -1046,13 +1069,22 @@ void GameScene::ProcessInput(HWND hWnd)
 		if (m_bClick) {
 			Camera *pCamera = m_Player->GetCamera();
 			XMFLOAT3 StartPos = pCamera->GetPosition();
+
 			XMFLOAT3 EndPos;
 			EndPos = Vector3::Normalize(pCamera->GetLook());
 			if (m_Trap.size() != 0 && m_Trap.back()->GetIsBuildTrap()) {
+/*=======
+
+			if (m_Needle->GetTrapObject().size() != 0 && m_Needle->GetTrapObject().back()->GetIsBuildTrap()) {
+				XMFLOAT3 NormalEnd;
+				xmf3EndProject = Vector3::Subtract(xmf3EndProject, StartPos);
+				NormalEnd = Vector3::Normalize(xmf3EndProject);
+				NormalEnd = m_Player->GetLook();
+>>>>>>> master*/
 				if (is_rend_01) {
 
 					GameObject *TileObject = new GameObject;
-					switch (m_Trap.back()->GetTrapKind()) {
+					switch (m_Needle->GetTrapObject().back()->GetTrapKind()) {
 					case TRAP_NEEDLE:
 					case TRAP_SLOW:
 						TileObject = m_Stage_01->CheckTileBound(StartPos, EndPos, true);
@@ -1072,29 +1104,29 @@ void GameScene::ProcessInput(HWND hWnd)
 						if (m_Trap.back()->GetTrapKind() == TRAP_FIRE || m_Trap.back()->GetTrapKind() == TRAP_ARROW) { // 벽타일
 							if (BoundTile.Extents.x < BoundTile.Extents.z) {
 								if (StartPos.x < TilePos.x) {
-									m_Trap.back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
-									m_Trap.back()->SetRight(XMFLOAT3(0.0f, 1.0f, 0.0f));
-									m_Trap.back()->SetUp(XMFLOAT3(-1.0f, 0.0f, 0.0f));
+									m_Needle->GetTrapObject().back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
+									m_Needle->GetTrapObject().back()->SetRight(XMFLOAT3(0.0f, 1.0f, 0.0f));
+									m_Needle->GetTrapObject().back()->SetUp(XMFLOAT3(-1.0f, 0.0f, 0.0f));
 									TilePos.x -= 15.0f;
 								}
 								else {
-									m_Trap.back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
-									m_Trap.back()->SetRight(XMFLOAT3(0.0f, -1.0f, 0.0f));
-									m_Trap.back()->SetUp(XMFLOAT3(1.0f, 0.0f, 0.0f));
+									m_Needle->GetTrapObject().back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
+									m_Needle->GetTrapObject().back()->SetRight(XMFLOAT3(0.0f, -1.0f, 0.0f));
+									m_Needle->GetTrapObject().back()->SetUp(XMFLOAT3(1.0f, 0.0f, 0.0f));
 									TilePos.x += 15.0f;
 								}
 							}
 							else {
 								if (StartPos.z < TilePos.z) {
-									m_Trap.back()->SetLook(XMFLOAT3(0.0f, 1.0f, 0.0f));
-									m_Trap.back()->SetRight(XMFLOAT3(1.0f, 0.0f, 0.0f));
-									m_Trap.back()->SetUp(XMFLOAT3(0.0f, 0.0f, -1.0f));
+									m_Needle->GetTrapObject().back()->SetLook(XMFLOAT3(0.0f, 1.0f, 0.0f));
+									m_Needle->GetTrapObject().back()->SetRight(XMFLOAT3(1.0f, 0.0f, 0.0f));
+									m_Needle->GetTrapObject().back()->SetUp(XMFLOAT3(0.0f, 0.0f, -1.0f));
 									TilePos.z -= 15.0f;
 								}
 								else {
-									m_Trap.back()->SetLook(XMFLOAT3(0.0f, -1.0f, 0.0f));
-									m_Trap.back()->SetRight(XMFLOAT3(1.0f, 0.0f, 0.0f));
-									m_Trap.back()->SetUp(XMFLOAT3(0.0f, 0.0f, 1.0f));
+									m_Needle->GetTrapObject().back()->SetLook(XMFLOAT3(0.0f, -1.0f, 0.0f));
+									m_Needle->GetTrapObject().back()->SetRight(XMFLOAT3(1.0f, 0.0f, 0.0f));
+									m_Needle->GetTrapObject().back()->SetUp(XMFLOAT3(0.0f, 0.0f, 1.0f));
 									TilePos.z += 15.0f;
 								}
 							}
@@ -1108,27 +1140,28 @@ void GameScene::ProcessInput(HWND hWnd)
 							cout << "Right x: " << m_Trap.back()->GetRight().x << " y: " << m_Trap.back()->GetRight().y << " z: " << m_Trap.back()->GetLook().z << endl;
 							TilePos.y += 10.0f;
 						}
-						m_Trap.back()->SetPostion(TilePos);
-						for (auto iter = m_Trap.begin(); (*iter) != m_Trap.back(); ++iter) {
+						m_Needle->GetTrapObject().back()->SetPostion(TilePos);
+						for (auto iter = m_Needle->GetTrapObject().begin(); (*iter) != m_Needle->GetTrapObject().back(); ++iter) {
 							if (XMVector3Equal(XMLoadFloat3(&(*iter)->GetPosition()), XMLoadFloat3(&TilePos))) {
-								m_Trap.back()->MoveUp(5.f);
+								m_Needle->GetTrapObject().back()->MoveUp(5.f);
 								IsTrapPlaced = true;
 								break;
 							}
 						}
-						m_Trap.back()->UpdateTransform(NULL);
+						m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
 						if (IsTrapPlaced == true) {
-							m_Trap.back()->SetRed(0x01);
+							m_Needle->GetTrapObject().back()->SetRed(0x01);
 						}
 						else {
-							m_Trap.back()->SetRed(0x00);
+							m_Needle->GetTrapObject().back()->SetRed(0x00);
 						}
 					}
 					else {
 						//cout << "tile 안맞음" << endl;
-						m_Trap.back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
-						XMFLOAT3 ypos = m_Trap.back()->GetPosition();
+						m_Needle->GetTrapObject().back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
+						XMFLOAT3 ypos = m_Needle->GetTrapObject().back()->GetPosition();
 						ypos.y = -50.0f;
+///////////
 						m_Trap.back()->SetPostion(ypos);
 						m_Trap.back()->UpdateTransform(NULL);
 					}
@@ -1168,13 +1201,53 @@ void GameScene::ProcessInput(HWND hWnd)
 						ypos.y = -50.0f;
 						m_Trap.back()->SetPostion(ypos);
 						m_Trap.back()->UpdateTransform(NULL);
+/*=======
+						m_Needle->GetTrapObject().back()->SetPostion(ypos);
+						m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
+>>>>>>> maste*/
 					}
 				}
+				//if (is_rend_02) {
+				//	GameObject *TileObject = m_Stage_02->CheckTileBound(StartPos, NormalEnd, true);
+				//	if (TileObject != NULL) {
+				//		BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
+				//		cout << "박스 Up벡터 x: " << TileObject->GetUp().x << " y: " << TileObject->GetUp().y  << " z: " << TileObject->GetUp().z << endl;
+				//		BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
+				//		XMFLOAT3 TilePos = BoundTile.Center;
+				//		
+				//		m_Needle->GetTrapObject().back()->SetPostion(TilePos);
+				//		m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
+				//	}
+				//	else {
+				//		m_Needle->GetTrapObject().back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
+				//		XMFLOAT3 ypos = m_Needle->GetTrapObject().back()->GetPosition();
+				//		ypos.y = -50.0f;
+				//		m_Needle->GetTrapObject().back()->SetPostion(ypos);
+				//		m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
+				//	}
+				//}
+				//if (is_rend_03) {
+				//	//cout << "3번스테이지" << endl;
+				//	GameObject *TileObject = m_Stage_03->CheckTileBound(StartPos, NormalEnd, true);
+				//	if (TileObject != NULL) {
+				//		BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
+				//		BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
+				//		XMFLOAT3 TilePos = BoundTile.Center;
+				//		m_Needle->GetTrapObject().back()->SetPostion(TilePos);
+				//		m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
+				//	}
+				//	else {
+				//		m_Needle->GetTrapObject().back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
+				//		XMFLOAT3 ypos = m_Needle->GetTrapObject().back()->GetPosition();
+				//		ypos.y = -50.0f;
+				//		m_Needle->GetTrapObject().back()->SetPostion(ypos);
+				//		m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
+				//	}
+				//}
 
 			}
 		}
 	}
-
 	if (xDelta != 0.f || yDelta != 0.f) {
 		if (xDelta || yDelta)
 			m_Player->PRotate(yDelta, xDelta, 0.f);
@@ -1189,11 +1262,10 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 	case WM_LBUTTONDOWN:
 		::SetCapture(hWnd);
 		::GetCursorPos(&m_ptOldCursorPos);
-
 		// 플레이어가 공격 버튼을 클릭했을 때, 함정 설치 중이었다면 더 이상 따라오지 않도록 함
-		if (m_bClick && m_Trap.size() != 0) {
-			if (m_Trap.back()->GetIsBuildTrap() == true) {
-				m_Trap.back()->BuildTrap(false);
+		if (m_bClick && m_Needle->GetTrapObject().size() != 0) {
+			if (m_Needle->GetTrapObject().back()->GetIsBuildTrap() == true) {
+				m_Needle->GetTrapObject().back()->BuildTrap(false);
 			}
 		}
 		else {
@@ -1357,25 +1429,20 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		// 함정 설치 준비
 		case '1':
 		{
-			if (m_bClick && m_Trap.back()->GetIsBuildTrap() == false) {
+			if (m_bClick && m_Needle->GetTrapObject().back()->GetIsBuildTrap() == false) {
 				break;
 			}
-			if (m_bClick && m_Trap.back()->GetIsBuildTrap() == true)
-				m_Trap.pop_back();
+			if (m_bClick && m_Needle->GetTrapObject().back()->GetIsBuildTrap() == true)
+				m_Needle->GetTrapObject().pop_back();
 			else
 				m_bClick = true;
-			m_Trap.emplace_back(new Trap());
-			m_Trap.back()->SetChild(m_NeedleTrapModel, false);
-			m_Trap.back()->BuildTrap(true);
-			m_Trap.back()->ActiveTrap(true);
-			m_Trap.back()->SetEnable(1);
-			m_Trap.back()->SetTrapKind(TRAP_NEEDLE);
+			if (m_Needle) m_Needle->BuildTrap();
 		}
 		break;
 
 		case '2':
 		{
-			if (m_bClick && m_Trap.back()->GetIsBuildTrap() == false) {
+			/*if (m_bClick && m_Trap.back()->GetIsBuildTrap() == false) {
 				break;
 			}
 			if (m_bClick && m_Trap.back()->GetIsBuildTrap() == true)
@@ -1386,13 +1453,14 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_Trap.emplace_back(new Trap());
 			m_Trap.back()->SetChild(m_FireTrapModel, false);
 			m_Trap.back()->BuildTrap(true);
-			m_Trap.back()->SetTrapKind(TRAP_FIRE);
+			m_Trap.back()->SetTrapKind(TRAP_FIRE);*/
+			if (m_Fire) m_Fire->BuildTrap();
 		}
 		break;
 
 		case '3':
 		{
-			if (m_bClick && m_Trap.back()->GetIsBuildTrap() == false) {
+			/*if (m_bClick && m_Trap.back()->GetIsBuildTrap() == false) {
 				break;
 			}
 			if (m_bClick && m_Trap.back()->GetIsBuildTrap() == true)
@@ -1402,14 +1470,19 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_Trap.emplace_back(new Trap());
 			m_Trap.back()->SetChild(m_SlowTrapModel, false);
 			m_Trap.back()->BuildTrap(true);
+<<<<<<< HEAD
 			m_Trap.back()->SetTrapKind(TRAP_SLOW);
 			
+=======
+			m_Trap.back()->SetTrapKind(TRAP_SLOW);*/
+/*			if (m_Slow) m_Slow->BuildTrap();
+>>>>>>> master*/
 		}
 		break;
 
 		case '4':
 		{
-			if (m_bClick && m_Trap.back()->GetIsBuildTrap() == false) {
+			/*if (m_bClick && m_Trap.back()->GetIsBuildTrap() == false) {
 				break;
 			}
 			if (m_bClick && m_Trap.back()->GetIsBuildTrap() == true)
@@ -1419,7 +1492,8 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_Trap.emplace_back(new Trap());
 			m_Trap.back()->SetChild(m_ArrowTrapModel, false);
 			m_Trap.back()->BuildTrap(true);
-			m_Trap.back()->SetTrapKind(TRAP_ARROW);
+			m_Trap.back()->SetTrapKind(TRAP_ARROW);*/
+			if (m_Arrow) m_Arrow->BuildTrap();
 		}
 		break;
 
@@ -1466,8 +1540,8 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case '2':
 		case '3':
 		case '4':
-			if (m_bClick && m_Trap.back()->GetIsBuildTrap() == true) {
-				m_Trap.pop_back();
+			if (m_bClick && m_Needle->GetTrapObject().back()->GetIsBuildTrap() == true) {
+				m_Needle->GetTrapObject().pop_back();
 			}
 			m_bClick = false;
 		break;

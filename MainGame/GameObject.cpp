@@ -994,6 +994,7 @@ GameObject *GameObject::CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool 
 	GameObject *TileObject = NULL;
 	GameObject *TileSibling = NULL;
 	GameObject *TileChild = NULL;
+
 	if (m_Mesh) {
 		if (IsFloor) {
 			// 바닥 타일
@@ -1090,7 +1091,7 @@ void GameObject::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList, XM
 void GameObject::SetEnable(int nAnimationSet)
 {
 	if (nAnimationSet > 29  && nAnimationSet < 0) return;
-	m_AnimateState = short(nAnimationSet);
+	m_AnimateState = nAnimationSet;
 
 	if (m_AnimationController) m_AnimationController->SetAnimationEnable(nAnimationSet);
 
@@ -1139,6 +1140,19 @@ void GameObject::Render(ID3D12GraphicsCommandList *CommandList)
 	}
 	if (m_Sibling) m_Sibling->Render(CommandList);
 	if (m_Child) m_Child->Render(CommandList);
+}
+
+void GameObject::Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView)
+{
+	if (m_nMaterial > 0) {
+		for (int i = 0; i < m_nMaterial; ++i) {
+			m_Material[i]->UpdateShaderVariable(CommandList);
+		}
+	}
+	if (m_Mesh) m_Mesh->Render(CommandList, InstanceNum, InstanceBufferView);
+
+	if (m_Sibling) m_Sibling->Render(CommandList, InstanceNum, InstanceBufferView);
+	if (m_Child) m_Child->Render(CommandList, InstanceNum, InstanceBufferView);
 }
 
 void GameObject::CacheSkinningBoneFrame(GameObject *RootFrame)
@@ -1467,7 +1481,52 @@ void SkyBox::Render(ID3D12GraphicsCommandList *CommandList)
 }
 
 
-void Trap::Animate(GameObject *Player, float ElapsedTime, XMFLOAT4X4 *Parent)
+Effect::Effect(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT type)
+{
+	
+}
+
+void Effect::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
+{
+	/*if (flag < 10)
+		m_WorldPos._41 -= 30 * ElapsedTime;
+	if (flag >= 10)
+		m_WorldPos._41 += 30 * ElapsedTime;
+
+	++flag;
+
+	if (flag == 20) flag = 0;*/
+
+	if (flag < 30) {
+		SetScale(1.f, 1.01f, 1.f);
+		m_WorldPos._41 -= 30 * ElapsedTime;
+	}
+	if (flag >= 30) {
+		SetScale(1.f, 0.99f, 1.f);
+		m_WorldPos._41 += 30 * ElapsedTime;
+	}
+	++flag;
+
+	if (flag == 60) flag = 0;
+}
+
+void Effect::Render(ID3D12GraphicsCommandList *CommandList)
+{
+	UpdateShaderVariable(CommandList, &m_WorldPos);
+
+	if (m_nMaterial > 0) {
+		for (int i = 0; i < m_nMaterial; ++i) {
+			if (m_Material[i]->m_Shader)
+				m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
+			//m_Material[i]->UpdateShaderVariable(CommandList);
+			if (m_Mesh)
+				m_Mesh->Render(CommandList);
+		}
+	}
+}
+
+
+void Trap::Animate(XMFLOAT3 Position, float ElapsedTime, XMFLOAT4X4 *Parent)
 {
 	// 함정의 위치를 설정하는 함수
 	//if (IsBuildTrap) {

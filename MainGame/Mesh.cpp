@@ -49,6 +49,47 @@ void Mesh::Render(ID3D12GraphicsCommandList *CommandList, int nSubSet)
 		CommandList->DrawInstanced(m_nVertices, 1, m_nOffset, 0);
 }
 
+void Mesh::Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView)
+{
+	OnPreRender(CommandList, NULL, InstanceBufferView);
+
+	UpdateShaderVariable(CommandList);
+
+	CommandList->IASetPrimitiveTopology(m_PrimitiveTopology);
+
+	if (m_nSubMesh > 0) {
+		CommandList->IASetIndexBuffer(&(m_SubSetIndexBufferView[0]));
+		CommandList->DrawIndexedInstanced(m_pnSubSetIndices[0], InstanceNum, 0, 0, 0);
+	}
+	else
+		CommandList->DrawInstanced(m_nVertices, InstanceNum, m_nOffset, 0);
+}
+
+CubeMesh::CubeMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
+{
+	m_nVertices = 8;
+	m_nStride = sizeof(DiffusedVertex);
+	m_PrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	// 직육면체 - 꼭지점 8개의 정점
+	DiffusedVertex Vertices[8];
+
+	Vertices[0] = DiffusedVertex(XMFLOAT3(-100, +100, -100), XMFLOAT4(1.f, 0.f, 0.f, 1.f));
+	Vertices[1] = DiffusedVertex(XMFLOAT3(+100, +100, -100), XMFLOAT4(1.f, 0.f, 0.f, 1.f));
+	Vertices[2] = DiffusedVertex(XMFLOAT3(+100, +100, +100), XMFLOAT4(1.f, 0.f, 0.f, 1.f));
+	Vertices[3] = DiffusedVertex(XMFLOAT3(-100, +100, +100), XMFLOAT4(1.f, 0.f, 0.f, 1.f));
+	Vertices[4] = DiffusedVertex(XMFLOAT3(-100, -100, -100), XMFLOAT4(1.f, 0.f, 0.f, 1.f));
+	Vertices[5] = DiffusedVertex(XMFLOAT3(+100, -100, -100), XMFLOAT4(1.f, 0.f, 0.f, 1.f));
+	Vertices[6] = DiffusedVertex(XMFLOAT3(+100, -100, +100), XMFLOAT4(1.f, 0.f, 0.f, 1.f));
+	Vertices[7] = DiffusedVertex(XMFLOAT3(-100, -100, +100), XMFLOAT4(1.f, 0.f, 0.f, 1.f));
+
+	m_VertexBuffer = ::CreateBufferResource(Device, CommandList, Vertices, m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_VertexUploadBuffer);
+
+	m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
+	m_VertexBufferView.StrideInBytes = m_nStride;
+	m_VertexBufferView.SizeInBytes = m_nStride * m_nVertices;
+}
+
 // 텍스쳐 맵핑을 진행할 메쉬
 TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, float width, float height, float depth, float x, float y, float z, int type, int ImageType)
 {
@@ -204,6 +245,12 @@ void StandardMesh::OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Con
 {
 	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[5] = { m_PositionBufferView, m_TextureCoord0BufferView, m_NormalBufferView, m_TangentBufferView, m_BiTangentBufferView };
 	CommandList->IASetVertexBuffers(m_nSlot, 5, VertexBufferView);
+}
+
+void StandardMesh::OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView)
+{
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[6] = { m_PositionBufferView, m_TextureCoord0BufferView, m_NormalBufferView, m_TangentBufferView, m_BiTangentBufferView, InstanceBufferView };
+	CommandList->IASetVertexBuffers(m_nSlot, 6, VertexBufferView);
 }
 
 void StandardMesh::LoadMeshFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile)
@@ -386,10 +433,11 @@ void SkinnedMesh::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
 		CommandList->SetGraphicsRootConstantBufferView(10, cbBoneOffsetGpuVirtualAddress);
 		D3D12_GPU_VIRTUAL_ADDRESS cbBoneTransformGpuVirtualAddress = m_cbBoneTransform->GetGPUVirtualAddress();
 		CommandList->SetGraphicsRootConstantBufferView(11, cbBoneTransformGpuVirtualAddress);
-
+		//cout << "game start";
 		for (int i = 0; i < m_nSkinningBone; ++i) {
 			XMStoreFloat4x4(&m_BoneOffsetPos[i], XMMatrixTranspose(XMLoadFloat4x4(&m_BindPoseBoneOffset[i])));
 			XMStoreFloat4x4(&m_BoneTransformPos[i], XMMatrixTranspose(XMLoadFloat4x4(&m_SkinningBoneFrameCache[i]->m_WorldPos)));
+			//cout << i << " " << m_BoneOffsetPos[i]._11 << endl;
 		}
 	}
 }
@@ -398,6 +446,12 @@ void SkinnedMesh::OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Cont
 {
 	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[7] = { m_PositionBufferView, m_TextureCoord0BufferView, m_NormalBufferView, m_TangentBufferView, m_BiTangentBufferView,m_BoneIndexBufferView , m_BoneWeightBufferView };
 	CommandList->IASetVertexBuffers(m_nSlot, 7, VertexBufferView);
+}
+
+void SkinnedMesh::OnPreRender(ID3D12GraphicsCommandList *CommandList, void *Context, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView)
+{
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView[8] = { m_PositionBufferView, m_TextureCoord0BufferView, m_NormalBufferView, m_TangentBufferView, m_BiTangentBufferView, m_BoneIndexBufferView, m_BoneWeightBufferView, InstanceBufferView };
+	CommandList->IASetVertexBuffers(m_nSlot, 8, VertexBufferView);
 }
 
 void SkinnedMesh::LoadSkinInfoFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, FILE *InFile)

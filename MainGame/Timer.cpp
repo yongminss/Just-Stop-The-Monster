@@ -50,7 +50,7 @@ void Timer::Tick(float LockFPS)
 		if (m_nSampleCount < MAX_SAMPLE_COUNT)
 			++m_nSampleCount;
 	}
-
+	
 	++m_nFramesPerSecond;
 	m_FPSTimeElapsed += TimeElapsed;
 	
