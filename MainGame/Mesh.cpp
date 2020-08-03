@@ -106,13 +106,25 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 	float tempX = 0.f;
 	float tempY = 0.f;
 	// Title
-	if (Title == ImageType) tempY = +0.4f;
+	if (Title == ImageType) tempY = +0.5f;
+	// Single Button
+	if (Single == ImageType) tempY = -0.15f;
+	// Multi Button
+	if (Multi == ImageType) tempY = -0.55f;
 	// RoomList
 	if (RoomList == ImageType) tempX = 0.0f, tempY = 0.0f;
 	// Make Room
 	if (MakeRoom == ImageType) tempX = 0.0f, tempY = 0.0f;
 	// Join Room
 	if (JoinRoom == ImageType) tempX = 0.0f, tempY = 0.0f;
+	// Room1
+	if (Room_1 == ImageType) tempX = 0.05f, tempY = 0.5f;
+	// Room2
+	if (Room_2 == ImageType) tempX = 0.05f, tempY = 0.15f;
+	// Room3
+	if (Room_3 == ImageType) tempX = 0.05f, tempY = -0.2f;
+	// Room4
+	if (Room_4 == ImageType) tempX = 0.05f, tempY = -0.55f;
 	// Stage Select
 	if (Select_Stage == ImageType) tempX = -0.5f,tempY = +0.3f;
 	// Stage Left

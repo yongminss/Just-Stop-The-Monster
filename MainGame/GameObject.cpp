@@ -1248,11 +1248,19 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	switch (Type) {
 	case BackGround:
 		// Title Background
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/JSTM_Title.dds", 0);
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/BackGround.dds", 0);
 		break;
 	case Title:
 		// Title Logo
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Main_Title_Logo.dds", 0);
+		break;
+	case Single:
+		// Single Button
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/SingleGame.dds", 0);
+		break;
+	case Multi:
+		// Multi Button
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/MultiGame.dds", 0);
 		break;
 	case RoomList:
 		// Room List
@@ -1265,6 +1273,22 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	case JoinRoom:
 		// Join Room
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Select_Join_Room.dds", 0);
+		break;
+	case Room_1:
+		// Room1
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Room_1.dds", 0);
+		break;
+	case Room_2:
+		// Room2
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Room_2.dds", 0);
+		break;
+	case Room_3:
+		// Room3
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Room_3.dds", 0);
+		break;
+	case Room_4:
+		// Room4
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Room_4.dds", 0);
 		break;
 	case Select_Stage:
 		// Stage Select

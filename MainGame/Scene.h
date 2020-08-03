@@ -16,12 +16,16 @@ private:
 
 	// 타이틀 씬에서 사용할 오브젝트
 	UI							*m_Background = NULL;
+	UI							*m_Single = NULL;
+	UI							*m_Multi = NULL;
 	UI							*m_Title = NULL;
 	UI							*m_RoomList = NULL;
 	UI							*m_MakeRoom = NULL;
 	UI							*m_JoinRoom = NULL;
-	//UI							*m_Room_1 = NULL;
-	//UI							*m_Room_2 = NULL;
+	UI							*m_Room_1 = NULL;
+	UI							*m_Room_2 = NULL;
+	UI							*m_Room_3 = NULL;
+	UI							*m_Room_4 = NULL;
 	UI							*m_StageSelect = NULL;
 	UI							*m_StageLeft = NULL;
 	UI							*m_StageRight = NULL;

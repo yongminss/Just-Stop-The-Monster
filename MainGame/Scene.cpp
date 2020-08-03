@@ -29,17 +29,25 @@ void TitleScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 {
 	m_GraphicsRootSignature = CreateGraphicsRootSignature(Device);
 
-	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 20);
+	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 30);
 
 	m_Viewport = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.f, 1.f };
 	m_ScissorRect = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT };
 
 	// TitleScene 에서 Redering 될 Objects
 	m_Background = new UI(Device, CommandList, m_GraphicsRootSignature, 1.0f, 1.0f, BackGround, 0);
-	m_Title = new UI(Device, CommandList, m_GraphicsRootSignature, 0.8f, 0.6f, Title, 0);
+	m_Title = new UI(Device, CommandList, m_GraphicsRootSignature, 0.7f, 0.5f, Title, 0);
+	m_Single = new UI(Device, CommandList, m_GraphicsRootSignature, 0.5f, 0.5f, Single, 0);
+	m_Multi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.5f, 0.5f, Multi, 0);
+	
 	m_RoomList = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, RoomList, 0);
 	m_JoinRoom = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, JoinRoom, 0);
 	m_MakeRoom = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, MakeRoom, 0);
+	m_Room_1 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.4f, Room_1, 0);
+	m_Room_2 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.4f, Room_2, 0);
+	m_Room_3 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.4f, Room_3, 0);
+	m_Room_4 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.4f, Room_4, 0);
+
 	m_StageSelect = new UI(Device, CommandList, m_GraphicsRootSignature, 0.45f, 0.2f, Select_Stage, 0);
 	m_StageLeft = new UI(Device, CommandList, m_GraphicsRootSignature, 0.45f, 0.2f, Stage_Left, 0);
 	m_StageRight = new UI(Device, CommandList, m_GraphicsRootSignature, 0.45f, 0.2f, Stage_Right, 0);
@@ -220,11 +228,17 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 	switch (m_state) {
 	case Basic:
 		if (m_Title) m_Title->Render(CommandList);
+		if (m_Single) m_Single->Render(CommandList);
+		if (m_Multi) m_Multi->Render(CommandList);
 		if (m_Background) m_Background->Render(CommandList);
 		break;
 
 	case Select_Room:
 		if (m_BackButton) m_BackButton->Render(CommandList);
+		if (m_Room_1) m_Room_1->Render(CommandList); //1번룸이 생기면 표시
+		if (m_Room_2) m_Room_2->Render(CommandList); //1번룸이 생기면 표시
+		if (m_Room_3) m_Room_3->Render(CommandList); //1번룸이 생기면 표시
+		if (m_Room_4) m_Room_4->Render(CommandList); //1번룸이 생기면 표시
 		if (m_JoinRoom) m_JoinRoom->Render(CommandList);
 		if (m_MakeRoom) m_MakeRoom->Render(CommandList);
 		if (m_RoomList) m_RoomList->Render(CommandList);
@@ -276,14 +290,11 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 		switch (m_state) {
 		case Basic:
 			// Single Game 버튼을 클릭하면 Game Start
-			if (MousePos.x > 290 && MousePos.x < 510 && MousePos.y > 310 && MousePos.y < 360)
+			if (MousePos.x > 200 && MousePos.x < 600 && MousePos.y > 300 && MousePos.y < 400)
 				m_StartGame = true;
 			// Multi Game 버튼을 클릭하면 Make Room
-			else if (MousePos.x > 300 && MousePos.x < 510 && MousePos.y > 370 && MousePos.y < 420)
+			else if (MousePos.x > 200 && MousePos.x < 600 && MousePos.y > 430 && MousePos.y < 500)
 				m_state = Select_Room;
-			// Exit 버튼을 누르면 Game Over
-			else if (MousePos.x > 360 && MousePos.x < 440 && MousePos.y > 430 && MousePos.y < 480)
-				::PostQuitMessage(0);
 			break;
 		case Select_Room:
 			// Back Button
@@ -314,6 +325,7 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 			//Start Button
 			if (MousePos.x > 100 && MousePos.x < 300 && MousePos.y >370 && MousePos.y < 470) {
 				m_StartGame = true;
+				//해당 게임으로 시작 m_StageNumber
 			}
 			// Stage Select Before
 			if (MousePos.x > 90 && MousePos.x < 145 && MousePos.y > 215 && MousePos.y < 255) {
@@ -344,7 +356,6 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 			// Back Button
 			if (MousePos.x > 80 && MousePos.x < 160 && MousePos.y > 60 && MousePos.y < 120) {
 				//m_BackButton->SetRed(0x01);
-				
 			}
 			else {
 				//m_BackButton->SetRed(0x00);
