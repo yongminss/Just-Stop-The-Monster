@@ -223,7 +223,8 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 	// 뷰포트와 씨저렉트 영역을 설정
 	CommandList->RSSetViewports(1, &m_Viewport);
 	CommandList->RSSetScissorRects(1, &m_ScissorRect);
-
+	
+	int cnt = 0;
 	// Player의 선택에 따라 그려질 방법
 	switch (m_state) {
 	case Basic:
@@ -235,10 +236,15 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 	case Select_Room:
 		if (m_BackButton) m_BackButton->Render(CommandList);
-		if (m_Room_1) m_Room_1->Render(CommandList); //1번룸이 생기면 표시
-		if (m_Room_2) m_Room_2->Render(CommandList); //1번룸이 생기면 표시
-		if (m_Room_3) m_Room_3->Render(CommandList); //1번룸이 생기면 표시
-		if (m_Room_4) m_Room_4->Render(CommandList); //1번룸이 생기면 표시
+		
+		for (GAME_ROOM_C* a : network_manager::GetInst()->m_vec_gameRoom) {
+			if (cnt == 0) m_Room_1->Render(CommandList); //1번룸이 생기면 표시
+			if (cnt == 1) m_Room_2->Render(CommandList); //2번룸이 생기면 표시
+			if (cnt == 2) m_Room_3->Render(CommandList); //3번룸이 생기면 표시
+			if (cnt == 3) m_Room_4->Render(CommandList); //4번룸이 생기면 표시
+			cnt++;
+		}
+
 		if (m_JoinRoom) m_JoinRoom->Render(CommandList);
 		if (m_MakeRoom) m_MakeRoom->Render(CommandList);
 		if (m_RoomList) m_RoomList->Render(CommandList);
@@ -247,6 +253,7 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 	case Wait_Room:
 		if (m_BackButton) m_BackButton->Render(CommandList);
+
 
 		if (m_StageNumber == 1 && m_Number_1) m_Number_1->Render(CommandList);
 		else if (m_StageNumber == 2 && m_Number_2) m_Number_2->Render(CommandList);
@@ -325,7 +332,6 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 			//Start Button
 			if (MousePos.x > 100 && MousePos.x < 300 && MousePos.y >370 && MousePos.y < 470) {
 				m_StartGame = true;
-				//해당 게임으로 시작 m_StageNumber
 			}
 			// Stage Select Before
 			if (MousePos.x > 90 && MousePos.x < 145 && MousePos.y > 215 && MousePos.y < 255) {
@@ -1380,7 +1386,8 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			}*/
 
 			if (ResultMonster != NULL) {
-				ResultMonster; //이게 타겟 몬스터
+				//network_manager::GetInst()->send_shoot(Mon);
+				//이게 타겟 몬스터
 				if (HeadHit) {
 					//헤드샷
 				}
@@ -1451,8 +1458,6 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 				m_Needle->GetTrapObject().pop_back();
 			else
 				m_bClick = true;
-
-
 		}
 		break;
 

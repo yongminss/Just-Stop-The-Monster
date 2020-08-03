@@ -82,6 +82,8 @@ public:
 
 	bool IsStartGame() { return m_StartGame; }
 
+	short GetStageNum() { return (short)m_StageNumber; }
+
 };
 
 #define MAX_LIGHTS			16

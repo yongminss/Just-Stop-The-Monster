@@ -582,6 +582,7 @@ void MonsterInstancingShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCo
 
 	for (int i = 0; i < INSTANCE_NUM; ++i) {
 		Orc = new Monster();
+		
 		Orc->SetChild(Model, true);
 		Orc->SetScale(50.f, 50.f, 50.f);
 		Orc->SetRotate(-90.f, 0.f, 0.f);

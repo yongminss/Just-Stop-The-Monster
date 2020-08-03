@@ -480,7 +480,13 @@ public:
 	float nInporation = 0.0f;
 	int nCheckPoint = 0;
 	XMFLOAT3 StartLook = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
+private:
+	int m_id;
+
 public:
+	void SetId(int id) { m_id = id; }
+
 	void SetDirection(XMFLOAT3 Position);
 	void SetLookDirection(XMFLOAT3 Look);
 	void SetLine(float ElapsedTime);

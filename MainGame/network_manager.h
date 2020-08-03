@@ -1,6 +1,7 @@
 #pragma once
 //#include "globals.h"
 #include "stdafx.h"
+#include <algorithm>
 
 enum EVENT_TYPE {
 	EV_RECV, EV_SEND
@@ -29,6 +30,7 @@ struct GAME_ROOM_C {
 };
 
 struct TRAPINFO_C {
+	bool enable;
 	short id;
 	char trap_type;
 	DirectX::XMFLOAT3 trap_pos;
@@ -50,13 +52,14 @@ private:
 	static network_manager* Inst;
 
 public:
+	void init_data();
 	void init_socket();
 	void rq_connect_server(const char * server_ip);
 	void ReadBuffer(SOCKET sock);
 	void PacketProccess(void * buf);
 
 	void send_packet(void *buf);
-	void send_change_state_packet(const char& state);
+	void send_change_state_packet(const char& state, const short& StageNum);
 	void send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_pos, const short& animation_state);
 	void send_make_room_packet();
 	void send_request_join_room(const short& room_number);
@@ -82,6 +85,7 @@ public:
 	bool m_nameLogin = false;
 
 	vector<GAME_ROOM_C*> m_vec_gameRoom;
+	vector<TRAPINFO_C*> m_vec_trapPool;
 	MONSTER m_monster_pool[MAX_MONSTER];
 	TRAPINFO_C m_trap_pool[MAX_TRAP];
 
