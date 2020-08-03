@@ -13,6 +13,9 @@ struct PLAYER_INFO
 	char player_state;
 	short room_number;
 	short AnimateState;
+
+	short hp;
+	short gold;
 	XMFLOAT4X4 Transform;
 };
 
@@ -23,6 +26,12 @@ struct GAME_ROOM_C {
 	short stage_number;
 	short portalLife;
 	int players_id[4];
+};
+
+struct TRAPINFO_C {
+	short id;
+	char trap_type;
+	DirectX::XMFLOAT3 trap_pos;
 };
 
 struct OVER_EX {
@@ -51,6 +60,10 @@ public:
 	void send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_pos, const short& animation_state);
 	void send_make_room_packet();
 	void send_request_join_room(const short& room_number);
+	void send_install_trap(char trap_type, DirectX::XMFLOAT3 trap_pos);
+	void send_shoot(short monster_id, bool headShot);
+	void send_request_login(char name[]);
+	void send_leaveRoom();
 
 	void socket_err_display(const char * msg, int err_no);
 
@@ -65,9 +78,13 @@ public:
 
 	PLAYER_INFO m_my_info;
 	PLAYER_INFO m_OtherInfo;
+	GAME_ROOM_C m_myRoomInfo;
+	bool m_nameLogin = false;
 
 	vector<GAME_ROOM_C*> m_vec_gameRoom;
 	MONSTER m_monster_pool[MAX_MONSTER];
+	TRAPINFO_C m_trap_pool[MAX_TRAP];
+
 
 public:
 	bool IsConnect() { return m_OtherInfo.is_connect; }

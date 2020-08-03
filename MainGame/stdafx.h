@@ -62,13 +62,27 @@ using namespace std;
 enum {
 	// Title Scene
 	BackGround,
+	Title,
 	RoomList,
+	JoinRoom,
+	MakeRoom,
 	Select_Stage,
-	Select_WeaponAndSkill,
+	Stage_Left,
+	Stage_Right,
+	Start_Button,
 	PlayerInfo,
+	Player_1,
+	Player_2,
+	MyPlayer,
+	Back_Button,
+	Num_1,
+	Num_2,
+	Num_3,
+	Num_4,
 	// Game Scene
 	UI_PlayerInfo,
-	UI_TrapList
+	UI_TrapList,
+	UI_SCOPE
 };
 
 extern UINT nCbvSrvDescriptorIncrementSize;

@@ -648,6 +648,13 @@ void GameObject::SetLook(XMFLOAT3 Look)
 	UpdateTransform(NULL);
 }
 
+void GameObject::SetmPosition(XMFLOAT3 Position)
+{
+	m_Position.x = Position.x;
+	m_Position.y = Position.y;
+	m_Position.z = Position.z;
+}
+
 void GameObject::SetPostion(XMFLOAT3 Position)
 {
 	m_TransformPos._41 = Position.x;
@@ -894,6 +901,94 @@ GameObject *GameObject::FindFrame(char *FrameName)
 	return NULL;
 }
 
+BoundingBox GameObject::GetBodyBounding()
+{
+	if (m_Mesh)
+	{
+		if (strstr(m_FrameName, "Body"))
+		{
+			BoundingBox BodyBound = m_Mesh->GetBounds();
+			BodyBound.Transform(BodyBound, XMLoadFloat4x4(&m_WorldPos));
+			return BodyBound;
+		}
+	}
+	if (m_Sibling)
+		return m_Sibling->GetBodyBounding();
+	if (m_Child)
+		return m_Child->GetBodyBounding();
+}
+
+GameObject *GameObject::IsStageIntersect(BoundingBox BodyBound)
+{
+	GameObject *TileObject = NULL;
+	GameObject *TileSibling = NULL;
+	GameObject *TileChild = NULL;
+	if (m_Mesh)
+	{
+		if (strstr(m_FrameName, "Normal") || strstr(m_FrameName, "Doorway"))
+		{
+			BoundingBox TileBound = m_Mesh->GetBounds();
+			TileBound.Transform(TileBound, XMLoadFloat4x4(&m_WorldPos));
+			if (TileBound.Intersects(BodyBound)) {
+				TileObject = this;
+			}
+		}
+	}
+	if (m_Sibling)
+		TileSibling = m_Sibling->IsStageIntersect(BodyBound);
+	if (m_Child)
+		TileChild = m_Child->IsStageIntersect(BodyBound);
+
+	if (TileObject) {
+		if (TileSibling) {
+			if (Vector3::Distance(TileObject->GetPosition(),BodyBound.Center) > Vector3::Distance(TileSibling->GetPosition(), BodyBound.Center))
+				TileObject = TileSibling;
+		}
+		if (TileChild) {
+			if (Vector3::Distance(TileObject->GetPosition(), BodyBound.Center) > Vector3::Distance(TileChild->GetPosition(), BodyBound.Center))
+				TileObject = TileChild;
+		}
+	}
+	else {
+		if (TileSibling && TileChild) {
+			if (Vector3::Distance(TileSibling->GetPosition(), BodyBound.Center) > Vector3::Distance(TileChild->GetPosition(), BodyBound.Center))
+				TileObject = TileChild;
+			else
+				TileObject = TileSibling;
+		}
+		else if (TileSibling)
+			TileObject = TileSibling;
+		else if (TileChild)
+			TileObject = TileChild;
+	}
+	
+	if (TileObject)
+		return TileObject;
+
+	return NULL;
+}
+
+int GameObject::CheckMonster(XMFLOAT3 startpos, XMFLOAT3 endpos)
+{
+	if (m_Mesh) {
+		// 몬스터 부위
+		BoundingBox MonsterBound = m_Mesh->GetBounds();
+		MonsterBound.Transform(MonsterBound, XMLoadFloat4x4(&m_WorldPos));
+		if (MonsterBound.Intersects(XMLoadFloat3(&startpos), XMLoadFloat3(&endpos), m_Mesh->m_fDistance) == true) {
+			if (strstr(m_FrameName, "Head"))
+				return 2;
+			else
+				return 1;
+		}
+	}
+	if (m_Sibling)
+		return m_Sibling->CheckMonster(startpos, endpos);
+	if (m_Child)
+		return m_Child->CheckMonster(startpos, endpos);
+	
+	return 0;
+}
+
 GameObject *GameObject::CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool IsFloor)
 {
 	GameObject *TileObject = NULL;
@@ -953,7 +1048,6 @@ GameObject *GameObject::CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool 
 		return TileObject; 
 
 	return NULL;
-
 }
 
 Texture *GameObject::FindReplicatedTexture(_TCHAR *TextureName)
@@ -1136,41 +1230,89 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
 
 	switch (Type) {
-		// Title Background
 	case BackGround:
+		// Title Background
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/JSTM_Title.dds", 0);
 		break;
-
+	case Title:
+		// Title Logo
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Main_Title_Logo.dds", 0);
+		break;
 	case RoomList:
 		// Room List
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/roomlist.dds", 0);
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Select_Room_List.dds", 0);
 		break;
-
+	case MakeRoom:
+		// Make Room
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Select_Make_Room.dds", 0);
+		break;
+	case JoinRoom:
+		// Join Room
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Select_Join_Room.dds", 0);
+		break;
 	case Select_Stage:
 		// Stage Select
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_stage.dds", 0);
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Stage_Box.dds", 0);
 		break;
-
-	case Select_WeaponAndSkill:
+	case Stage_Left:
+		// Stage Left
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Stage_Left.dds", 0);
+		break;
+	case Stage_Right:
+		// Stage Right
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Stage_Right.dds", 0);
+		break;
+	case Start_Button:
 		// Weapon and Skill Select
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_weapon_skill.dds", 0);
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_StartButton.dds", 0);
 		break;
-
+	case Back_Button:
+		//Back Button
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Back_Button.dds", 0);
+		break;
 	case PlayerInfo:
 		// Player Info
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_player.dds", 0);
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/PlayerBox.dds", 0);
 		break;
-
+	case Player_1:
+		// Player Info
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Player1.dds", 0);
+		break;
+	case Player_2:
+		// Player Info
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Player2.dds", 0);
+		break;
+	case MyPlayer:
+		// Player Info
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/MyPlayer.dds", 0);
+		break;
+	case Num_1:
+		//Number 1
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Number_1.dds", 0);
+		break;
+	case Num_2:
+		//Number 2
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Number_2.dds", 0);
+		break;
+	case Num_3:
+		//Number 3
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Number_3.dds", 0);
+		break;
+	case Num_4:
+		//Number 4
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Number_4.dds", 0);
+		break;
 	case UI_PlayerInfo:
 		// Charactor Information
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/charinfo.dds", 0);
 		break;
-
 	case UI_TrapList:
 		// Trap List UI
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/traplist.dds", 0);
 		break;
-
+	case UI_SCOPE:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Scope.dds", 0);
+		break;
 	default:
 		break;
 	}

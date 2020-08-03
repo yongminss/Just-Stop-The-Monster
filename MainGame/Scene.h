@@ -16,10 +16,27 @@ private:
 
 	// 타이틀 씬에서 사용할 오브젝트
 	UI							*m_Background = NULL;
+	UI							*m_Title = NULL;
 	UI							*m_RoomList = NULL;
+	UI							*m_MakeRoom = NULL;
+	UI							*m_JoinRoom = NULL;
+	//UI							*m_Room_1 = NULL;
+	//UI							*m_Room_2 = NULL;
 	UI							*m_StageSelect = NULL;
-	UI							*m_WeaponSkill = NULL;
+	UI							*m_StageLeft = NULL;
+	UI							*m_StageRight = NULL;
+	UI							*m_StartButton = NULL;
 	UI							*m_PlayerInfo = NULL;
+	UI							*m_Player_1 = NULL;
+	UI							*m_Player_2 = NULL;
+	UI							*m_MyPlayer = NULL;
+	UI							*m_BackButton = NULL;
+	UI							*m_Number_1 = NULL;
+	UI							*m_Number_2 = NULL;
+	UI							*m_Number_3 = NULL;
+	UI							*m_Number_4 = NULL;
+
+	int							m_StageNumber = 1;
 
 	D3D12_VIEWPORT				m_Viewport;
 	D3D12_RECT					m_ScissorRect;
@@ -60,6 +77,7 @@ public:
 	bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 
 	bool IsStartGame() { return m_StartGame; }
+
 };
 
 #define MAX_LIGHTS			16
@@ -119,6 +137,8 @@ private:
 	UI							*m_CharInfo = NULL;
 	UI							*m_TrapListUi = NULL;
 
+	UI							*m_Scope = NULL;
+
 	// Map
 	SkyBox						*m_SkyBox[5];
 	//GameObject					*m_StageWall = NULL;
@@ -170,7 +190,6 @@ private:
 
 	// 마우스 입력
 	POINT m_ptOldCursorPos;
-	POINT m_ptTrapCursorPos;
 
 	bool	m_bClick = false;
 

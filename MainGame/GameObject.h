@@ -306,6 +306,8 @@ public:
 		if (m_Sibling) m_Sibling->SetRed(bRed);
 	}
 
+	float GetMeshDistance() { return m_Mesh->m_fDistance; }
+
 	void AddRef();
 	void Release();
 
@@ -321,6 +323,8 @@ public:
 	void SetUp(XMFLOAT3 Up);
 	void SetLook(XMFLOAT3 Look);
 	void SetPostion(XMFLOAT3 Position);
+
+	void SetmPosition(XMFLOAT3 Position);
 
 	void SetTransform(XMFLOAT4X4 Transform);
 
@@ -354,6 +358,12 @@ public:
 	static GameObject *LoadGeometryAndAnimationFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, char *FileName, Shader *Shader, bool Animation);
 
 	GameObject *FindFrame(char *FrameName);
+
+	BoundingBox GetBodyBounding();
+
+	GameObject *IsStageIntersect(BoundingBox BodyBound);
+
+	int CheckMonster(XMFLOAT3 startpos, XMFLOAT3 endpos);
 
 	GameObject *CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool IsFloor);
 
@@ -398,6 +408,8 @@ public:
 
 	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
+
+	void SetColor(UINT color) {}
 };
 
 class SkyBox : public GameObject

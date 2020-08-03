@@ -64,17 +64,44 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 
 	float tempX = 0.f;
 	float tempY = 0.f;
-
+	// Title
+	if (Title == ImageType) tempY = +0.4f;
+	// RoomList
+	if (RoomList == ImageType) tempX = 0.0f, tempY = 0.0f;
+	// Make Room
+	if (MakeRoom == ImageType) tempX = 0.0f, tempY = 0.0f;
+	// Join Room
+	if (JoinRoom == ImageType) tempX = 0.0f, tempY = 0.0f;
 	// Stage Select
-	if (Select_Stage == ImageType) tempY = +0.75f;
+	if (Select_Stage == ImageType) tempX = -0.5f,tempY = +0.3f;
+	// Stage Left
+	if (Stage_Left == ImageType) tempX = -0.5f, tempY = +0.3f;
+	// Stage Right
+	if (Stage_Right == ImageType) tempX = -0.5f, tempY = +0.3f;
 	// Weapon and Skill Select
-	if (Select_WeaponAndSkill == ImageType) tempX = -0.5f, tempY = -0.2f;
+	if (Start_Button == ImageType) tempX = -0.5f, tempY = -0.4f;
 	// Player Infomation
-	if (PlayerInfo == ImageType) tempX = +0.5f, tempY = -0.2f;
+	if (PlayerInfo == ImageType) tempX = +0.5f, tempY = -0.1f;
+	// Player 1
+	if (Player_1 == ImageType) tempX = +0.5f, tempY = -0.1f;
+	// Player 2
+	if (Player_2 == ImageType) tempX = +0.5f, tempY = -0.3f;
+	// My Player
+	if (MyPlayer == ImageType) tempX = +0.5f, tempY = -0.3f;
 	// Charactor Information
 	if (UI_PlayerInfo == ImageType) tempX = -0.6f, tempY = +0.85f;
 	// Traplist UI
 	if (UI_TrapList == ImageType) tempY = -0.8f;
+	// Back_Button
+	if (Back_Button == ImageType) tempX = -0.7f, tempY = 0.7f;
+	// Stage Num 1
+	if (Num_1 == ImageType) tempX = -0.5f, tempY = 0.22f;
+	// Stage Num 2
+	if (Num_2 == ImageType) tempX = -0.5f, tempY = 0.22f;
+	// Stage Num 3
+	if (Num_3 == ImageType) tempX = -0.5f, tempY = 0.22f;
+	// Stage Num 4
+	if (Num_4 == ImageType) tempX = -0.5f, tempY = 0.22f;
 
 	switch (type)
 	{

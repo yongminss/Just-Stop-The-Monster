@@ -29,17 +29,30 @@ void TitleScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 {
 	m_GraphicsRootSignature = CreateGraphicsRootSignature(Device);
 
-	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 6);
+	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 20);
 
 	m_Viewport = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.f, 1.f };
 	m_ScissorRect = { 0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT };
 
 	// TitleScene 에서 Redering 될 Objects
-	m_Background = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, BackGround, 0);
+	m_Background = new UI(Device, CommandList, m_GraphicsRootSignature, 1.0f, 1.0f, BackGround, 0);
+	m_Title = new UI(Device, CommandList, m_GraphicsRootSignature, 0.8f, 0.6f, Title, 0);
 	m_RoomList = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, RoomList, 0);
+	m_JoinRoom = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, JoinRoom, 0);
+	m_MakeRoom = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, MakeRoom, 0);
 	m_StageSelect = new UI(Device, CommandList, m_GraphicsRootSignature, 0.45f, 0.2f, Select_Stage, 0);
-	m_WeaponSkill = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.6f, Select_WeaponAndSkill, 0);
-	m_PlayerInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.75f, PlayerInfo, 0);
+	m_StageLeft = new UI(Device, CommandList, m_GraphicsRootSignature, 0.45f, 0.2f, Stage_Left, 0);
+	m_StageRight = new UI(Device, CommandList, m_GraphicsRootSignature, 0.45f, 0.2f, Stage_Right, 0);
+	m_StartButton = new UI(Device, CommandList, m_GraphicsRootSignature, 0.25f, 0.15f, Start_Button, 0);
+	m_PlayerInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.8f, PlayerInfo, 0);
+	m_Player_1 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.8f, Player_1, 0);
+	m_Player_2 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.8f, Player_2, 0);
+	m_MyPlayer = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.8f, MyPlayer, 0);
+	m_BackButton = new UI(Device, CommandList, m_GraphicsRootSignature, 0.1f, 0.1f, Back_Button, 0);
+	m_Number_1 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.07f, Num_1, 0);
+	m_Number_2 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.07f, Num_2, 0);
+	m_Number_3 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.07f, Num_3, 0);
+	m_Number_4 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.07f, Num_4, 0);
 }
 
 void TitleScene::ReleaseObject()
@@ -206,19 +219,34 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 	// Player의 선택에 따라 그려질 방법
 	switch (m_state) {
 	case Basic:
+		if (m_Title) m_Title->Render(CommandList);
 		if (m_Background) m_Background->Render(CommandList);
 		break;
 
 	case Select_Room:
+		if (m_BackButton) m_BackButton->Render(CommandList);
+		if (m_JoinRoom) m_JoinRoom->Render(CommandList);
+		if (m_MakeRoom) m_MakeRoom->Render(CommandList);
 		if (m_RoomList) m_RoomList->Render(CommandList);
 		if (m_Background) m_Background->Render(CommandList);
 		break;
 
 	case Wait_Room:
-		if (m_StageSelect) m_StageSelect->Render(CommandList);
-		if (m_WeaponSkill) m_WeaponSkill->Render(CommandList);
-		if (m_PlayerInfo) m_PlayerInfo->Render(CommandList);
+		if (m_BackButton) m_BackButton->Render(CommandList);
 
+		if (m_StageNumber == 1 && m_Number_1) m_Number_1->Render(CommandList);
+		else if (m_StageNumber == 2 && m_Number_2) m_Number_2->Render(CommandList);
+		else if (m_StageNumber == 3 && m_Number_3) m_Number_3->Render(CommandList);
+		else if (m_StageNumber == 4 && m_Number_4) m_Number_4->Render(CommandList);
+
+		if (m_StageLeft) m_StageLeft->Render(CommandList);
+		if (m_StageRight) m_StageRight->Render(CommandList);
+		if (m_StageSelect) m_StageSelect->Render(CommandList);
+		if (m_StartButton) m_StartButton->Render(CommandList);
+		if (m_Player_1) m_Player_1->Render(CommandList);
+		if (m_Player_2) m_Player_2->Render(CommandList);
+		if (m_MyPlayer) m_MyPlayer->Render(CommandList);
+		if (m_PlayerInfo) m_PlayerInfo->Render(CommandList);
 		if (m_Background) m_Background->Render(CommandList);
 		break;
 
@@ -234,11 +262,14 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
 	POINT MousePos{};
+
+	MousePos.x = LOWORD(lParam);
+	MousePos.y = HIWORD(lParam);
+
 	switch (nMessageID)
 	{
+		
 	case WM_LBUTTONDOWN:
-		MousePos.x = LOWORD(lParam);
-		MousePos.y = HIWORD(lParam);
 		switch (m_state) {
 		case Basic:
 			// Single Game 버튼을 클릭하면 Game Start
@@ -251,23 +282,47 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 			else if (MousePos.x > 360 && MousePos.x < 440 && MousePos.y > 430 && MousePos.y < 480)
 				::PostQuitMessage(0);
 			break;
-
 		case Select_Room:
+			// Back Button
+			if (MousePos.x > 80 && MousePos.x < 160 && MousePos.y > 90 && MousePos.y < 150) {
+				m_state = Basic;
+			}
 			// Make Room
 			if (MousePos.x > 625 && MousePos.x < 785 && MousePos.y > 175 && MousePos.y < 220) {
 				network_manager::GetInst()->send_make_room_packet();
 				m_state = Wait_Room;
+				m_StageNumber = 1;
 			}
 			// Join Room
 			if (MousePos.x > 240 && MousePos.x < 590 && MousePos.y > 70 && MousePos.y < 120)
 				if (network_manager::GetInst()->m_vec_gameRoom.size() != NULL) {
 					network_manager::GetInst()->send_request_join_room(network_manager::GetInst()->m_vec_gameRoom[0]->room_number);
 					m_state = Wait_Room;
+
 				}
 			break;
 
 		case Wait_Room:
-			m_StartGame = true;
+			// Back Button
+			if (MousePos.x > 80 && MousePos.x < 160 && MousePos.y > 60 && MousePos.y < 120) {
+				network_manager::GetInst()->send_leaveRoom();
+				m_state = Select_Room;
+			}
+			//Start Button
+			if (MousePos.x > 100 && MousePos.x < 300 && MousePos.y >370 && MousePos.y < 470) {
+				//m_StartGame = true;
+			}
+			// Stage Select Before
+			if (MousePos.x > 90 && MousePos.x < 145 && MousePos.y > 215 && MousePos.y < 255) {
+				if (m_StageNumber > 1) m_StageNumber -= 1;
+				cout << "StageNumber Down " << m_StageNumber << endl;
+			}
+			// Stage Select Next
+			if (MousePos.x > 250 && MousePos.x < 300 && MousePos.y > 215 && MousePos.y < 255) {
+				if (m_StageNumber < 4) m_StageNumber += 1;
+				cout << "StageNumber UP " << m_StageNumber << endl;
+			}
+			
 			break;
 
 		default:
@@ -278,6 +333,40 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 		break;
 
 	default:
+		cout << "x: " << MousePos.x << " y: " << MousePos.y << endl;
+		switch (m_state) {
+		case Basic:
+			break;
+		case Select_Room:
+			// Back Button
+			if (MousePos.x > 80 && MousePos.x < 160 && MousePos.y > 60 && MousePos.y < 120) {
+				//m_BackButton->SetRed(0x01);
+				
+			}
+			else {
+				//m_BackButton->SetRed(0x00);
+			}
+			break;
+		case Wait_Room:
+			// Back Button
+			if (MousePos.x > 80 && MousePos.x < 160 && MousePos.y > 60 && MousePos.y < 120) {
+				//m_BackButton->SetRed(0x01);
+			}
+			else {
+				//m_BackButton->SetRed(0x00);
+			}
+			// Stage Select Before
+			if (MousePos.x > 90 && MousePos.x < 145 && MousePos.y > 215 && MousePos.y < 255) {
+				//색상바꾸기
+			}
+			// Stage Select Next
+			if (MousePos.x > 250 && MousePos.x < 145 && MousePos.y > 300 && MousePos.y < 255) {
+				//색상바꾸기
+			}
+			break;
+		default:
+			break;
+		}
 		break;
 	}
 
@@ -302,7 +391,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	CreateCbvSrvDescriptorHeap(Device, CommandList, 0, 100);
 
 	Material::PrepareShader(Device, CommandList, m_GraphicsRootSignature);
-
+	 
 	BuildDefaultLightsAndMaterials();
 
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
@@ -310,6 +399,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	// UI
 	m_CharInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.125f, UI_PlayerInfo, 1);
 	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.3f, 0.125f, UI_TrapList, 1);
+	m_Scope = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.0365f, UI_SCOPE, 1);
 
 	// 스카이박스
 	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
@@ -723,9 +813,43 @@ void GameScene::Animate(float ElapsedTime)
 	for (int i = 0; i < 5; ++i) if (m_SkyBox[i]) m_SkyBox[i]->Animate(m_Player->GetPosition());
 
 	if (m_Player) {
+		//벽과 충돌검사'
+
 		m_Player->UpdateTransform(NULL);
+		
+
+		if (m_Player->GetMoveInfo()) {
+			GameObject *TileObject = new GameObject;
+			if (is_rend_01) {
+				BoundingBox BoundPlayer = m_Player->GetBodyBounding();
+				TileObject = m_Stage_01->IsStageIntersect(BoundPlayer);
+				if (TileObject != NULL) {
+					BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
+					BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
+					XMFLOAT3 BoundDistance = Vector3::Subtract(BoundTile.Center, BoundPlayer.Center);
+					if (BoundTile.Extents.x < BoundTile.Extents.z) { // 세로벽
+						if (BoundDistance.x < 0.f) { //왼쪽 벽 충돌체크
+							m_Player->SetmPosition(Vector3::Add(XMFLOAT3(BoundTile.Extents.x + BoundPlayer.Extents.x + BoundDistance.x,0.0f,0.0f),m_Player->GetPosition())); 
+						}
+						else {						//오른쪽 벽 충돌체크
+							m_Player->SetmPosition(Vector3::Add(XMFLOAT3(-BoundTile.Extents.x - BoundPlayer.Extents.x + BoundDistance.x, 0.0f, 0.0f), m_Player->GetPosition())); 
+						}
+						//cout << "x 벽 충돌중" << endl;
+					}
+					else {	//가로벽
+						if (BoundDistance.z < 0.f) { //후방 벽 충돌체크
+							m_Player->SetmPosition(Vector3::Add(XMFLOAT3(0.0f, 0.0f, BoundTile.Extents.z + BoundPlayer.Extents.z + BoundDistance.z), m_Player->GetPosition()));
+						}
+						else {						//전방 벽 충돌체크
+							m_Player->SetmPosition(Vector3::Add(XMFLOAT3(0.0f, 0.0f, -BoundTile.Extents.z - BoundPlayer.Extents.z + BoundDistance.z), m_Player->GetPosition()));
+						}
+					}
+				}
+			}
+		}
 		m_Player->Update(ElapsedTime);
 		XMFLOAT3 p_pos = m_Player->GetPosition();
+		
 	}
 
 	for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
@@ -856,6 +980,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	// 조명을 사용하기 위한 함수 호출
 	UpdateShaderVariable(CommandList);
 
+
 	// 스카이박스 렌더링
 	for (int i = 0; i < 5; ++i) if (m_SkyBox[i]) m_SkyBox[i]->Render(CommandList);
 
@@ -865,6 +990,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	// UI
 	if (m_CharInfo) m_CharInfo->Render(CommandList);
 	if (m_TrapListUi) m_TrapListUi->Render(CommandList);
+	if (m_Scope) m_Scope->Render(CommandList);
 
 	// GameScene에 등장할 오브젝트 렌더링
 	/*if (m_StageWall) m_StageWall->Render(CommandList);
@@ -916,39 +1042,25 @@ void GameScene::ProcessInput(HWND hWnd)
 		xDelta = (float)(CursourPos.x - m_ptOldCursorPos.x) / 10.0f;
 		yDelta = (float)(CursourPos.y - m_ptOldCursorPos.y) / 10.0f;
 		SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
-		m_ptTrapCursorPos = m_ptOldCursorPos;
-
+		
 		if (m_bClick) {
-			
-			::ScreenToClient(hWnd, &m_ptTrapCursorPos);
-
 			Camera *pCamera = m_Player->GetCamera();
-			
-			XMFLOAT3 EndPos(400.0f, 300.0f, 1.0f);
-			
-			EndPos.x /= pCamera->GetProjectionMatrix()._11;
-			EndPos.y /= pCamera->GetProjectionMatrix()._22;
-			
-			XMFLOAT3 xmf3EndProject;
-			XMStoreFloat3(&xmf3EndProject, XMVector3TransformCoord(XMLoadFloat3(&EndPos), XMMatrixInverse(NULL, XMLoadFloat4x4(&pCamera->GetViewMatrix()))));
 			XMFLOAT3 StartPos = pCamera->GetPosition();
-
+			XMFLOAT3 EndPos;
+			EndPos = Vector3::Normalize(pCamera->GetLook());
 			if (m_Trap.size() != 0 && m_Trap.back()->GetIsBuildTrap()) {
-				XMFLOAT3 NormalEnd;
-				xmf3EndProject = Vector3::Subtract(xmf3EndProject, StartPos);
-				NormalEnd = Vector3::Normalize(xmf3EndProject);
-				NormalEnd = m_Player->GetLook();
 				if (is_rend_01) {
 
 					GameObject *TileObject = new GameObject;
 					switch (m_Trap.back()->GetTrapKind()) {
 					case TRAP_NEEDLE:
 					case TRAP_SLOW:
-						TileObject = m_Stage_01->CheckTileBound(StartPos, NormalEnd, true);
+						TileObject = m_Stage_01->CheckTileBound(StartPos, EndPos, true);
+						cout << "바닥 타일" << endl;
 						break;
 					case TRAP_FIRE:
 					case TRAP_ARROW:
-						TileObject = m_Stage_01->CheckTileBound(StartPos, NormalEnd, false);
+						TileObject = m_Stage_01->CheckTileBound(StartPos, EndPos, false);
 						break;
 					}
 					if (TileObject != NULL) {
@@ -957,7 +1069,7 @@ void GameScene::ProcessInput(HWND hWnd)
 						XMFLOAT3 TilePos = BoundTile.Center;
 						bool IsTrapPlaced = false;
 
-						if (TRAP_FIRE || TRAP_ARROW) { // 벽타일
+						if (m_Trap.back()->GetTrapKind() == TRAP_FIRE || m_Trap.back()->GetTrapKind() == TRAP_ARROW) { // 벽타일
 							if (BoundTile.Extents.x < BoundTile.Extents.z) {
 								if (StartPos.x < TilePos.x) {
 									m_Trap.back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
@@ -987,7 +1099,13 @@ void GameScene::ProcessInput(HWND hWnd)
 								}
 							}
 						}
-						else { // 바닥 타일
+						else if(m_Trap.back()->GetTrapKind() == TRAP_NEEDLE || m_Trap.back()->GetTrapKind() == TRAP_SLOW) { // 바닥 타일
+							//m_Trap.back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
+							//m_Trap.back()->SetRight(XMFLOAT3(1.0f, 0.0f, 0.0f));
+							//m_Trap.back()->SetUp(XMFLOAT3(0.0f, 1.0f, 0.0f));
+							cout << "Look x: " << m_Trap.back()->GetLook().x << " y: " << m_Trap.back()->GetLook().y << " z: " << m_Trap.back()->GetLook().z << endl;
+							cout << "Up x: " << m_Trap.back()->GetUp().x << " y: " << m_Trap.back()->GetUp().y << " z: " << m_Trap.back()->GetUp().z << endl;
+							cout << "Right x: " << m_Trap.back()->GetRight().x << " y: " << m_Trap.back()->GetRight().y << " z: " << m_Trap.back()->GetLook().z << endl;
 							TilePos.y += 10.0f;
 						}
 						m_Trap.back()->SetPostion(TilePos);
@@ -1016,7 +1134,7 @@ void GameScene::ProcessInput(HWND hWnd)
 					}
 				}
 				if (is_rend_02) {
-					GameObject *TileObject = m_Stage_02->CheckTileBound(StartPos, NormalEnd, true);
+					GameObject *TileObject = m_Stage_02->CheckTileBound(StartPos, EndPos, true);
 					if (TileObject != NULL) {
 						BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
 						cout << "박스 Up벡터 x: " << TileObject->GetUp().x << " y: " << TileObject->GetUp().y  << " z: " << TileObject->GetUp().z << endl;
@@ -1036,7 +1154,7 @@ void GameScene::ProcessInput(HWND hWnd)
 				}
 				if (is_rend_03) {
 					//cout << "3번스테이지" << endl;
-					GameObject *TileObject = m_Stage_03->CheckTileBound(StartPos, NormalEnd, true);
+					GameObject *TileObject = m_Stage_03->CheckTileBound(StartPos, EndPos, true);
 					if (TileObject != NULL) {
 						BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
 						BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
@@ -1054,7 +1172,6 @@ void GameScene::ProcessInput(HWND hWnd)
 				}
 
 			}
-			
 		}
 	}
 
@@ -1080,18 +1197,109 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			}
 		}
 		else {
-			m_ptTrapCursorPos = m_ptOldCursorPos;
-			::ScreenToClient(hWnd, &m_ptTrapCursorPos);
-
 			Camera *pCamera = m_Player->GetCamera();
-
-			XMFLOAT3 EndPos((m_ptTrapCursorPos.x * 2.0f) / FRAME_BUFFER_WIDTH - 1.0f, ((-m_ptTrapCursorPos.y * 2.0f) / FRAME_BUFFER_HEIGHT + 1.0f), 1.0f);
-
-			EndPos.x /= pCamera->GetProjectionMatrix()._11;
-			EndPos.y /= pCamera->GetProjectionMatrix()._22;
-			XMFLOAT3 xmf3EndProject;
-			XMStoreFloat3(&xmf3EndProject, XMVector3TransformCoord(XMLoadFloat3(&EndPos), XMMatrixInverse(NULL, XMLoadFloat4x4(&pCamera->GetViewMatrix()))));
 			XMFLOAT3 StartPos = pCamera->GetPosition();
+			XMFLOAT3 EndPos;
+			EndPos = Vector3::Normalize(pCamera->GetLook());
+			
+			GameObject *ResultMonster = new GameObject;
+			float ResultDistance = 0;
+			int HitPart = 0;
+			bool HeadHit = false;
+
+			for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter) 
+			{
+				HitPart = (*iter)->CheckMonster(StartPos, EndPos);
+				if (HitPart != 0)
+				{
+					if (ResultMonster == NULL)
+					{
+						ResultMonster = (*iter);
+						ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
+						if (HitPart == 1)
+							HeadHit = false;
+						else
+							HeadHit = true;
+					}
+					else 
+					{
+						if (ResultDistance > Vector3::Distance((*iter)->GetPosition(), m_Player->GetPosition()))
+						{
+							ResultMonster = (*iter);
+							ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
+							if (HitPart == 1)
+								HeadHit = false;
+							else
+								HeadHit = true;
+						}
+					}
+				}
+			}
+			for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter) {
+				HitPart = (*iter)->CheckMonster(StartPos, EndPos);
+				if (HitPart != 0)
+				{
+					HitPart = (*iter)->CheckMonster(StartPos, EndPos);
+					if (HitPart != 0)
+					{
+						if (ResultMonster == NULL)
+						{
+							ResultMonster = (*iter);
+							ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
+							if (HitPart == 1)
+								HeadHit = false;
+							else
+								HeadHit = true;
+						}
+						else
+						{
+							if (ResultDistance > Vector3::Distance((*iter)->GetPosition(), m_Player->GetPosition()))
+							{
+								ResultMonster = (*iter);
+								ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
+								if (HitPart == 1)
+									HeadHit = false;
+								else
+									HeadHit = true;
+							}
+						}
+					}
+				}
+			}
+			for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter) {
+				HitPart = (*iter)->CheckMonster(StartPos, EndPos);
+				if (HitPart != 0)
+				{
+					if (ResultMonster == NULL)
+					{
+						ResultMonster = (*iter);
+						ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
+						if (HitPart == 1)
+							HeadHit = false;
+						else
+							HeadHit = true;
+					}
+					else
+					{
+						if (ResultDistance > Vector3::Distance((*iter)->GetPosition(), m_Player->GetPosition()))
+						{
+							ResultMonster = (*iter);
+							ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
+							if (HitPart == 1)
+								HeadHit = false;
+							else
+								HeadHit = true;
+						}
+					}
+				}
+			}
+
+			if (ResultMonster != NULL) {
+				ResultMonster; //이게 타겟 몬스터
+				if (HeadHit) {
+					//헤드샷
+				}
+			}
 
 			m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
 			m_Player->SetEnable(9);
@@ -1195,6 +1403,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_Trap.back()->SetChild(m_SlowTrapModel, false);
 			m_Trap.back()->BuildTrap(true);
 			m_Trap.back()->SetTrapKind(TRAP_SLOW);
+			
 		}
 		break;
 

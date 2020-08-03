@@ -36,6 +36,10 @@ public:
 
 	bool GetMoveInfo() { bool IsTrue = false; (m_MoveUp || m_MoveDown || m_MoveLeft || m_MoveRight) ? IsTrue = true : IsTrue = false; return IsTrue; }
 
+	void SetMoveReturn(float ElapsedTime);
+
+	
+
 	void CreateCameraSet(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 	void UpdateCameraSet(ID3D12GraphicsCommandList *CommandList);
 	

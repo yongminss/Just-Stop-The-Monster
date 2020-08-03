@@ -76,12 +76,14 @@ struct VS_TEXTURED_INPUT
 {
 	float3 position : POSITION;
 	float2 uv : UV;
+	//UINT	color: COLOR
 };
 
 struct VS_TEXTURED_OUTPUT
 {
 	float4 position : SV_POSITION;
 	float2 uv : UV;
+	//UINT	color : COLOR
 };
 
 
@@ -113,6 +115,12 @@ float4 PSPictureColor(VS_TEXTURED_OUTPUT input) : SV_TARGET
 
     //clip(Color.a - 0.f);
     
+	//if (color & 0x01) {
+	//	if (Color.g > 0.7f) {
+	//		Color.r = 0.5f;
+	//		Color.g = 0.5f;
+	//	}
+	//}
     return Color;
 }
 

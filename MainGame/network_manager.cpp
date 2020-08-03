@@ -5,6 +5,16 @@ network_manager* network_manager::Inst = NULL;
 
 network_manager::network_manager()
 {
+	//ZeroMemory(m_myRoomInfo, sizeof(m_myRoomInfo));
+	m_my_info.hp = 0;
+	m_my_info.gold = 200;
+
+	m_myRoomInfo.room_number = 0;
+	m_myRoomInfo.portalLife = 20;
+	m_myRoomInfo.wave_count = 0;
+	m_myRoomInfo.stage_number = 0;
+
+	m_nameLogin = false;
 }
 
 
@@ -128,12 +138,12 @@ void network_manager::PacketProccess(void * buf)
 	}
 	case SC_SEND_ROOM_LIST: {
 		sc_packet_room_info *room_info_packet = reinterpret_cast<sc_packet_room_info*>(buf);
-		for (auto rw : m_vec_gameRoom) {
+		for (auto &rw : m_vec_gameRoom) {
 			if (rw->room_number == room_info_packet->room_number) { // 원래있는방 업데이트
 				for (int i = 0; i < 4; ++i) {
 					rw->players_id[i] = room_info_packet->players_id[i];
-					return;
 				}
+				return;
 			}
 		}
 		GAME_ROOM_C *new_room = new GAME_ROOM_C;
@@ -150,8 +160,17 @@ void network_manager::PacketProccess(void * buf)
 		if (m_my_info.id == make_room_ok_packet->id) {
 			m_my_info.room_number = make_room_ok_packet->room_number;
 			m_my_info.player_state = PLAYER_STATE_in_room;
+			m_myRoomInfo.room_number = make_room_ok_packet->room_number;
 		}
 		break;
+	}
+	case SC_GAME_START: {
+		sc_packet_game_start *game_start_packet = reinterpret_cast<sc_packet_game_start*>(buf);
+		m_my_info.player_state = PLAYER_STATE_playing_game;
+		m_my_info.hp = 200;
+		m_my_info.gold = 500;
+		m_myRoomInfo.portalLife = 20;
+		m_myRoomInfo.wave_count = 0;
 	}
 	case SC_MONSTER_POS: {
 		sc_packet_monster_pos *monster_pos_packet = reinterpret_cast<sc_packet_monster_pos*>(buf);
@@ -165,7 +184,70 @@ void network_manager::PacketProccess(void * buf)
 		//m_monster_pool[0].world_pos._43 << endl;
 		break;
 	}
+	case SC_TRAP_INFO: {
+		break;
+	}
+	case SC_JOIN_ROOM_OK: {
+		sc_packet_join_room_ok *join_room_ok_packet = reinterpret_cast<sc_packet_join_room_ok*>(buf);
+		m_myRoomInfo.room_number = join_room_ok_packet->room_number;
+		m_my_info.player_state = PLAYER_STATE_in_room;
+		for (short i = 0; i < 4; ++i) {
+			m_myRoomInfo.players_id[i] = join_room_ok_packet->players_id[i];
+		}
+		cout << "join " << join_room_ok_packet->room_number << " room \n";
+		break;
+	}
+	case SC_PLAYER_STAT_CHANGE: {
+		sc_packet_stat_change *stat_change_packet = reinterpret_cast<sc_packet_stat_change*>(buf);
+		if (stat_change_packet->hp == -1000) { // gold 업데이트
+			m_my_info.gold = stat_change_packet->gold;
+		}
+		else if (stat_change_packet->gold == -1000) { // hp업데이트
+			m_my_info.hp = stat_change_packet->hp;
+		}
+		break;
+	}
+	case SC_GAME_INFO_UPDATE: {
+		sc_packet_game_info_update *game_info_update_packet = reinterpret_cast<sc_packet_game_info_update*>(buf);
+		if (game_info_update_packet->portalLife == -1000) { // wave 업데이트
+			m_myRoomInfo.wave_count = game_info_update_packet->wave;
+		}
+		else if (game_info_update_packet->wave == -1000) { // portalLife 업데이트
+			m_myRoomInfo.portalLife = game_info_update_packet->portalLife;
+		}
+		break;
+	}
+	case SC_GAME_END: {
+		// 게임종료
+		sc_packet_game_end *game_end_packet = reinterpret_cast<sc_packet_game_end*>(buf);
+		if (game_end_packet->clear == true) { // 클리어
 
+		}
+		else {// 실패
+
+		}
+
+		m_my_info.player_state = PLAYER_STATE_in_lobby;
+		break;
+	}
+	case SC_NAMELOGIN_RESULT: {
+		sc_packet_nameLogin_result *nameLogin_result_packet = reinterpret_cast<sc_packet_nameLogin_result*>(buf);
+		if (nameLogin_result_packet->type == NAMELOGIN_SUC) {
+			m_nameLogin = true;
+		}
+		else if (nameLogin_result_packet->type == NAMELOGIN_FAIL) {
+
+		}
+		break;
+	}
+	case SC_LEAVE_ROOM_OK:
+	{
+		sc_packet_leaveRoom_ok *leaveRoom_ok_packet = reinterpret_cast<sc_packet_leaveRoom_ok*>(buf);
+		if (leaveRoom_ok_packet->id == m_my_info.id) {
+			m_my_info.player_state = PLAYER_STATE_in_lobby;
+		}
+		break;
+	}
 	}
 }
 
@@ -195,6 +277,7 @@ void network_manager::send_change_state_packet(const char& state)
 	packet.type = CS_CLIENT_STATE_CHANGE;
 	packet.id = m_my_info.id;
 	packet.change_state = state;
+	packet.stage_number = 1;
 	packet.size = sizeof(packet);
 	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
 	//send_packet(&packet);
@@ -228,6 +311,51 @@ void network_manager::send_request_join_room(const short& room_number)
 	packet.type = CS_REQUEST_JOIN_ROOM;
 	packet.joiner_id = m_my_info.id;
 	packet.room_number = room_number;
+	packet.size = sizeof(packet);
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
+}
+
+void network_manager::send_install_trap(char trap_type, DirectX::XMFLOAT3 trap_pos)
+{
+	cs_packet_install_trap packet;
+	packet.type = CS_INSTALL_TRAP;
+	packet.id = m_my_info.id;
+	packet.trap_type = trap_type;
+	packet.trap_pos = trap_pos;
+	packet.size = sizeof(packet);
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
+}
+
+void network_manager::send_shoot(short monster_id, bool headShot)
+{
+	cs_packet_shoot packet;
+	packet.type = CS_SHOOT;
+	packet.id = m_my_info.id;
+	packet.monster_id = monster_id;
+	packet.headShot = headShot;
+	packet.size = sizeof(packet);
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
+}
+
+void network_manager::send_request_login(char name[])
+{
+	cs_packet_namelogin packet;
+	packet.type = CS_REQUEST_NAMELOGIN;
+	packet.id = m_my_info.id;
+	strcpy_s(packet.name, name);
+	packet.size = sizeof(packet);
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
+}
+
+void network_manager::send_leaveRoom()
+{
+	cs_packet_leaveRoom packet;
+	packet.type = CS_LEAVE_ROOM;
+	packet.id = m_my_info.id;
 	packet.size = sizeof(packet);
 	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
 	//send_packet(&packet);

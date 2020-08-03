@@ -30,6 +30,16 @@ Player::~Player()
 
 }
 
+
+
+void Player::SetMoveReturn(float ElapsedTime)
+{
+	if (m_MoveUp) MoveForward(-260.f * ElapsedTime);
+	if (m_MoveDown) MoveForward((260.f * ElapsedTime));
+	if (m_MoveLeft) MoveRight((260.f * ElapsedTime));
+	if (m_MoveRight) MoveRight(-(260.f * ElapsedTime));
+}
+
 void Player::CreateCameraSet(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
 {
 	if (m_Camera) {
@@ -49,71 +59,21 @@ void Player::UpdateCameraSet(ID3D12GraphicsCommandList *CommandList)
 
 void Player::CamRotate(float x, float y, float z)
 {
-	m_CamLook.x = m_Look.x;
-	m_CamLook.z = m_Look.z;
-	m_CamRight = m_Right;
+	if (y != 0.0f) {
+		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_Up), XMConvertToRadians(y));
+		m_CamLook = Vector3::TransformNormal(m_CamLook, xmmtxRotate);
+		m_CamRight = Vector3::TransformNormal(m_CamRight, xmmtxRotate);
+		m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
+	}
 	if (x != 0.0f)
 	{
 		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_CamRight), XMConvertToRadians(x));
 		m_CamLook = Vector3::TransformNormal(m_CamLook, xmmtxRotate);
 		m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
-		//m_CamRight = Vector3::TransformNormal(m_CamRight, xmmtxRotate);
 	}
-	//if (y != 0.0f)
-	//{
-	//	XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_CamUp), XMConvertToRadians(y));
-	//	m_CamLook = Vector3::TransformNormal(m_CamLook, xmmtxRotate);
-	//	m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
-	//	m_CamRight = Vector3::TransformNormal(m_CamRight, xmmtxRotate);
-	//}
-	//if (z != 0.0f)
-	//{
-	//	XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_CamLook), XMConvertToRadians(z));
-	//	m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
-	//	m_CamRight = Vector3::TransformNormal(m_CamRight, xmmtxRotate);
-	//}
-	//if (x != 0.0f)
-	//{
-	//	//카메라의 로컬 x-축을 기준으로 회전하는 행렬을 생성한다. 사람의 경우 고개를 끄떡이는 동작이다. 
-	//	XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_Right), XMConvertToRadians(x));
-	//
-	//	//카메라의 로컬 x-축, y-축, z-축을 회전 행렬을 사용하여 회전한다.
-	//	m_CamLook = Vector3::TransformNormal(m_CamLook, xmmtxRotate);
-	//	m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
-	//	m_CamRight = m_Right;//Vector3::TransformNormal(m_CamRight, xmmtxRotate);
-	//}
-	//if (y != 0.0f)
-	//{
-	//	//플레이어의 로컬 y-축을 기준으로 회전하는 행렬을 생성한다.
-	//	XMFLOAT3 xmf3Up = m_Up;
-	//	XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_CamUp), XMConvertToRadians(y));
-	//	//카메라의 로컬 x-축, y-축, z-축을 회전 행렬을 사용하여 회전한다. 
-	//	m_CamLook = Vector3::TransformNormal(m_CamLook, xmmtxRotate);
-	//	m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
-	//	m_CamRight = m_Right; // Vector3::TransformNormal(m_CamRight, xmmtxRotate);
-	//}
-	//if (z != 0.0f)
-	//{
-	//	//플레이어의 로컬 z-축을 기준으로 회전하는 행렬을 생성한다.
-	//	//XMFLOAT3 xmf3Look = GetLookVector();
-	//	XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_CamLook), XMConvertToRadians(z));
-	//	//카메라의 위치 벡터를 플레이어 좌표계로 표현한다(오프셋 벡터).
-	//	//m_xmf3Position = Vector3::Subtract(m_xmf3Position, m_pPlayer->GetPosition());
-	//	////오프셋 벡터 벡터를 회전한다. 
-	//	//m_xmf3Position = Vector3::TransformCoord(m_xmf3Position, xmmtxRotate);
-	//	////회전한 카메라의 위치를 월드 좌표계로 표현한다.
-	//	//m_xmf3Position = Vector3::Add(m_xmf3Position, m_pPlayer->GetPosition());
-	//	//카메라의 로컬 x-축, y-축, z-축을 회전한다.
-	//	m_CamLook = Vector3::TransformNormal(m_CamLook, xmmtxRotate);
-	//	m_CamUp = Vector3::TransformNormal(m_CamUp, xmmtxRotate);
-	//	m_CamRight = m_Right;//Vector3::TransformNormal(m_CamRight, xmmtxRotate);
-	//}
-	//m_CamRight = Vector3::Normalize(m_CamRight);
+	m_CamLook = Vector3::Normalize(m_CamLook);
+	m_CamRight = Vector3::CrossProduct(m_CamUp, m_CamLook, true);
 	m_CamUp = Vector3::CrossProduct(m_CamLook, m_CamRight, true);
-	m_CamLook = Vector3::CrossProduct(m_CamRight, m_CamUp, true);
-	//cout << "CamRight x: " << m_CamRight.x << " y: " << m_CamRight.y << " z: " << m_CamRight.z << endl;
-
-	//cout << "Look x: " << m_CamLook.x << " y: " << m_CamLook.y << " z: " << m_CamLook.z << endl;
 }
 
 void Player::PRotate(float x, float y, float z)
@@ -124,9 +84,10 @@ void Player::PRotate(float x, float y, float z)
 	if (x != 0.0f)
 	{
 		m_fPitch += x;
-		if (m_fPitch >= +80.0f) { x = 0.0f; m_fPitch = 80.0f; }
-		if (m_fPitch <= -80.0f) { x = 0.0f; m_fPitch = -80.0f; }
-		cout << "x: " << x <<" Pitch" << m_fPitch << endl;
+		//cout << "before x: " << x << " Pitch" << m_fPitch << endl;
+		if (m_fPitch > +30.0f) { x -= (m_fPitch - 30.0f); m_fPitch = 30.0f; }
+		if (m_fPitch < -10.0f) { x -= (m_fPitch + 10.0f); m_fPitch = -10.0f; }
+		//cout << "after x: " << x <<" Pitch" << m_fPitch << endl;
 	}
 	if (y != 0.0f)
 	{
@@ -152,7 +113,7 @@ void Player::PRotate(float x, float y, float z)
 	m_Up = Vector3::CrossProduct(m_Look, m_Right, true);
 
 	//cout << "Right x: " << m_Right.x << " y: " << m_Right.y << " z: " << m_Right.z << endl;
-
+	//if (x != 0.0f) {
 	CamRotate(x, y, z);
 }
 

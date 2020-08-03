@@ -38,6 +38,7 @@ public:
 	{
 		m_Position = XMFLOAT3(0.f, 0.f, 0.f);
 		m_TexCoord = XMFLOAT2(0.f, 0.f);
+		
 	}
 	TextureVertex(XMFLOAT3 Position, XMFLOAT2 TexCoord)
 	{
@@ -48,7 +49,6 @@ public:
 
 private:
 	XMFLOAT2			m_TexCoord;
-
 };
 
 class Mesh
@@ -102,6 +102,7 @@ private:
 	int								m_nReferences = 0;
 
 public:
+
 	void AddRef() { ++m_nReferences; }
 	void Release() { if (--m_nReferences <= 0) delete this; }
 
