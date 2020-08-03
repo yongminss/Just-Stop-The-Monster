@@ -302,8 +302,8 @@ public:
 				}
 			}
 		}
-		if (m_Child) m_Child->SetRed(bRed);
 		if (m_Sibling) m_Sibling->SetRed(bRed);
+		if (m_Child) m_Child->SetRed(bRed);
 	}
 
 	float GetMeshDistance() { return m_Mesh->m_fDistance; }

@@ -612,9 +612,14 @@ void MonsterInstancingShader::Render(ID3D12GraphicsCommandList *CommandList)
 
 	UpdateShaderVariable();
 
-	/*XMFLOAT3 position = XMFLOAT3(network_manager::GetInst()->m_monster_pool->world_pos._41, network_manager::GetInst()->m_monster_pool->world_pos._42, network_manager::GetInst()->m_monster_pool->world_pos._43);
-	m_Monster[0]->SetPostion(position);*/
+	XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool->world_pos;
 
+	m_Monster[0]->SetRight(XMFLOAT3(world._11 * 50, world._12 * 50, world._13 * 50));
+	m_Monster[0]->SetUp(XMFLOAT3(world._21 * 50, world._22 * 50, world._23 * 50));
+	m_Monster[0]->SetLook(XMFLOAT3(world._31 * 50, world._32 * 50, world._33 * 50));
+	m_Monster[0]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+	m_Monster[0]->SetRotate(-90.f, 0.f, 0.f);
+	
 	m_Monster[0]->Render(CommandList, INSTANCE_NUM, m_InstanceBufferView);
 	//cout << m_Monster[0]->GetPosition().x << " " << m_Monster[0]->GetPosition().y << " " << m_Monster[0]->GetPosition().z << endl;
 }

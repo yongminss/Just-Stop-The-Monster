@@ -166,7 +166,7 @@ private:
 	MonsterInstancingShader		*m_WolfRider = NULL;
 
 	// Effect
-	EffectShader				*m_FireEffect = NULL;
+	//EffectShader				*m_FireEffect = NULL;
 
 	// Other Player
 	GameObject					*m_OtherPlayerModel = NULL;

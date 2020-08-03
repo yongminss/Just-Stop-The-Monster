@@ -313,7 +313,7 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 			}
 			//Start Button
 			if (MousePos.x > 100 && MousePos.x < 300 && MousePos.y >370 && MousePos.y < 470) {
-				//m_StartGame = true;
+				m_StartGame = true;
 			}
 			// Stage Select Before
 			if (MousePos.x > 90 && MousePos.x < 145 && MousePos.y > 215 && MousePos.y < 255) {
@@ -488,9 +488,9 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_OtherPlayerModel->SetPostion(XMFLOAT3(-1000.f, -15.f, 0.f));
 
 	// Effect
-	m_FireEffect = new EffectShader();
-	m_FireEffect->CreateShader(Device, CommandList, m_GraphicsRootSignature);
-	m_FireEffect->BuildObject(Device, CommandList, m_GraphicsRootSignature);
+	//m_FireEffect = new EffectShader();
+	//m_FireEffect->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	//m_FireEffect->BuildObject(Device, CommandList, m_GraphicsRootSignature);
 
 	CreateShaderVariable(Device, CommandList);
 }
@@ -514,7 +514,7 @@ void GameScene::BuildDefaultLightsAndMaterials()
 	m_Lights[0].m_Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.f);
 	m_Lights[0].m_Diffuse = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.f);
 	m_Lights[0].m_Specular = XMFLOAT4(0.6f, 0.4f, 0.4f, 1.f);
-	m_Lights[0].m_Direction = XMFLOAT3(1.f, 0.f, 0.f);
+	m_Lights[0].m_Direction = XMFLOAT3(1.f, 0.f, 1.f);
 
 	/*
 	m_Lights[0].m_Enable = true;
@@ -1046,7 +1046,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		m_OtherPlayerModel->Render(CommandList);
 
 	// Effect
-	if (m_FireEffect) m_FireEffect->Render(CommandList);
+	//if (m_FireEffect) m_FireEffect->Render(CommandList);
 }
 
 void GameScene::CheckTile()
@@ -1072,7 +1072,7 @@ void GameScene::ProcessInput(HWND hWnd)
 
 			XMFLOAT3 EndPos;
 			EndPos = Vector3::Normalize(pCamera->GetLook());
-			if (m_Trap.size() != 0 && m_Trap.back()->GetIsBuildTrap()) {
+			if (m_Needle->GetTrapObject().size() != 0 && m_Needle->GetTrapObject().back()->GetIsBuildTrap()) {
 /*=======
 
 			if (m_Needle->GetTrapObject().size() != 0 && m_Needle->GetTrapObject().back()->GetIsBuildTrap()) {
@@ -1101,7 +1101,7 @@ void GameScene::ProcessInput(HWND hWnd)
 						XMFLOAT3 TilePos = BoundTile.Center;
 						bool IsTrapPlaced = false;
 
-						if (m_Trap.back()->GetTrapKind() == TRAP_FIRE || m_Trap.back()->GetTrapKind() == TRAP_ARROW) { // 벽타일
+						if (m_Needle->GetTrapObject().back()->GetTrapKind() == TRAP_FIRE || m_Needle->GetTrapObject().back()->GetTrapKind() == TRAP_ARROW) { // 벽타일
 							if (BoundTile.Extents.x < BoundTile.Extents.z) {
 								if (StartPos.x < TilePos.x) {
 									m_Needle->GetTrapObject().back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
@@ -1131,23 +1131,25 @@ void GameScene::ProcessInput(HWND hWnd)
 								}
 							}
 						}
-						else if(m_Trap.back()->GetTrapKind() == TRAP_NEEDLE || m_Trap.back()->GetTrapKind() == TRAP_SLOW) { // 바닥 타일
+						else if(m_Needle->GetTrapObject().back()->GetTrapKind() == TRAP_NEEDLE || m_Needle->GetTrapObject().back()->GetTrapKind() == TRAP_SLOW) { // 바닥 타일
 							//m_Trap.back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
 							//m_Trap.back()->SetRight(XMFLOAT3(1.0f, 0.0f, 0.0f));
 							//m_Trap.back()->SetUp(XMFLOAT3(0.0f, 1.0f, 0.0f));
-							cout << "Look x: " << m_Trap.back()->GetLook().x << " y: " << m_Trap.back()->GetLook().y << " z: " << m_Trap.back()->GetLook().z << endl;
-							cout << "Up x: " << m_Trap.back()->GetUp().x << " y: " << m_Trap.back()->GetUp().y << " z: " << m_Trap.back()->GetUp().z << endl;
-							cout << "Right x: " << m_Trap.back()->GetRight().x << " y: " << m_Trap.back()->GetRight().y << " z: " << m_Trap.back()->GetLook().z << endl;
+							//cout << "Look x: " << m_Trap.back()->GetLook().x << " y: " << m_Trap.back()->GetLook().y << " z: " << m_Trap.back()->GetLook().z << endl;
+							//cout << "Up x: " << m_Trap.back()->GetUp().x << " y: " << m_Trap.back()->GetUp().y << " z: " << m_Trap.back()->GetUp().z << endl;
+							//cout << "Right x: " << m_Trap.back()->GetRight().x << " y: " << m_Trap.back()->GetRight().y << " z: " << m_Trap.back()->GetLook().z << endl;
 							TilePos.y += 10.0f;
 						}
 						m_Needle->GetTrapObject().back()->SetPostion(TilePos);
-						for (auto iter = m_Needle->GetTrapObject().begin(); (*iter) != m_Needle->GetTrapObject().back(); ++iter) {
+
+						for (auto iter = m_Needle->m_Trap.begin(); (*iter) != m_Needle->m_Trap.back(); ++iter) {
 							if (XMVector3Equal(XMLoadFloat3(&(*iter)->GetPosition()), XMLoadFloat3(&TilePos))) {
 								m_Needle->GetTrapObject().back()->MoveUp(5.f);
 								IsTrapPlaced = true;
 								break;
 							}
 						}
+
 						m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
 						if (IsTrapPlaced == true) {
 							m_Needle->GetTrapObject().back()->SetRed(0x01);
@@ -1162,8 +1164,8 @@ void GameScene::ProcessInput(HWND hWnd)
 						XMFLOAT3 ypos = m_Needle->GetTrapObject().back()->GetPosition();
 						ypos.y = -50.0f;
 ///////////
-						m_Trap.back()->SetPostion(ypos);
-						m_Trap.back()->UpdateTransform(NULL);
+						m_Needle->GetTrapObject().back()->SetPostion(ypos);
+						m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
 					}
 				}
 				if (is_rend_02) {
@@ -1174,15 +1176,15 @@ void GameScene::ProcessInput(HWND hWnd)
 						BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
 						XMFLOAT3 TilePos = BoundTile.Center;
 						
-						m_Trap.back()->SetPostion(TilePos);
-						m_Trap.back()->UpdateTransform(NULL);
+						m_Needle->GetTrapObject().back()->SetPostion(TilePos);
+						m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
 					}
 					else {
-						m_Trap.back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
-						XMFLOAT3 ypos = m_Trap.back()->GetPosition();
+						m_Needle->GetTrapObject().back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
+						XMFLOAT3 ypos = m_Needle->GetTrapObject().back()->GetPosition();
 						ypos.y = -50.0f;
-						m_Trap.back()->SetPostion(ypos);
-						m_Trap.back()->UpdateTransform(NULL);
+						m_Needle->GetTrapObject().back()->SetPostion(ypos);
+						m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
 					}
 				}
 				if (is_rend_03) {
@@ -1192,15 +1194,15 @@ void GameScene::ProcessInput(HWND hWnd)
 						BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
 						BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
 						XMFLOAT3 TilePos = BoundTile.Center;
-						m_Trap.back()->SetPostion(TilePos);
-						m_Trap.back()->UpdateTransform(NULL);
+						m_Needle->GetTrapObject().back()->SetPostion(TilePos);
+						m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
 					}
 					else {
-						m_Trap.back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
-						XMFLOAT3 ypos = m_Trap.back()->GetPosition();
+						m_Needle->GetTrapObject().back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
+						XMFLOAT3 ypos = m_Needle->GetTrapObject().back()->GetPosition();
 						ypos.y = -50.0f;
-						m_Trap.back()->SetPostion(ypos);
-						m_Trap.back()->UpdateTransform(NULL);
+						m_Needle->GetTrapObject().back()->SetPostion(ypos);
+						m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
 /*=======
 						m_Needle->GetTrapObject().back()->SetPostion(ypos);
 						m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
@@ -1279,7 +1281,7 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			int HitPart = 0;
 			bool HeadHit = false;
 
-			for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter) 
+			/*for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter) 
 			{
 				HitPart = (*iter)->CheckMonster(StartPos, EndPos);
 				if (HitPart != 0)
@@ -1306,8 +1308,8 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 						}
 					}
 				}
-			}
-			for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter) {
+			}*/
+			/*for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter) {
 				HitPart = (*iter)->CheckMonster(StartPos, EndPos);
 				if (HitPart != 0)
 				{
@@ -1337,8 +1339,8 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 						}
 					}
 				}
-			}
-			for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter) {
+			}*/
+			/*for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter) {
 				HitPart = (*iter)->CheckMonster(StartPos, EndPos);
 				if (HitPart != 0)
 				{
@@ -1364,7 +1366,7 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 						}
 					}
 				}
-			}
+			}*/
 
 			if (ResultMonster != NULL) {
 				ResultMonster; //이게 타겟 몬스터
@@ -1429,6 +1431,8 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		// 함정 설치 준비
 		case '1':
 		{
+			if (!m_bClick) if (m_Needle) m_Needle->BuildTrap();
+
 			if (m_bClick && m_Needle->GetTrapObject().back()->GetIsBuildTrap() == false) {
 				break;
 			}
@@ -1436,64 +1440,50 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 				m_Needle->GetTrapObject().pop_back();
 			else
 				m_bClick = true;
-			if (m_Needle) m_Needle->BuildTrap();
+
+
 		}
 		break;
 
 		case '2':
 		{
-			/*if (m_bClick && m_Trap.back()->GetIsBuildTrap() == false) {
+			if (!m_bClick) if (m_Fire) m_Fire->BuildTrap();
+
+			if (m_bClick && m_Needle->GetTrapObject().back()->GetIsBuildTrap() == false) {
 				break;
 			}
-			if (m_bClick && m_Trap.back()->GetIsBuildTrap() == true)
-				m_Trap.pop_back();
+			if (m_bClick && m_Needle->GetTrapObject().back()->GetIsBuildTrap() == true)
+				m_Needle->GetTrapObject().pop_back();
 			else
 				m_bClick = true;
-
-			m_Trap.emplace_back(new Trap());
-			m_Trap.back()->SetChild(m_FireTrapModel, false);
-			m_Trap.back()->BuildTrap(true);
-			m_Trap.back()->SetTrapKind(TRAP_FIRE);*/
-			if (m_Fire) m_Fire->BuildTrap();
 		}
 		break;
 
 		case '3':
 		{
-			/*if (m_bClick && m_Trap.back()->GetIsBuildTrap() == false) {
+			if (!m_bClick) if (m_Slow) m_Slow->BuildTrap();
+
+			if (m_bClick && m_Needle->GetTrapObject().back()->GetIsBuildTrap() == false) {
 				break;
 			}
-			if (m_bClick && m_Trap.back()->GetIsBuildTrap() == true)
-				m_Trap.pop_back();
+			if (m_bClick && m_Needle->GetTrapObject().back()->GetIsBuildTrap() == true)
+				m_Needle->GetTrapObject().pop_back();
 			else
 				m_bClick = true;
-			m_Trap.emplace_back(new Trap());
-			m_Trap.back()->SetChild(m_SlowTrapModel, false);
-			m_Trap.back()->BuildTrap(true);
-<<<<<<< HEAD
-			m_Trap.back()->SetTrapKind(TRAP_SLOW);
-			
-=======
-			m_Trap.back()->SetTrapKind(TRAP_SLOW);*/
-/*			if (m_Slow) m_Slow->BuildTrap();
->>>>>>> master*/
 		}
 		break;
 
 		case '4':
 		{
-			/*if (m_bClick && m_Trap.back()->GetIsBuildTrap() == false) {
+			if (!m_bClick) if (m_Arrow) m_Arrow->BuildTrap();
+
+			if (m_bClick && m_Needle->GetTrapObject().back()->GetIsBuildTrap() == false) {
 				break;
 			}
-			if (m_bClick && m_Trap.back()->GetIsBuildTrap() == true)
-				m_Trap.pop_back();
+			if (m_bClick && m_Needle->GetTrapObject().back()->GetIsBuildTrap() == true)
+				m_Needle->GetTrapObject().pop_back();
 			else
 				m_bClick = true;
-			m_Trap.emplace_back(new Trap());
-			m_Trap.back()->SetChild(m_ArrowTrapModel, false);
-			m_Trap.back()->BuildTrap(true);
-			m_Trap.back()->SetTrapKind(TRAP_ARROW);*/
-			if (m_Arrow) m_Arrow->BuildTrap();
 		}
 		break;
 

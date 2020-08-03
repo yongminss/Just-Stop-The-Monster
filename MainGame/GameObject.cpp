@@ -667,9 +667,11 @@ void GameObject::SetPostion(XMFLOAT3 Position)
 void GameObject::SetTransform(XMFLOAT4X4 Transform)
 {
 	m_TransformPos._11 = Transform._11, m_TransformPos._12 = Transform._12, m_TransformPos._13 = Transform._13, m_TransformPos._14 = Transform._14;
-	m_TransformPos._21 = Transform._21, m_TransformPos._22 = Transform._22, m_TransformPos._23 = Transform._23, m_TransformPos._14 = Transform._24;
-	m_TransformPos._31 = Transform._31, m_TransformPos._32 = Transform._32, m_TransformPos._33 = Transform._33, m_TransformPos._14 = Transform._34;
-	m_TransformPos._41 = Transform._41, m_TransformPos._42 = -55.f, m_TransformPos._43 = Transform._43, m_TransformPos._14 = Transform._44;
+	m_TransformPos._21 = Transform._21, m_TransformPos._22 = Transform._22, m_TransformPos._23 = Transform._23, m_TransformPos._24 = Transform._24;
+	m_TransformPos._31 = Transform._31, m_TransformPos._32 = Transform._32, m_TransformPos._33 = Transform._33, m_TransformPos._34 = Transform._34;
+	m_TransformPos._41 = Transform._41, m_TransformPos._42 = -55.f, m_TransformPos._43 = Transform._43, m_TransformPos._44 = Transform._44;
+
+	UpdateTransform(NULL);
 }
 
 void GameObject::SetScale(float x, float y, float z)

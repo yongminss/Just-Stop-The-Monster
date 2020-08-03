@@ -148,7 +148,6 @@ public:
 	~TrapInstancingShader() { }
 
 private:
-	vector<Trap*>	m_Trap;
 	GameObject		*Model = NULL;
 
 protected:
@@ -157,6 +156,8 @@ protected:
 	D3D12_VERTEX_BUFFER_VIEW m_InstanceBufferView;
 
 public:
+	vector<Trap*>	m_Trap;
+	
 	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
 	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
