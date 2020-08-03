@@ -67,18 +67,6 @@ public:
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
 };
 
-class TrapShader : public Shader
-{
-public:
-	TrapShader() { }
-	~TrapShader() { }
-
-	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
-	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
-	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
-
-	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
-};
 
 class SkyBoxShader : public Shader
 {
@@ -87,13 +75,36 @@ public:
 	~SkyBoxShader() { }
 	
 public:
-	virtual D3D12_INPUT_LAYOUT_DESC		CreateInputLayout();
-	virtual D3D12_SHADER_BYTECODE		CreateVertexShader();
-	virtual D3D12_SHADER_BYTECODE		CreatePixelShader();
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
 
-	virtual D3D12_DEPTH_STENCIL_DESC	CreateDepthStencilState();
+	virtual D3D12_DEPTH_STENCIL_DESC CreateDepthStencilState();
 
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+};
+
+class EffectShader : public Shader
+{
+public:
+	EffectShader() { }
+	~EffectShader() { }
+
+private:
+	Effect *m_Effect = NULL;
+
+public:
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
+
+	virtual D3D12_BLEND_DESC CreateBlendState();
+
+	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+
+	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+
+	void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
 
@@ -182,5 +193,6 @@ public:
 	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT Type);
 
 	void UpdateShaderVariable();
+	void Animate(float ElapsedTime);
 	void Render(ID3D12GraphicsCommandList *CommandList);
 };

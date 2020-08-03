@@ -396,6 +396,11 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_OtherPlayerModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Soldier_Player.bin", NULL, true);
 	m_OtherPlayerModel->SetPostion(XMFLOAT3(-1000.f, -15.f, 0.f));
 
+	// Effect
+	m_FireEffect = new EffectShader();
+	m_FireEffect->CreateShader(Device, CommandList, m_GraphicsRootSignature);
+	m_FireEffect->BuildObject(Device, CommandList, m_GraphicsRootSignature);
+
 	CreateShaderVariable(Device, CommandList);
 }
 
@@ -748,6 +753,8 @@ void GameScene::Animate(float ElapsedTime)
 
 	// Trap Object
 	if (m_Needle) m_Needle->Animate(ElapsedTime, m_Player->GetPosition());
+	
+	if (m_Orc) m_Orc->Animate(ElapsedTime);
 
 	/*for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
 		if (*iter) {
@@ -864,6 +871,10 @@ void GameScene::Animate(float ElapsedTime)
 		m_OtherPlayerModel->SetEnable(AnimateState);
 		m_OtherPlayerModel->Animate(ElapsedTime, NULL);
 	}
+
+	// Effect
+	/*for (int i = 2; i < 4; ++i)
+		if (m_FireEffect[i]) m_FireEffect[i]->Animate(ElapsedTime, NULL);*/
 }
 
 void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
@@ -909,6 +920,9 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	// Ohter Player
 	if (network_manager::GetInst()->IsConnect())
 		m_OtherPlayerModel->Render(CommandList);
+
+	// Effect
+	if (m_FireEffect) m_FireEffect->Render(CommandList);
 }
 
 void GameScene::CheckTile()

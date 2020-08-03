@@ -378,8 +378,6 @@ void GameFramework::FrameAdvance()
 
 	m_CommandList->OMSetRenderTargets(1, &RtvCPUDescriptorHandle, TRUE, &DsvCPUDescriptorHandle);
 
-	float RunTime = m_Timer.GetTotalTime();
-
 	if (m_TitleScene) {
 		bool GameStart = m_TitleScene->IsStartGame();
 		if (true == GameStart) SceneState = GameState;

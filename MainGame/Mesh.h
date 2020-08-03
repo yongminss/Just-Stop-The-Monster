@@ -31,6 +31,21 @@ protected:
 
 };
 
+class DiffusedVertex
+{
+public:
+	DiffusedVertex() {}
+	DiffusedVertex(XMFLOAT3 Position, XMFLOAT4 Color) 
+	{
+		m_Position = Position;
+		m_Color = Color;
+	}
+
+protected:
+	XMFLOAT3 m_Position;
+	XMFLOAT4 m_Color;
+};
+
 class TextureVertex : public Vertex
 {
 public:
@@ -118,6 +133,14 @@ public:
 	void Render(ID3D12GraphicsCommandList *CommandList);
 	void Render(ID3D12GraphicsCommandList *CommandList, int nSubSet);
 	void Render(ID3D12GraphicsCommandList *CommandList, UINT InstanceNum, D3D12_VERTEX_BUFFER_VIEW InstanceBufferView);
+};
+
+// Cube Mesh
+class CubeMesh : public Mesh
+{
+public:
+	CubeMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
+	~CubeMesh() {}
 };
 
 // 텍스쳐 맵핑을 진행할 메쉬
