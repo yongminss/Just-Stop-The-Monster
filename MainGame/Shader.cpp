@@ -518,10 +518,10 @@ void TrapInstancingShader::BuildTrap(UINT Type)
 	if (m_Trap.size() < INSTANCE_NUM) {
 		Obj = new Trap();
 		Obj->SetChild(Model, false);
-		Obj->m_AnimationController = new AnimationController(30);
-		Obj->m_AnimationController = Model->m_AnimationController;
-		Obj->m_AnimationController->SetAnimationSet(0);
-		Obj->SetScale(100.f, 100.f, 100.f);
+		//Obj->m_AnimationController = new AnimationController(30);
+		//Obj->m_AnimationController = Model->m_AnimationController;
+		//Obj->m_AnimationController->SetAnimationSet(0);
+		Obj->SetScale(140.f, 140.f, 140.f);
 		Obj->BuildTrap(true);
 		Obj->ActiveTrap(true);
 		Obj->SetEnable(1);

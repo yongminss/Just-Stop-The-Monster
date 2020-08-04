@@ -54,6 +54,7 @@ private:
 public:
 	void init_data();
 	void init_socket();
+	void init_pool();
 	void rq_connect_server(const char * server_ip);
 	void ReadBuffer(SOCKET sock);
 	void PacketProccess(void * buf);

@@ -453,14 +453,17 @@ public:
 private:
 	bool IsBuildTrap = false;
 	bool IsActive = false;
-
+	bool IsTrapAccess = false;
 	int m_nTrapKind;
 
 public:
 	void BuildTrap(bool Input) { IsBuildTrap = Input; }
 	void ActiveTrap(bool Input) { IsActive = Input; }
+	void AccessTrap(bool Input) { IsTrapAccess = Input; }
 
 	bool GetIsBuildTrap() { return IsBuildTrap; }
+
+	bool GetIsTrapAccess() { return IsTrapAccess; }
 
 	void Animate(XMFLOAT3 Position, float ElapsedTime, XMFLOAT4X4 *Parent);
 
