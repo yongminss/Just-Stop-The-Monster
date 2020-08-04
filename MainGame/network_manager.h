@@ -10,7 +10,7 @@ enum EVENT_TYPE {
 struct PLAYER_INFO
 {
 	int id;
-	bool is_connect;
+	volatile bool is_connect;
 	char player_state;
 	short room_number;
 	short AnimateState;
@@ -30,7 +30,7 @@ struct GAME_ROOM_C {
 };
 
 struct TRAPINFO_C {
-	bool enable;
+	volatile bool enable;
 	short id;
 	char trap_type;
 	DirectX::XMFLOAT3 trap_pos;
@@ -73,6 +73,8 @@ public:
 
 
 public:
+	bool wsa = false;
+
 	WSADATA m_WSAData;
 	SOCKET m_serverSocket;
 	sockaddr_in m_serverAddr;
