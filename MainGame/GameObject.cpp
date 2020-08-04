@@ -1247,11 +1247,19 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	switch (Type) {
 	case BackGround:
 		// Title Background
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/JSTM_Title.dds", 0);
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/BackGround.dds", 0);
 		break;
 	case Title:
 		// Title Logo
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Main_Title_Logo.dds", 0);
+		break;
+	case Single:
+		// Single Button
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/SingleGame.dds", 0);
+		break;
+	case Multi:
+		// Multi Button
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/MultiGame.dds", 0);
 		break;
 	case RoomList:
 		// Room List

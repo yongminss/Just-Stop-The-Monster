@@ -67,6 +67,8 @@ enum {
 	// Title Scene
 	BackGround,
 	Title,
+	Single,
+	Multi,
 	RoomList,
 	JoinRoom,
 	MakeRoom,

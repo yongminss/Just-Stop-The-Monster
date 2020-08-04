@@ -106,7 +106,11 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 	float tempX = 0.f;
 	float tempY = 0.f;
 	// Title
-	if (Title == ImageType) tempY = +0.4f;
+	if (Title == ImageType) tempY = +0.5f;
+	// Single
+	if (Single == ImageType) tempY = -0.15f;
+	// Muiti
+	if (Multi == ImageType) tempY = -0.55f;
 	// RoomList
 	if (RoomList == ImageType) tempX = 0.0f, tempY = 0.0f;
 	// Make Room
