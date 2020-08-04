@@ -264,7 +264,6 @@ public:
 	XMFLOAT4X4						m_TransformPos;
 
 protected:
-
 	D3D12_GPU_DESCRIPTOR_HANDLE		m_CbvGPUDescriptorHandle;
 
 	char							m_FrameName[64];
@@ -316,6 +315,7 @@ public:
 	void SetMaterial(int nMaterial, Material *Material);
 
 	void SetChild(GameObject *Child, bool ReferenceUpdate = false);
+	void SetObject(GameObject *Obj);
 
 	void UpdateTransform(XMFLOAT4X4 *Parent);
 

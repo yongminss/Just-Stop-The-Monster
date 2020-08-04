@@ -60,7 +60,7 @@ using namespace std;
 
 #include "DDSTextureLoader12.h"
 
-#define INSTANCE_NUM 100
+#define INSTANCE_NUM 50
 
 // Texture Image
 enum {

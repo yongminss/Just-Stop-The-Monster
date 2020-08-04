@@ -6,6 +6,16 @@ network_manager* network_manager::Inst = NULL;
 network_manager::network_manager()
 {
 	//ZeroMemory(m_myRoomInfo, sizeof(m_myRoomInfo));
+	init_data();
+}
+
+
+network_manager::~network_manager()
+{
+}
+
+void network_manager::init_data()
+{
 	m_my_info.hp = 0;
 	m_my_info.gold = 200;
 
@@ -15,11 +25,16 @@ network_manager::network_manager()
 	m_myRoomInfo.stage_number = 0;
 
 	m_nameLogin = false;
-}
 
+	m_vec_gameRoom.reserve(20);
+	m_vec_trapPool.reserve(50);
 
-network_manager::~network_manager()
-{
+	for (short i = 0; i < MAX_TRAP; ++i) {
+		m_trap_pool[i].enable = false;
+	}
+	for (short i = 0; i < MAX_MONSTER; ++i) {
+		m_monster_pool[i].isLive = false;
+	}
 }
 
 void network_manager::init_socket()
@@ -138,14 +153,28 @@ void network_manager::PacketProccess(void * buf)
 	}
 	case SC_SEND_ROOM_LIST: {
 		sc_packet_room_info *room_info_packet = reinterpret_cast<sc_packet_room_info*>(buf);
-		for (auto &rw : m_vec_gameRoom) {
-			if (rw->room_number == room_info_packet->room_number) { // 원래있는방 업데이트
-				for (int i = 0; i < 4; ++i) {
-					rw->players_id[i] = room_info_packet->players_id[i];
-				}
+
+		auto findret = find_if(m_vec_gameRoom.begin(), m_vec_gameRoom.end(), [room_info_packet](GAME_ROOM_C* gr) {
+			return gr->room_number == room_info_packet->room_number;
+		});
+		if (findret != m_vec_gameRoom.end()) { // 원래 벡터에 있던 방 정보 업데이트
+			if (room_info_packet->room_enable == false) { // 삭제해야 할 방
+				m_vec_gameRoom.erase(findret);
 				return;
 			}
+			else {	// 원래 벡터에 있던 방 정보 업데이트
+				for (auto &rw : m_vec_gameRoom) {
+					if (rw->room_number == room_info_packet->room_number) {
+						for (int i = 0; i < 4; ++i) {
+							rw->players_id[i] = room_info_packet->players_id[i];
+						}
+						return;
+					}
+				}
+			}
 		}
+
+
 		GAME_ROOM_C *new_room = new GAME_ROOM_C;
 		new_room->room_number = room_info_packet->room_number;
 		for (int i = 0; i < 4; ++i) {
@@ -185,6 +214,11 @@ void network_manager::PacketProccess(void * buf)
 		break;
 	}
 	case SC_TRAP_INFO: {
+		sc_packet_trap_info *trap_info_packet = reinterpret_cast<sc_packet_trap_info*>(buf);
+		m_trap_pool[trap_info_packet->trap_id].enable = true;
+		m_trap_pool[trap_info_packet->trap_id].id = trap_info_packet->trap_id;
+		m_trap_pool[trap_info_packet->trap_id].trap_type = trap_info_packet->trap_type;
+		m_trap_pool[trap_info_packet->trap_id].trap_pos = trap_info_packet->trap_pos;
 		break;
 	}
 	case SC_JOIN_ROOM_OK: {
@@ -273,13 +307,13 @@ void network_manager::send_packet(void * buf)
 
 }
 
-void network_manager::send_change_state_packet(const char& state)
+void network_manager::send_change_state_packet(const char& state, const short& StageNum = 1)
 {
 	cs_packet_client_state_change packet;
 	packet.type = CS_CLIENT_STATE_CHANGE;
 	packet.id = m_my_info.id;
 	packet.change_state = state;
-	packet.stage_number = 1;
+	packet.stage_number = StageNum;
 	packet.size = sizeof(packet);
 	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
 	//send_packet(&packet);

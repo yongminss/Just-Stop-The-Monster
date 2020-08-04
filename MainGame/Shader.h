@@ -172,7 +172,7 @@ public:
 	void Animate(float ElapsedTime, XMFLOAT3 Position);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 
-	void BuildTrap();
+	void BuildTrap(UINT Type);
 
 	vector<Trap*> GetTrapObject() { return m_Trap; }
 };
@@ -185,7 +185,9 @@ public:
 
 private:
 	vector<GameObject*> m_Monster;
-	GameObject			*Model = NULL;
+	GameObject *Model = NULL;
+	UINT m_id = -1;
+	char m_type;
 
 public:
 	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();

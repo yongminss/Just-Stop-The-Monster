@@ -405,7 +405,7 @@ void GameFramework::FrameAdvance()
 				m_GameScene = new GameScene();
 				m_GameScene->BuildObject(m_Device, m_CommandList);
 				m_Timer.Reset();
-				network_manager::GetInst()->send_change_state_packet(PLAYER_STATE_playing_game);
+				network_manager::GetInst()->send_change_state_packet(PLAYER_STATE_playing_game, 1);
 			}
 		}
 		// 여기서 패킷을 보냄

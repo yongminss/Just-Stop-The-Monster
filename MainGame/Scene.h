@@ -154,6 +154,8 @@ private:
 	bool is_rend_03 = false;
 	bool is_rend_04 = false;
 
+	UINT m_TrapType = 0;
+
 	// Trap Objects
 	TrapInstancingShader		*m_Needle = NULL;
 	TrapInstancingShader		*m_Fire = NULL;
@@ -162,6 +164,7 @@ private:
 
 	// Monster Objects
 	MonsterInstancingShader		*m_Orc = NULL;
+	MonsterInstancingShader		*m_StrongOrc = NULL;
 	MonsterInstancingShader		*m_Shaman = NULL;
 	MonsterInstancingShader		*m_WolfRider = NULL;
 
@@ -211,6 +214,8 @@ public:
 	void ProcessInput(HWND hWnd);
 
 	void CheckTile();
+
+	void CheckBuildTrap(TrapInstancingShader *Trap);
 
 	bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);

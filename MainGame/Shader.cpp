@@ -511,18 +511,20 @@ void TrapInstancingShader::Render(ID3D12GraphicsCommandList *CommandList)
 	}
 }
 
-void TrapInstancingShader::BuildTrap()
+void TrapInstancingShader::BuildTrap(UINT Type)
 {
 	Trap *Obj = NULL;
 
 	if (m_Trap.size() < INSTANCE_NUM) {
 		Obj = new Trap();
 		Obj->SetChild(Model, false);
+		Obj->m_AnimationController = new AnimationController(30);
+		Obj->m_AnimationController = Model->m_AnimationController;
 		Obj->SetScale(100.f, 100.f, 100.f);
 		Obj->BuildTrap(true);
 		Obj->ActiveTrap(true);
 		Obj->SetEnable(1);
-		Obj->SetTrapKind(TRAP_NEEDLE);
+		Obj->SetTrapKind(Type);
 		m_Trap.emplace_back(Obj);
 	}
 }
@@ -562,16 +564,24 @@ void MonsterInstancingShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCo
 	m_Monster.reserve(INSTANCE_NUM);
 
 	switch (Type) {
-	case 0:
+	case TYPE_ORC:
 		Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
+		m_type = TYPE_ORC;
 		break;
 
-	case 1:
+	case TYPE_SHAMAN:
 		Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Monster_Shaman.bin", NULL, true);
+		m_type = TYPE_SHAMAN;
 		break;
 
-	case 2:
+	case TYPE_STRONGORC:
+		Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Monster_Strong_Infantry.bin", NULL, true);
+		m_type = TYPE_STRONGORC;
+		break;
+
+	case TYPE_RIDER:
 		Model = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, GraphicsRootSignature, "Model/Monster_WolfRider.bin", NULL, true);
+		m_type = TYPE_RIDER;
 		break;
 
 	default:
@@ -600,9 +610,21 @@ void MonsterInstancingShader::UpdateShaderVariable()
 
 void MonsterInstancingShader::Animate(float ElapsedTime)
 {
-	for (int i = 0; i < m_Monster.size(); ++i) {
-		m_Monster[i]->UpdateTransform(NULL);
-		m_Monster[i]->Animate(ElapsedTime, NULL);
+	for (int i = 0; i < 100; ++i) {
+		if (network_manager::GetInst()->m_monster_pool[i].isLive == false) continue;
+		if (network_manager::GetInst()->m_monster_pool[i].type == m_type)
+			m_id = network_manager::GetInst()->m_monster_pool[i].id;
+		if (m_id == -1) continue;
+
+		XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[m_id].world_pos;
+
+		m_Monster[i]->SetRight(XMFLOAT3(world._11 * 50, world._12 * 50, world._13 * 50));
+		m_Monster[i]->SetUp(XMFLOAT3(world._21 * 50, world._22 * 50, world._23 * 50));
+		m_Monster[i]->SetLook(XMFLOAT3(world._31 * 50, world._32 * 50, world._33 * 50));
+		m_Monster[i]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+		m_Monster[i]->SetRotate(-90.f, 0.f, 0.f);
+		//m_Monster[i]->UpdateTransform(NULL);
+		//m_Monster[i]->Animate(ElapsedTime, NULL);
 	}
 }
 
@@ -611,14 +633,6 @@ void MonsterInstancingShader::Render(ID3D12GraphicsCommandList *CommandList)
 	Shader::OnPrepareRender(CommandList, 0);
 
 	UpdateShaderVariable();
-
-	XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool->world_pos;
-
-	m_Monster[0]->SetRight(XMFLOAT3(world._11 * 50, world._12 * 50, world._13 * 50));
-	m_Monster[0]->SetUp(XMFLOAT3(world._21 * 50, world._22 * 50, world._23 * 50));
-	m_Monster[0]->SetLook(XMFLOAT3(world._31 * 50, world._32 * 50, world._33 * 50));
-	m_Monster[0]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
-	m_Monster[0]->SetRotate(-90.f, 0.f, 0.f);
 	
 	m_Monster[0]->Render(CommandList, INSTANCE_NUM, m_InstanceBufferView);
 	//cout << m_Monster[0]->GetPosition().x << " " << m_Monster[0]->GetPosition().y << " " << m_Monster[0]->GetPosition().z << endl;

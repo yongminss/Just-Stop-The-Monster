@@ -613,6 +613,13 @@ void GameObject::SetChild(GameObject *Child, bool ReferenceUpdate)
 		m_Child = Child;
 }
 
+void GameObject::SetObject(GameObject *Obj)
+{
+	Obj->m_Parent = this;
+
+
+}
+
 void GameObject::UpdateTransform(XMFLOAT4X4 *Parent)
 {
 	m_WorldPos = (Parent) ? Matrix4x4::Multiply(m_TransformPos, *Parent) : m_TransformPos;
@@ -996,7 +1003,6 @@ GameObject *GameObject::CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool 
 	GameObject *TileObject = NULL;
 	GameObject *TileSibling = NULL;
 	GameObject *TileChild = NULL;
-
 	if (m_Mesh) {
 		if (IsFloor) {
 			// ¹Ù´Ú Å¸ÀÏ
@@ -1048,7 +1054,7 @@ GameObject *GameObject::CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool 
 	}
 
 	if (TileObject)
-		return TileObject; 
+		return TileObject;
 
 	return NULL;
 }
