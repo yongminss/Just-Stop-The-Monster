@@ -495,8 +495,8 @@ void TrapInstancingShader::UpdateShaderVariable()
 void TrapInstancingShader::Animate(float ElapsedTime, XMFLOAT3 Position)
 {
 	for (int i = 0; i < m_Trap.size(); ++i) {
-		m_Trap[i]->UpdateTransform(NULL);
 		m_Trap[i]->Animate(Position, ElapsedTime, NULL);
+		m_Trap[i]->UpdateTransform(NULL);
 	}
 }
 
@@ -520,6 +520,7 @@ void TrapInstancingShader::BuildTrap(UINT Type)
 		Obj->SetChild(Model, false);
 		Obj->m_AnimationController = new AnimationController(30);
 		Obj->m_AnimationController = Model->m_AnimationController;
+		Obj->m_AnimationController->SetAnimationSet(0);
 		Obj->SetScale(100.f, 100.f, 100.f);
 		Obj->BuildTrap(true);
 		Obj->ActiveTrap(true);
@@ -610,11 +611,13 @@ void MonsterInstancingShader::UpdateShaderVariable()
 
 void MonsterInstancingShader::Animate(float ElapsedTime)
 {
-	for (int i = 0; i < 100; ++i) {
+	for (int i = 0; i < MAX_MONSTER; ++i) {
 		if (network_manager::GetInst()->m_monster_pool[i].isLive == false) continue;
 		if (network_manager::GetInst()->m_monster_pool[i].type == m_type)
 			m_id = network_manager::GetInst()->m_monster_pool[i].id;
+		if (m_id > MAX_MONSTER) m_id = -1;
 		if (m_id == -1) continue;
+
 
 		XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[m_id].world_pos;
 
@@ -623,6 +626,7 @@ void MonsterInstancingShader::Animate(float ElapsedTime)
 		m_Monster[i]->SetLook(XMFLOAT3(world._31 * 50, world._32 * 50, world._33 * 50));
 		m_Monster[i]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
 		m_Monster[i]->SetRotate(-90.f, 0.f, 0.f);
+
 		//m_Monster[i]->UpdateTransform(NULL);
 		//m_Monster[i]->Animate(ElapsedTime, NULL);
 	}

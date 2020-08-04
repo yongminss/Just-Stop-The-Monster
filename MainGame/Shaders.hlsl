@@ -365,19 +365,17 @@ VS_STANDARD_OUTPUT VSSkinnedAnimation_InstancingStandard(VS_INSTANCING_SKINNED_S
     
     for (int i = 0; i < MAX_VERTEX_INFLUENCES; i++)
     {
-        mtxVertexToBoneWorld = mul(input.Transform, gpmtxBoneOffsets[input.indices[i]]);
+        //mtxVertexToBoneWorld = mul(input.Transform, gpmtxBoneOffsets[input.indices[i]]);
         //mtxVertexToBoneWorld = mul(mtxVertexToBoneWorld, gpmtxBoneTransforms[input.indices[i]]);
-        
         mtxVertexToBoneWorld = input.Transform;
-        output.positionW = mul(float4(input.position, 1.0f), mtxVertexToBoneWorld).xyz;
-        output.normalW = mul(input.normal, (float3x3) mtxVertexToBoneWorld).xyz;
-        output.tangentW = mul(input.tangent, (float3x3) mtxVertexToBoneWorld).xyz;
-        output.bitangentW = mul(input.bitangent, (float3x3) mtxVertexToBoneWorld).xyz;
-    }    
+    }
+    output.positionW = mul(float4(input.position, 1.0f), mtxVertexToBoneWorld).xyz;
+    output.normalW = mul(input.normal, (float3x3) mtxVertexToBoneWorld).xyz;
+    output.tangentW = mul(input.tangent, (float3x3) mtxVertexToBoneWorld).xyz;
+    output.bitangentW = mul(input.bitangent, (float3x3) mtxVertexToBoneWorld).xyz;
     
- 
     output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);
     output.uv = input.uv;
-
+    
     return (output);
 }

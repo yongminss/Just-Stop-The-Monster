@@ -163,16 +163,20 @@ private:
 	TrapInstancingShader		*m_Arrow = NULL;
 
 	// Monster Objects
-	MonsterInstancingShader		*m_Orc = NULL;
+	/*MonsterInstancingShader		*m_Orc = NULL;
 	MonsterInstancingShader		*m_StrongOrc = NULL;
 	MonsterInstancingShader		*m_Shaman = NULL;
-	MonsterInstancingShader		*m_WolfRider = NULL;
+	MonsterInstancingShader		*m_WolfRider = NULL;*/
 
 	// Effect
 	//EffectShader				*m_FireEffect = NULL;
 
 	// Other Player
 	GameObject					*m_OtherPlayerModel = NULL;
+
+	// 시연
+	vector<Monster*> m_Monster;
+	float m_ElapsedTime = 0.f;
 
 	// 디스크립터 힙을 게임 씬에서 만듬
 	static ID3D12DescriptorHeap	*m_CbvSrvDescriptorHeap;

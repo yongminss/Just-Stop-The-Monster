@@ -613,13 +613,6 @@ void GameObject::SetChild(GameObject *Child, bool ReferenceUpdate)
 		m_Child = Child;
 }
 
-void GameObject::SetObject(GameObject *Obj)
-{
-	Obj->m_Parent = this;
-
-
-}
-
 void GameObject::UpdateTransform(XMFLOAT4X4 *Parent)
 {
 	m_WorldPos = (Parent) ? Matrix4x4::Multiply(m_TransformPos, *Parent) : m_TransformPos;

@@ -315,7 +315,6 @@ public:
 	void SetMaterial(int nMaterial, Material *Material);
 
 	void SetChild(GameObject *Child, bool ReferenceUpdate = false);
-	void SetObject(GameObject *Obj);
 
 	void UpdateTransform(XMFLOAT4X4 *Parent);
 
@@ -480,7 +479,14 @@ public:
 	float nInporation = 0.0f;
 	int nCheckPoint = 0;
 	XMFLOAT3 StartLook = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
 public:
+	int m_id = -1;
+	char m_Type;
+
+	void SetType(char type) { m_Type = type; }
+	char GetType() { return m_Type; }
+
 	void SetDirection(XMFLOAT3 Position);
 	void SetLookDirection(XMFLOAT3 Look);
 	void SetLine(float ElapsedTime);

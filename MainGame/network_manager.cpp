@@ -160,6 +160,7 @@ void network_manager::PacketProccess(void * buf)
 		if (findret != m_vec_gameRoom.end()) { // 원래 벡터에 있던 방 정보 업데이트
 			if (room_info_packet->room_enable == false) { // 삭제해야 할 방
 				m_vec_gameRoom.erase(findret);
+				cout << room_info_packet->room_number << "번방 삭제 \n";
 				return;
 			}
 			else {	// 원래 벡터에 있던 방 정보 업데이트
@@ -171,17 +172,23 @@ void network_manager::PacketProccess(void * buf)
 						return;
 					}
 				}
+				if (room_info_packet->room_number == m_myRoomInfo.room_number) { // 내가있는방
+					for (int i = 0; i < 4; ++i) {
+						m_myRoomInfo.players_id[i] = room_info_packet->players_id[i];
+					}
+				}
 			}
 		}
 
-
-		GAME_ROOM_C *new_room = new GAME_ROOM_C;
-		new_room->room_number = room_info_packet->room_number;
-		for (int i = 0; i < 4; ++i) {
-			new_room->players_id[i] = room_info_packet->players_id[i];
+		if (room_info_packet->room_enable == true) {
+			GAME_ROOM_C *new_room = new GAME_ROOM_C;
+			new_room->room_number = room_info_packet->room_number;
+			for (int i = 0; i < 4; ++i) {
+				new_room->players_id[i] = room_info_packet->players_id[i];
+			}
+			m_vec_gameRoom.emplace_back(new_room);
+			cout << "new room" << new_room->room_number << endl;
 		}
-		m_vec_gameRoom.emplace_back(new_room);
-		cout << "new room" << new_room->room_number << endl;
 		break;
 	}
 	case SC_MAKE_ROOM_OK: {
@@ -224,6 +231,7 @@ void network_manager::PacketProccess(void * buf)
 	case SC_JOIN_ROOM_OK: {
 		sc_packet_join_room_ok *join_room_ok_packet = reinterpret_cast<sc_packet_join_room_ok*>(buf);
 		m_myRoomInfo.room_number = join_room_ok_packet->room_number;
+		m_my_info.room_number = join_room_ok_packet->room_number;
 		m_my_info.player_state = PLAYER_STATE_in_room;
 		for (short i = 0; i < 4; ++i) {
 			m_myRoomInfo.players_id[i] = join_room_ok_packet->players_id[i];
@@ -279,6 +287,8 @@ void network_manager::PacketProccess(void * buf)
 		sc_packet_leaveRoom_ok *leaveRoom_ok_packet = reinterpret_cast<sc_packet_leaveRoom_ok*>(buf);
 		if (leaveRoom_ok_packet->id == m_my_info.id) {
 			m_my_info.player_state = PLAYER_STATE_in_lobby;
+			m_my_info.room_number = -1;
+			m_myRoomInfo.room_number = -1;
 		}
 		break;
 	}
