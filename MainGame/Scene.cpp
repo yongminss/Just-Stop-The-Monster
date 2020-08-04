@@ -496,7 +496,7 @@ void GameScene::BuildDefaultLightsAndMaterials()
 	m_Lights[0].m_Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.f);
 	m_Lights[0].m_Diffuse = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.f);
 	m_Lights[0].m_Specular = XMFLOAT4(0.6f, 0.4f, 0.4f, 1.f);
-	m_Lights[0].m_Direction = XMFLOAT3(0.6f, 0.f, 0.6f);
+	m_Lights[0].m_Direction = XMFLOAT3(0.f, 0.f, 1.f);
 
 	/*
 	m_Lights[0].m_Enable = true;
@@ -1051,12 +1051,12 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 			
 			if (network_manager::GetInst()->m_monster_pool[i].type != m_Monster[i]->GetType()) {
 				//cout << i << " : " << m_Monster[i]->GetType() << endl;
-				//continue;
+				continue;
 			}
 
-			//m_Monster[i]->m_id = network_manager::GetInst()->m_monster_pool[i].id;
+			m_Monster[i]->m_id = network_manager::GetInst()->m_monster_pool[i].id;
 
-			cout << "id: "<< m_Monster[i]->m_id << endl;
+			//cout << "id: "<< m_Monster[i]->m_id << endl;
 			if (network_manager::GetInst()->m_monster_pool[i].animation_state != 0)
 				m_Monster[i]->SetEnable(network_manager::GetInst()->m_monster_pool[i].animation_state);
 
@@ -1302,13 +1302,21 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			XMFLOAT3 StartPos = pCamera->GetPosition();
 			XMFLOAT3 EndPos;
 			EndPos = Vector3::Normalize(pCamera->GetLook());
-			
-			Monster *ResultMonster = new Monster;
+
 			float ResultDistance = 0;
 			int HitPart = 0;
 			bool HeadHit = false;
 
-			for (auto iter = m_Monster.begin(); iter != m_Monster.end(); ++iter)
+			for (int i = 0; i < MAX_MONSTER; ++i) {
+				HitPart = m_Monster[i]->CheckMonster(StartPos, EndPos);
+
+				if (HitPart != 0) {
+					cout << "충돌 : " << m_Monster[i]->m_id << endl;
+					network_manager::GetInst()->send_shoot(m_Monster[i]->m_id, HeadHit);
+				}
+			}
+
+			/*for (auto iter = m_Monster.begin(); iter != m_Monster.end(); ++iter)
 			{
 				HitPart = (*iter)->CheckMonster(StartPos, EndPos);
 				if (HitPart != 0)
@@ -1336,11 +1344,11 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 					}
 				}
 			}
-
+			
 			if (ResultMonster) {
 				cout << " 피격: " << ResultMonster->m_id  << endl;
 				network_manager::GetInst()->send_shoot(ResultMonster->m_id, HeadHit);
-			}
+			}*/
 
 			/*for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter) 
 			{
