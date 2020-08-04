@@ -154,7 +154,7 @@ private:
 	bool is_rend_03 = false;
 	bool is_rend_04 = false;
 
-	UINT m_TrapType = 0;
+	UINT m_TrapType = -1;
 
 	// Trap Objects
 	TrapInstancingShader		*m_Needle = NULL;

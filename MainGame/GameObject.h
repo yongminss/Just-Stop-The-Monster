@@ -440,8 +440,8 @@ public:
 };
 
 #define TRAP_NEEDLE		0
-#define TRAP_FIRE		1
-#define TRAP_SLOW		2
+#define TRAP_SLOW		1
+#define TRAP_FIRE		2
 #define TRAP_ARROW		3
 
 // 3D ¸ðµ¨
@@ -452,16 +452,19 @@ public:
 	~Trap() { }
 
 private:
-	bool IsBuildTrap = false;
-	bool IsActive = false;
-
+	bool IsBuildTrap = true;
+	bool IsActive = true;
+	bool IsTrapAccess = false;
 	int m_nTrapKind;
 
 public:
 	void BuildTrap(bool Input) { IsBuildTrap = Input; }
 	void ActiveTrap(bool Input) { IsActive = Input; }
+	void AccessTrap(bool Input) { IsTrapAccess = Input; }
 
 	bool GetIsBuildTrap() { return IsBuildTrap; }
+
+	bool GetIsTrapAccess() { return IsTrapAccess; }
 
 	void Animate(XMFLOAT3 Position, float ElapsedTime, XMFLOAT4X4 *Parent);
 
