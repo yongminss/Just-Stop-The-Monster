@@ -970,17 +970,14 @@ GameObject *GameObject::IsStageIntersect(BoundingBox BodyBound)
 	return NULL;
 }
 
-int GameObject::CheckMonster(XMFLOAT3 startpos, XMFLOAT3 endpos)
+GameObject *GameObject::CheckMonster(XMFLOAT3 startpos, XMFLOAT3 endpos)
 {
 	if (m_Mesh) {
 		// 몬스터 부위
 		BoundingBox MonsterBound = m_Mesh->GetBounds();
 		MonsterBound.Transform(MonsterBound, XMLoadFloat4x4(&m_WorldPos));
 		if (MonsterBound.Intersects(XMLoadFloat3(&startpos), XMLoadFloat3(&endpos), m_Mesh->m_fDistance) == true) {
-			if (strstr(m_FrameName, "Head"))
-				return 2;
-			else
-				return 1;
+			return this;
 		}
 	}
 	if (m_Sibling)
@@ -988,7 +985,7 @@ int GameObject::CheckMonster(XMFLOAT3 startpos, XMFLOAT3 endpos)
 	if (m_Child)
 		return m_Child->CheckMonster(startpos, endpos);
 	
-	return 0;
+	return NULL;
 }
 
 GameObject *GameObject::CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool IsFloor)
@@ -1264,6 +1261,22 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	case RoomList:
 		// Room List
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Select_Room_List.dds", 0);
+		break;
+	case Room_1:
+		// Room 1
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Room_1.dds", 0);
+		break;
+	case Room_2:
+		// Room 2
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Room_2.dds", 0);
+		break;
+	case Room_3:
+		// Room 3
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Room_3.dds", 0);
+		break;
+	case Room_4:
+		// Room 4
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Room_4.dds", 0);
 		break;
 	case MakeRoom:
 		// Make Room

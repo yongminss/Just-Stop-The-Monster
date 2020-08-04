@@ -153,6 +153,8 @@ private:
 	GameObject					*m_Stage_03 = NULL;
 	GameObject					*m_Stage_04 = NULL;
 
+	int m_MapNum = 2;
+
 	bool is_rend_01 = true;
 	bool is_rend_02 = false;
 	bool is_rend_03 = false;

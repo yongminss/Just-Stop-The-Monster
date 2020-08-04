@@ -305,6 +305,8 @@ public:
 		if (m_Child) m_Child->SetRed(bRed);
 	}
 
+	char* GetFrameName() { return m_FrameName; }
+
 	float GetMeshDistance() { return m_Mesh->m_fDistance; }
 
 	void AddRef();
@@ -362,7 +364,7 @@ public:
 
 	GameObject *IsStageIntersect(BoundingBox BodyBound);
 
-	int CheckMonster(XMFLOAT3 startpos, XMFLOAT3 endpos);
+	GameObject *CheckMonster(XMFLOAT3 startpos, XMFLOAT3 endpos);
 
 	GameObject *CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool IsFloor);
 

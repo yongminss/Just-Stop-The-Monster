@@ -39,6 +39,10 @@ void TitleScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 	m_Title = new UI(Device, CommandList, m_GraphicsRootSignature, 0.7, 0.5f, Title, 0);
 	m_Single = new UI(Device, CommandList, m_GraphicsRootSignature, 0.5f, 0.5f, Single, 0);
 	m_Multi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.5f, 0.5f, Multi, 0);
+	m_Room_1 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.4f, Room_1, 0);
+	m_Room_2 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.4f, Room_2, 0);
+	m_Room_3 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.4f, Room_3, 0);
+	m_Room_4 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.4f, Room_4, 0);
 	m_RoomList = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, RoomList, 0);
 	m_JoinRoom = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, JoinRoom, 0);
 	m_MakeRoom = new UI(Device, CommandList, m_GraphicsRootSignature, 1.f, 1.f, MakeRoom, 0);
@@ -219,6 +223,7 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 	CommandList->RSSetScissorRects(1, &m_ScissorRect);
 
 	// Player의 선택에 따라 그려질 방법
+	int cnt = 0;
 	switch (m_state) {
 	case Basic:
 		if (m_Title) m_Title->Render(CommandList);
@@ -229,6 +234,13 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 	case Select_Room:
 		if (m_BackButton) m_BackButton->Render(CommandList);
+		for (GAME_ROOM_C* a : network_manager::GetInst()->m_vec_gameRoom) {
+			if (cnt == 0) m_Room_1->Render(CommandList);
+			if (cnt == 1) m_Room_2->Render(CommandList);
+			if (cnt == 2) m_Room_3->Render(CommandList);
+			if (cnt == 3) m_Room_4->Render(CommandList);
+			cnt++;
+		}
 		if (m_JoinRoom) m_JoinRoom->Render(CommandList);
 		if (m_MakeRoom) m_MakeRoom->Render(CommandList);
 		if (m_RoomList) m_RoomList->Render(CommandList);
@@ -1089,8 +1101,21 @@ void GameScene::CheckBuildTrap(TrapInstancingShader *Trap)
 		EndPos = Vector3::Normalize(pCamera->GetLook());
 
 		if (Trap->m_Trap.size() != 0 && Trap->m_Trap.back()->GetIsBuildTrap()) {
-			if (is_rend_01) {
-				GameObject *TileObject = new GameObject;
+			GameObject *TileObject = new GameObject;
+			switch (m_MapNum) {
+			case 1:
+				switch (Trap->m_Trap.back()->GetTrapKind()) {
+				case TRAP_NEEDLE:
+				case TRAP_SLOW:
+					TileObject = m_Stage_01->CheckTileBound(StartPos, EndPos, true);
+					break;
+				case TRAP_FIRE:
+				case TRAP_ARROW:
+					TileObject = m_Stage_01->CheckTileBound(StartPos, EndPos, false);
+					break;
+				}
+				break;
+			case 2:
 				switch (Trap->m_Trap.back()->GetTrapKind()) {
 				case TRAP_NEEDLE:
 				case TRAP_SLOW:
@@ -1101,152 +1126,98 @@ void GameScene::CheckBuildTrap(TrapInstancingShader *Trap)
 					TileObject = m_Stage_02->CheckTileBound(StartPos, EndPos, false);
 					break;
 				}
-				if (TileObject != NULL) {
-					Trap->m_Trap.back()->AccessTrap(true);
-					BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
-					BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
-					XMFLOAT3 TilePos = BoundTile.Center;
-					bool IsTrapPlaced = false;
+				break;
+			case 3:
+				switch (Trap->m_Trap.back()->GetTrapKind()) {
+				case TRAP_NEEDLE:
+				case TRAP_SLOW:
+					TileObject = m_Stage_03->CheckTileBound(StartPos, EndPos, true);
+					break;
+				case TRAP_FIRE:
+				case TRAP_ARROW:
+					TileObject = m_Stage_03->CheckTileBound(StartPos, EndPos, false);
+					break;
+				}
+				break;
+			case 4:
+				switch (Trap->m_Trap.back()->GetTrapKind()) {
+				case TRAP_NEEDLE:
+				case TRAP_SLOW:
+					TileObject = m_Stage_04->CheckTileBound(StartPos, EndPos, true);
+					break;
+				case TRAP_FIRE:
+				case TRAP_ARROW:
+					TileObject = m_Stage_04->CheckTileBound(StartPos, EndPos, false);
+					break;
+				}
+				break;
+			}
 
-					if (Trap->m_Trap.back()->GetTrapKind() == TRAP_FIRE || Trap->m_Trap.back()->GetTrapKind() == TRAP_ARROW) { // 벽타일
-						if (BoundTile.Extents.x < BoundTile.Extents.z) {
-							if (StartPos.x < TilePos.x) {
-								Trap->m_Trap.back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f * 140.f));
-								Trap->m_Trap.back()->SetRight(XMFLOAT3(0.0f, 1.0f * 140.f, 0.0f));
-								Trap->m_Trap.back()->SetUp(XMFLOAT3(-1.0f * 140.f, 0.0f, 0.0f));
-								TilePos.x -= 15.0f;
-							}
-							else {
-								Trap->m_Trap.back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f * 140.f));
-								Trap->m_Trap.back()->SetRight(XMFLOAT3(0.0f, -1.0f * 140.f, 0.0f));
-								Trap->m_Trap.back()->SetUp(XMFLOAT3(1.0f * 140.f, 0.0f, 0.0f));
-								TilePos.x += 15.0f;
-							}
+			if (TileObject != NULL) {
+				Trap->m_Trap.back()->AccessTrap(true);
+				BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
+				BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
+				XMFLOAT3 TilePos = BoundTile.Center;
+				bool IsTrapPlaced = false;
+
+				if (Trap->m_Trap.back()->GetTrapKind() == TRAP_FIRE || Trap->m_Trap.back()->GetTrapKind() == TRAP_ARROW) { // 벽타일
+					if (BoundTile.Extents.x < BoundTile.Extents.z) {
+						if (StartPos.x < TilePos.x) {
+							Trap->m_Trap.back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f * 140.f));
+							Trap->m_Trap.back()->SetRight(XMFLOAT3(0.0f, 1.0f * 140.f, 0.0f));
+							Trap->m_Trap.back()->SetUp(XMFLOAT3(-1.0f * 140.f, 0.0f, 0.0f));
+							TilePos.x -= 15.0f;
 						}
 						else {
-							if (StartPos.z < TilePos.z) {
-								Trap->m_Trap.back()->SetLook(XMFLOAT3(0.0f, 1.0f * 140.f, 0.0f));
-								Trap->m_Trap.back()->SetRight(XMFLOAT3(1.0f * 140.f, 0.0f, 0.0f));
-								Trap->m_Trap.back()->SetUp(XMFLOAT3(0.0f, 0.0f, -1.0f * 140.f));
-								TilePos.z -= 15.0f;
-							}
-							else {
-								Trap->m_Trap.back()->SetLook(XMFLOAT3(0.0f, -1.0f * 140.f, 0.0f));
-								Trap->m_Trap.back()->SetRight(XMFLOAT3(1.0f * 140.f, 0.0f, 0.0f));
-								Trap->m_Trap.back()->SetUp(XMFLOAT3(0.0f, 0.0f, 1.0f * 140.f));
-								TilePos.z += 15.0f;
-							}
+							Trap->m_Trap.back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f * 140.f));
+							Trap->m_Trap.back()->SetRight(XMFLOAT3(0.0f, -1.0f * 140.f, 0.0f));
+							Trap->m_Trap.back()->SetUp(XMFLOAT3(1.0f * 140.f, 0.0f, 0.0f));
+							TilePos.x += 15.0f;
 						}
-					}
-					else if (Trap->m_Trap.back()->GetTrapKind() == TRAP_NEEDLE || Trap->m_Trap.back()->GetTrapKind() == TRAP_SLOW) { 
-						TilePos.y += 10.0f;
-					}
-					Trap->m_Trap.back()->SetPostion(TilePos);
-
-					for (auto iter = Trap->m_Trap.begin(); (*iter) != Trap->m_Trap.back(); ++iter) {
-						if (XMVector3Equal(XMLoadFloat3(&(*iter)->GetPosition()), XMLoadFloat3(&TilePos))) {
-							Trap->m_Trap.back()->MoveUp(5.f);
-							IsTrapPlaced = true;
-							break;
-						}
-					}
-
-					Trap->m_Trap.back()->UpdateTransform(NULL);
-					if (IsTrapPlaced == true) {
-						Trap->m_Trap.back()->SetRed(0x01);
 					}
 					else {
-						Trap->m_Trap.back()->SetRed(0x00);
+						if (StartPos.z < TilePos.z) {
+							Trap->m_Trap.back()->SetLook(XMFLOAT3(0.0f, 1.0f * 140.f, 0.0f));
+							Trap->m_Trap.back()->SetRight(XMFLOAT3(1.0f * 140.f, 0.0f, 0.0f));
+							Trap->m_Trap.back()->SetUp(XMFLOAT3(0.0f, 0.0f, -1.0f * 140.f));
+							TilePos.z -= 15.0f;
+						}
+						else {
+							Trap->m_Trap.back()->SetLook(XMFLOAT3(0.0f, -1.0f * 140.f, 0.0f));
+							Trap->m_Trap.back()->SetRight(XMFLOAT3(1.0f * 140.f, 0.0f, 0.0f));
+							Trap->m_Trap.back()->SetUp(XMFLOAT3(0.0f, 0.0f, 1.0f * 140.f));
+							TilePos.z += 15.0f;
+						}
 					}
 				}
+				else if (Trap->m_Trap.back()->GetTrapKind() == TRAP_NEEDLE || Trap->m_Trap.back()->GetTrapKind() == TRAP_SLOW) { 
+					TilePos.y += 10.0f;
+				}
+				Trap->m_Trap.back()->SetPostion(TilePos);
+
+				for (auto iter = Trap->m_Trap.begin(); (*iter) != Trap->m_Trap.back(); ++iter) {
+					if (XMVector3Equal(XMLoadFloat3(&(*iter)->GetPosition()), XMLoadFloat3(&TilePos))) {
+						Trap->m_Trap.back()->MoveUp(5.f);
+						IsTrapPlaced = true;
+						break;
+					}
+				}
+
+				Trap->m_Trap.back()->UpdateTransform(NULL);
+				if (IsTrapPlaced == true) {
+					Trap->m_Trap.back()->SetRed(0x01);
+				}
 				else {
-					Trap->m_Trap.back()->AccessTrap(false);
-					Trap->m_Trap.back()->SetPostion(XMFLOAT3(0.0f, -200.0f, 0.0f));
-					Trap->m_Trap.back()->UpdateTransform(NULL);
+					Trap->m_Trap.back()->SetRed(0x00);
 				}
 			}
-			if (is_rend_02) {
-				GameObject *TileObject = m_Stage_02->CheckTileBound(StartPos, EndPos, true);
-				if (TileObject != NULL) {
-					BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
-					cout << "박스 Up벡터 x: " << TileObject->GetUp().x << " y: " << TileObject->GetUp().y << " z: " << TileObject->GetUp().z << endl;
-					BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
-					XMFLOAT3 TilePos = BoundTile.Center;
-
-					m_Needle->GetTrapObject().back()->SetPostion(TilePos);
-					m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
-				}
-				/*else {
-					m_Needle->GetTrapObject().back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
-					XMFLOAT3 ypos = m_Needle->GetTrapObject().back()->GetPosition();
-					ypos.y = -50.0f;
-					m_Needle->GetTrapObject().back()->SetPostion(ypos);
-					m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
-				}*/
+			else {
+				Trap->m_Trap.back()->AccessTrap(false);
+				Trap->m_Trap.back()->SetPostion(XMFLOAT3(0.0f, -200.0f, 0.0f));
+				Trap->m_Trap.back()->UpdateTransform(NULL);
 			}
-			if (is_rend_03) {
-				//cout << "3번스테이지" << endl;
-				GameObject *TileObject = m_Stage_03->CheckTileBound(StartPos, EndPos, true);
-				if (TileObject != NULL) {
-					BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
-					BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
-					XMFLOAT3 TilePos = BoundTile.Center;
-					m_Needle->GetTrapObject().back()->SetPostion(TilePos);
-					m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
-				}
-				//else {
-				//	m_Needle->GetTrapObject().back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
-				//	XMFLOAT3 ypos = m_Needle->GetTrapObject().back()->GetPosition();
-				//	ypos.y = -50.0f;
-				//	m_Needle->GetTrapObject().back()->SetPostion(ypos);
-				//	m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
-				//	/*=======
-				//							m_Needle->GetTrapObject().back()->SetPostion(ypos);
-				//							m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
-				//	>>>>>>> maste*/
-				//}
-			}
-			//if (is_rend_02) {
-			//	GameObject *TileObject = m_Stage_02->CheckTileBound(StartPos, NormalEnd, true);
-			//	if (TileObject != NULL) {
-			//		BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
-			//		cout << "박스 Up벡터 x: " << TileObject->GetUp().x << " y: " << TileObject->GetUp().y  << " z: " << TileObject->GetUp().z << endl;
-			//		BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
-			//		XMFLOAT3 TilePos = BoundTile.Center;
-			//		
-			//		m_Needle->GetTrapObject().back()->SetPostion(TilePos);
-			//		m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
-			//	}
-			//	else {
-			//		m_Needle->GetTrapObject().back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
-			//		XMFLOAT3 ypos = m_Needle->GetTrapObject().back()->GetPosition();
-			//		ypos.y = -50.0f;
-			//		m_Needle->GetTrapObject().back()->SetPostion(ypos);
-			//		m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
-			//	}
-			//}
-			//if (is_rend_03) {
-			//	//cout << "3번스테이지" << endl;
-			//	GameObject *TileObject = m_Stage_03->CheckTileBound(StartPos, NormalEnd, true);
-			//	if (TileObject != NULL) {
-			//		BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
-			//		BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
-			//		XMFLOAT3 TilePos = BoundTile.Center;
-			//		m_Needle->GetTrapObject().back()->SetPostion(TilePos);
-			//		m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
-			//	}
-			//	else {
-			//		m_Needle->GetTrapObject().back()->SetPostion(Vector3::Add(m_Player->GetPosition(), Vector3::ScalarProduct(m_Player->GetLook(), 100)));
-			//		XMFLOAT3 ypos = m_Needle->GetTrapObject().back()->GetPosition();
-			//		ypos.y = -50.0f;
-			//		m_Needle->GetTrapObject().back()->SetPostion(ypos);
-			//		m_Needle->GetTrapObject().back()->UpdateTransform(NULL);
-			//	}
-			//}
-
 		}
 	}
-
 }
 
 void GameScene::ProcessInput(HWND hWnd)
@@ -1303,142 +1274,46 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			XMFLOAT3 EndPos;
 			EndPos = Vector3::Normalize(pCamera->GetLook());
 
-			float ResultDistance = 0;
-			int HitPart = 0;
-			bool HeadHit = false;
+			float ResultDistance = 10000;
+			int HitIndex = 0;
+
+			GameObject *MonObj = new GameObject();
+			GameObject *ResultObj = new GameObject();
 
 			for (int i = 0; i < MAX_MONSTER; ++i) {
-				HitPart = m_Monster[i]->CheckMonster(StartPos, EndPos);
-
-				if (HitPart != 0) {
-					cout << "충돌 : " << m_Monster[i]->m_id << endl;
-					network_manager::GetInst()->send_shoot(m_Monster[i]->m_id, HeadHit);
-				}
-			}
-
-			/*for (auto iter = m_Monster.begin(); iter != m_Monster.end(); ++iter)
-			{
-				HitPart = (*iter)->CheckMonster(StartPos, EndPos);
-				if (HitPart != 0)
-				{
-					if (ResultMonster == NULL)
-					{
-						ResultMonster = (*iter);
-						ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
-						if (HitPart == 1)
-							HeadHit = false;
-						else
-							HeadHit = true;
-					}
-					else
-					{
-						if (ResultDistance > Vector3::Distance((*iter)->GetPosition(), m_Player->GetPosition()))
-						{
-							ResultMonster = (*iter);
-							ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
-							if (HitPart == 1)
-								HeadHit = false;
-							else
-								HeadHit = true;
-						}
+				MonObj = m_Monster[i]->CheckMonster(StartPos, EndPos);
+				if (MonObj != NULL) {
+					if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
+						ResultObj = MonObj;
+						ResultDistance = ResultObj->GetMesh()->m_fDistance;
+						HitIndex = i;
 					}
 				}
 			}
+			GameObject *TileObj = new GameObject();
+
+			switch (m_MapNum) {
+			case 1:
+				TileObj = m_Stage_01->CheckTileBound(StartPos, EndPos, false);
+				break;
+			case 2:
+				TileObj = m_Stage_02->CheckTileBound(StartPos, EndPos, false);
+				break;
+			case 3:
+				TileObj = m_Stage_03->CheckTileBound(StartPos, EndPos, false);
+				break;
+			case 4:
+				TileObj = m_Stage_04->CheckTileBound(StartPos, EndPos, false);
+				break;
+			}
+
+			if (TileObj->GetMesh()->m_fDistance > ResultDistance) {
+				if (strstr(ResultObj->GetFrameName(), "Head"))
+					network_manager::GetInst()->send_shoot(m_Monster[HitIndex]->m_id, true);
+				else
+					network_manager::GetInst()->send_shoot(m_Monster[HitIndex]->m_id, false);
+			}
 			
-			if (ResultMonster) {
-				cout << " 피격: " << ResultMonster->m_id  << endl;
-				network_manager::GetInst()->send_shoot(ResultMonster->m_id, HeadHit);
-			}*/
-
-			/*for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter) 
-			{
-				HitPart = (*iter)->CheckMonster(StartPos, EndPos);
-				if (HitPart != 0)
-				{
-					if (ResultMonster == NULL)
-					{
-						ResultMonster = (*iter);
-						ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
-						if (HitPart == 1)
-							HeadHit = false;
-						else
-							HeadHit = true;
-					}
-					else 
-					{
-						if (ResultDistance > Vector3::Distance((*iter)->GetPosition(), m_Player->GetPosition()))
-						{
-							ResultMonster = (*iter);
-							ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
-							if (HitPart == 1)
-								HeadHit = false;
-							else
-								HeadHit = true;
-						}
-					}
-				}
-			}*/
-			/*for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter) {
-				HitPart = (*iter)->CheckMonster(StartPos, EndPos);
-				if (HitPart != 0)
-				{
-					HitPart = (*iter)->CheckMonster(StartPos, EndPos);
-					if (HitPart != 0)
-					{
-						if (ResultMonster == NULL)
-						{
-							ResultMonster = (*iter);
-							ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
-							if (HitPart == 1)
-								HeadHit = false;
-							else
-								HeadHit = true;
-						}
-						else
-						{
-							if (ResultDistance > Vector3::Distance((*iter)->GetPosition(), m_Player->GetPosition()))
-							{
-								ResultMonster = (*iter);
-								ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
-								if (HitPart == 1)
-									HeadHit = false;
-								else
-									HeadHit = true;
-							}
-						}
-					}
-				}
-			}*/
-			/*for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter) {
-				HitPart = (*iter)->CheckMonster(StartPos, EndPos);
-				if (HitPart != 0)
-				{
-					if (ResultMonster == NULL)
-					{
-						ResultMonster = (*iter);
-						ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
-						if (HitPart == 1)
-							HeadHit = false;
-						else
-							HeadHit = true;
-					}
-					else
-					{
-						if (ResultDistance > Vector3::Distance((*iter)->GetPosition(), m_Player->GetPosition()))
-						{
-							ResultMonster = (*iter);
-							ResultDistance = Vector3::Distance(ResultMonster->GetPosition(), m_Player->GetPosition());
-							if (HitPart == 1)
-								HeadHit = false;
-							else
-								HeadHit = true;
-						}
-					}
-				}
-			}*/
-
-			
-
 			m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
 			m_Player->SetEnable(9);
 		}
