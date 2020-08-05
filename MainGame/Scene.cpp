@@ -856,29 +856,40 @@ void GameScene::Animate(float ElapsedTime)
 		m_Player->UpdateTransform(NULL);
 		if (m_Player->GetMoveInfo()) {
 			GameObject *TileObject = new GameObject;
-			if (is_rend_01) {
-				BoundingBox BoundPlayer = m_Player->GetBodyBounding();
+			BoundingBox BoundPlayer = m_Player->GetBodyBounding();
+			switch (m_MapNum) {
+			case 1:
+				TileObject = m_Stage_01->IsStageIntersect(BoundPlayer);
+				break;
+			case 2:
 				TileObject = m_Stage_02->IsStageIntersect(BoundPlayer);
-				if (TileObject != NULL) {
-					BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
-					BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
-					XMFLOAT3 BoundDistance = Vector3::Subtract(BoundTile.Center, BoundPlayer.Center);
-					if (BoundTile.Extents.x < BoundTile.Extents.z) { // 세로벽
-						if (BoundDistance.x < 0.f) { //왼쪽 벽 충돌체크
-							m_Player->SetmPosition(Vector3::Add(XMFLOAT3(BoundTile.Extents.x + BoundPlayer.Extents.x + BoundDistance.x,0.0f,0.0f),m_Player->GetPosition())); 
-						}
-						else {						//오른쪽 벽 충돌체크
-							m_Player->SetmPosition(Vector3::Add(XMFLOAT3(-BoundTile.Extents.x - BoundPlayer.Extents.x + BoundDistance.x, 0.0f, 0.0f), m_Player->GetPosition())); 
-						}
-						//cout << "x 벽 충돌중" << endl;
+				break;
+			case 3:
+				TileObject = m_Stage_03->IsStageIntersect(BoundPlayer);
+				break;
+			case 4:
+				TileObject = m_Stage_04->IsStageIntersect(BoundPlayer);
+				break;
+			}
+			if (TileObject != NULL) {
+				BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
+				BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
+				XMFLOAT3 BoundDistance = Vector3::Subtract(BoundTile.Center, BoundPlayer.Center);
+				if (BoundTile.Extents.x < BoundTile.Extents.z) { // 세로벽
+					if (BoundDistance.x < 0.f) { //왼쪽 벽 충돌체크
+						m_Player->SetmPosition(Vector3::Add(XMFLOAT3(BoundTile.Extents.x + BoundPlayer.Extents.x + BoundDistance.x, 0.0f, 0.0f), m_Player->GetPosition()));
 					}
-					else {	//가로벽
-						if (BoundDistance.z < 0.f) { //후방 벽 충돌체크
-							m_Player->SetmPosition(Vector3::Add(XMFLOAT3(0.0f, 0.0f, BoundTile.Extents.z + BoundPlayer.Extents.z + BoundDistance.z), m_Player->GetPosition()));
-						}
-						else {						//전방 벽 충돌체크
-							m_Player->SetmPosition(Vector3::Add(XMFLOAT3(0.0f, 0.0f, -BoundTile.Extents.z - BoundPlayer.Extents.z + BoundDistance.z), m_Player->GetPosition()));
-						}
+					else {						//오른쪽 벽 충돌체크
+						m_Player->SetmPosition(Vector3::Add(XMFLOAT3(-BoundTile.Extents.x - BoundPlayer.Extents.x + BoundDistance.x, 0.0f, 0.0f), m_Player->GetPosition()));
+					}
+					//cout << "x 벽 충돌중" << endl;
+				}
+				else {	//가로벽
+					if (BoundDistance.z < 0.f) { //후방 벽 충돌체크
+						m_Player->SetmPosition(Vector3::Add(XMFLOAT3(0.0f, 0.0f, BoundTile.Extents.z + BoundPlayer.Extents.z + BoundDistance.z), m_Player->GetPosition()));
+					}
+					else {						//전방 벽 충돌체크
+						m_Player->SetmPosition(Vector3::Add(XMFLOAT3(0.0f, 0.0f, -BoundTile.Extents.z - BoundPlayer.Extents.z + BoundDistance.z), m_Player->GetPosition()));
 					}
 				}
 			}
@@ -886,122 +897,6 @@ void GameScene::Animate(float ElapsedTime)
 		m_Player->Update(ElapsedTime);
 		XMFLOAT3 p_pos = m_Player->GetPosition();
 	}
-
-	// Trap Object
-	//if (m_Needle) m_Needle->Animate(ElapsedTime, m_Player->GetPosition());
-
-	/*if (m_Orc) m_Orc->Animate(ElapsedTime);
-
-	if (m_StrongOrc) m_StrongOrc->Animate(ElapsedTime);
-
-	if (m_Shaman) m_Shaman->Animate(ElapsedTime);
-
-	if (m_WolfRider) m_WolfRider->Animate(ElapsedTime);*/
-
-
-
-	/*for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter)
-		if (*iter) {
-			(*iter)->UpdateTransform(NULL);
-			(*iter)->Animate(m_Player, ElapsedTime, NULL);
-		}*/
-
-
-	/*for (auto iter = m_Orc.begin(); iter != m_Orc.end(); ++iter)
-		if (*iter) {
-			if (network_manager::GetInst()->m_monster_pool[0].isLive == false) {
-				continue;
-			}
-			(*iter)->SetTransform(network_manager::GetInst()->m_monster_pool[0].world_pos);
-			(*iter)->UpdateTransform(NULL);
-			(*iter)->Animate(ElapsedTime, NULL);
-			(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
-			(*iter)->SetEnable(network_manager::GetInst()->m_monster_pool[0].animation_state);
-
-			/*(*iter)->UpdateTransform(NULL);
-			(*iter)->Animate(ElapsedTime, NULL);*/
-			/*XMFLOAT3 PlayerPos = m_Player->GetPosition();
-			XMFLOAT3 OrcPos = (*iter)->GetPosition();
-			float DistanceWithPlayer = Vector3::Distance(PlayerPos, OrcPos);
-			if (DistanceWithPlayer > 200.0f) {
-				(*iter)->SetLine(ElapsedTime);
-				(*iter)->MoveForward(200.f * ElapsedTime);
-				(*iter)->SetEnable(2);
-			}
-			else if (DistanceWithPlayer <= 200.0f && DistanceWithPlayer >= 70.0f) {
-				if ((*iter)->nCheckPoint != 0) { (*iter)->nCheckPoint = 0; (*iter)->nInporation = 0.0f; (*iter)->StartLook = (*iter)->GetLook(); }
-				PlayerPos.y = -50.f;
-				PlayerPos = Vector3::Subtract(PlayerPos, OrcPos);
-				(*iter)->SetEnable(2);
-				if ((*iter)->GetNowAnimationNum() == 2) {
-					(*iter)->SetinterPolation(Vector3::Normalize(PlayerPos));
-					(*iter)->MoveForward(200.f * ElapsedTime);
-				}
-			}
-			else {
-				(*iter)->SetDirection(PlayerPos);
-				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
-				(*iter)->SetEnable(3);
-			}
-		}*/
-
-	/*for (auto iter = m_Shaman.begin(); iter != m_Shaman.end(); ++iter)
-		if (*iter) {
-			(*iter)->UpdateTransform(NULL);
-			(*iter)->Animate(ElapsedTime, NULL);
-			XMFLOAT3 PlayerPos = m_Player->GetPosition();
-			XMFLOAT3 ShamanPos = (*iter)->GetPosition();
-			float DistanceWithPlayer = Vector3::Distance(PlayerPos, ShamanPos);
-			if (DistanceWithPlayer > 300.0f) {
-				(*iter)->SetLine(ElapsedTime);
-				(*iter)->MoveForward(200.f * ElapsedTime);
-				(*iter)->SetEnable(2);
-			}
-			else if (DistanceWithPlayer <= 300.0f && DistanceWithPlayer >= 200.0f) {
-				if ((*iter)->nCheckPoint != 0) { (*iter)->nCheckPoint = 0; (*iter)->nInporation = 0.0f; (*iter)->StartLook = (*iter)->GetLook(); }
-				PlayerPos.y = -50.f;
-				PlayerPos = Vector3::Subtract(PlayerPos, ShamanPos);
-				(*iter)->SetEnable(2);
-				if ((*iter)->GetNowAnimationNum() == 2) {
-					(*iter)->SetinterPolation(Vector3::Normalize(PlayerPos));
-					(*iter)->MoveForward(200.f * ElapsedTime);
-				}
-			}
-			else {
-				(*iter)->SetDirection(PlayerPos);
-				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
-				(*iter)->SetEnable(3);
-			}
-		}*/
-
-	/*for (auto iter = m_WolfRider.begin(); iter != m_WolfRider.end(); ++iter)
-		if (*iter) {
-			(*iter)->UpdateTransform(NULL);
-			(*iter)->Animate(ElapsedTime, NULL);
-			XMFLOAT3 PlayerPos = m_Player->GetPosition();
-			XMFLOAT3 WolfPos = (*iter)->GetPosition();
-			float DistanceWithPlayer = Vector3::Distance(PlayerPos, WolfPos);
-			if (DistanceWithPlayer > 200.0f) {
-				(*iter)->SetLine(ElapsedTime);
-				(*iter)->MoveForward(200.f * ElapsedTime);
-				(*iter)->SetEnable(2);
-			}
-			else if (DistanceWithPlayer <= 200.0f && DistanceWithPlayer >= 90.0f) {
-				if ((*iter)->nCheckPoint != 0) { (*iter)->nCheckPoint = 0; (*iter)->nInporation = 0.0f; (*iter)->StartLook = (*iter)->GetLook(); }
-				PlayerPos.y = -50.f;
-				PlayerPos = Vector3::Subtract(PlayerPos, WolfPos);
-				(*iter)->SetEnable(2);
-				if ((*iter)->GetNowAnimationNum() == 2) {
-					(*iter)->SetinterPolation(Vector3::Normalize(PlayerPos));
-					(*iter)->MoveForward(200.f * ElapsedTime);
-				}
-			}
-			else {
-				(*iter)->SetDirection(PlayerPos);
-				(*iter)->SetAnimateType(3, ANIMATION_TYPE_ONCE);
-				(*iter)->SetEnable(3);
-			}
-		}*/
 
 	// Ohter Player
 	if (network_manager::GetInst()->IsConnect()) {
@@ -1015,16 +910,6 @@ void GameScene::Animate(float ElapsedTime)
 		m_OtherPlayerModel->Animate(ElapsedTime, NULL);
 	}
 
-	/*switch (m_TrapType)
-	{
-	case TRAP_NEEDLE: CheckBuildTrap(m_Needle); break;
-
-	case TRAP_FIRE: CheckBuildTrap(m_Fire); break;
-
-	case TRAP_SLOW: CheckBuildTrap(m_Slow); break;
-
-	case TRAP_ARROW: CheckBuildTrap(m_Arrow); break;
-	}*/
 	if (m_target) CheckBuildTrap();
 
 	m_ElapsedTime = ElapsedTime;
@@ -1055,10 +940,20 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	if (m_Scope) m_Scope->Render(CommandList);
 
 	// GameScene에 등장할 오브젝트 렌더링
-	if (is_rend_01) if (m_Stage_02) m_Stage_02->Render(CommandList);
-	if (is_rend_02) if (m_Stage_02) m_Stage_02->Render(CommandList);
-	if (is_rend_03) if (m_Stage_03) m_Stage_03->Render(CommandList);
-	if (is_rend_04) if (m_Stage_04) m_Stage_04->Render(CommandList);
+	switch (m_MapNum) {
+	case 1:
+		if (m_Stage_01) m_Stage_01->Render(CommandList);
+		break;
+	case 2:
+		if (m_Stage_02) m_Stage_02->Render(CommandList);
+		break;
+	case 3:
+		if (m_Stage_03) m_Stage_03->Render(CommandList);
+		break;
+	case 4:
+		if (m_Stage_04) m_Stage_04->Render(CommandList);
+		break;
+	}
 
 	// Trap Objects
 	for (int i = 0; i < MAX_TRAP; ++i) {
@@ -1638,32 +1533,17 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		break;
 
 		case '7':
-		{
-			if (is_rend_01) is_rend_01 = false;
-			else is_rend_01 = true;
-		}
-		break;
-
+			m_MapNum = 1;
+			break;
 		case '8':
-		{
-			if (is_rend_02) is_rend_02 = false;
-			else is_rend_02 = true;
-		}
-		break;
-
+			m_MapNum = 2;	
+			break;
 		case '9':
-		{
-			if (is_rend_03) is_rend_03 = false;
-			else is_rend_03 = true;
-		}
-		break;
-
+			m_MapNum = 3;
+			break;
 		case '0':
-		{
-			if (is_rend_04) is_rend_04 = false;
-			else is_rend_04 = true;
-		}
-		break;
+			m_MapNum = 4;
+			break;
 
 		case VK_SHIFT:
 			m_Player->SetAnimateType(27, ANIMATION_TYPE_ONCE);

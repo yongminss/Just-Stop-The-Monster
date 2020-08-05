@@ -152,11 +152,6 @@ private:
 
 	int m_MapNum = 2;
 
-	bool is_rend_01 = true;
-	bool is_rend_02 = false;
-	bool is_rend_03 = false;
-	bool is_rend_04 = false;
-
 	UINT m_TrapType = 0;
 
 	// Trap Objects
