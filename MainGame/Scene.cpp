@@ -455,7 +455,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 		}
 		m_Trap.back()->SetChild(TrapObj, false);
 		m_Trap.back()->SetEnable(1);
-		m_Trap.back()->SetPostion(XMFLOAT3(0, -1000.f, 0.f));
+		//m_Trap.back()->SetPostion(XMFLOAT3(0, -1000.f, 0.f));
 	}
 	/*m_Needle = new TrapInstancingShader();
 	m_Needle->CreateShader(Device, CommandList, m_GraphicsRootSignature);
@@ -933,6 +933,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 	// 플레이어 렌더링
 	if (m_Player) m_Player->Render(CommandList);
+	cout << "x: " << m_Player->GetPosition().x << ", z: " << m_Player->GetPosition().z << endl;
 
 	// UI
 	if (m_CharInfo) m_CharInfo->Render(CommandList);
@@ -960,13 +961,13 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		if (m_Trap[i]) {
 			if (m_Trap[i]->is_active == false) continue;
 
-			if (network_manager::GetInst()->m_trap_pool[i].enable == true) {
-				XMFLOAT4X4 world = network_manager::GetInst()->m_trap_pool[i].trap4x4pos;
-				m_Trap[i]->SetRight(XMFLOAT3(world._11, world._12, world._13));
-				m_Trap[i]->SetUp(XMFLOAT3(world._21, world._22, world._23));
-				m_Trap[i]->SetLook(XMFLOAT3(world._31, world._32, world._33));
-				m_Trap[i]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
-			}
+			//if (network_manager::GetInst()->m_trap_pool[i].enable == true) {
+			//	XMFLOAT4X4 world = network_manager::GetInst()->m_trap_pool[i].trap4x4pos;
+			//	m_Trap[i]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+			//	m_Trap[i]->SetUp(XMFLOAT3(world._21, world._22, world._23));
+			//	m_Trap[i]->SetLook(XMFLOAT3(world._31, world._32, world._33));
+			//	m_Trap[i]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+			//}
 			m_Trap[i]->Animate(m_ElapsedTime, NULL);
 			m_Trap[i]->UpdateTransform(NULL);
 			m_Trap[i]->Render(CommandList);

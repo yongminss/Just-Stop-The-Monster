@@ -28,6 +28,8 @@ void network_manager::init_data()
 	m_nameLogin = false;
 
 	ZeroMemory(&m_OtherInfo, sizeof(m_OtherInfo));
+	ZeroMemory(&m_monster_pool, sizeof(m_monster_pool));
+	ZeroMemory(&m_trap_pool, sizeof(m_trap_pool));
 
 	m_vec_gameRoom.reserve(20);
 	m_vec_trapPool.reserve(50);
@@ -224,6 +226,7 @@ void network_manager::PacketProccess(void * buf)
 	}
 	case SC_TRAP_INFO: {
 		sc_packet_trap_info *trap_info_packet = reinterpret_cast<sc_packet_trap_info*>(buf);
+		cout << "new trap"<< trap_info_packet->trap_id <<endl;
 		m_trap_pool[trap_info_packet->trap_id].enable = true;
 		m_trap_pool[trap_info_packet->trap_id].id = trap_info_packet->trap_id;
 		m_trap_pool[trap_info_packet->trap_id].trap_type = trap_info_packet->trap_type;
