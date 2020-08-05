@@ -227,7 +227,7 @@ void network_manager::PacketProccess(void * buf)
 		m_trap_pool[trap_info_packet->trap_id].enable = true;
 		m_trap_pool[trap_info_packet->trap_id].id = trap_info_packet->trap_id;
 		m_trap_pool[trap_info_packet->trap_id].trap_type = trap_info_packet->trap_type;
-		m_trap_pool[trap_info_packet->trap_id].trap_pos = trap_info_packet->trap_pos;
+		m_trap_pool[trap_info_packet->trap_id].trap4x4pos = trap_info_packet->trap_pos;
 		break;
 	}
 	case SC_JOIN_ROOM_OK: {
@@ -385,7 +385,7 @@ void network_manager::send_request_join_room(const short& room_number)
 	}
 }
 
-void network_manager::send_install_trap(char trap_type, DirectX::XMFLOAT3 trap_pos)
+void network_manager::send_install_trap(char trap_type, DirectX::XMFLOAT4X4 trap_pos)
 {
 	cs_packet_install_trap packet;
 	packet.type = CS_INSTALL_TRAP;

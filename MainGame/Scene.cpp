@@ -1064,6 +1064,14 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	for (int i = 0; i < MAX_TRAP; ++i) {
 		if (m_Trap[i]) {
 			if (m_Trap[i]->is_active == false) continue;
+
+			//XMFLOAT3 pos = network_manager::GetInst()->m_trap_pool[i].trap_pos;
+
+			/*m_Monster[i]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+			m_Monster[i]->SetUp(XMFLOAT3(world._21, world._22, world._23));
+			m_Monster[i]->SetLook(XMFLOAT3(world._31, world._32, world._33));*/
+			//m_Trap[i]->SetPostion(XMFLOAT3(pos.x, pos.y, pos.z));
+
 			m_Trap[i]->Animate(m_ElapsedTime, NULL);
 			m_Trap[i]->UpdateTransform(NULL);
 			m_Trap[i]->Render(CommandList);
@@ -1279,6 +1287,9 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		if (m_bClick) {
 			if (m_target != NULL)
 				if (m_target->GetIsTrapAccess() == true && m_target->GetIsBuildTrap() == true && m_target->is_collision == false) {
+
+					network_manager::GetInst()->send_install_trap(m_target->GetTrapKind(), m_target->m_WorldPos);
+
 					m_target->BuildTrap(false);
 					m_target = NULL;
 				}
