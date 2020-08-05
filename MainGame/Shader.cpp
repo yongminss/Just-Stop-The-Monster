@@ -522,7 +522,7 @@ void TrapInstancingShader::BuildTrap(UINT Type)
 		Obj->BuildTrap(true);
 		Obj->ActiveTrap(true);
 		Obj->SetEnable(1);
-		Obj->SetTrapKind(Type);
+		//Obj->SetTrapKind(Type);
 		m_Trap.emplace_back(Obj);
 	}
 }

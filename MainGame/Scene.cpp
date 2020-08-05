@@ -439,19 +439,19 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 		GameObject *TrapObj = NULL;
 		if (i < MAX_TRAP / 4) {
 			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
-			m_Trap.back()->SetTrapKind(TRAP_NEEDLE);
+			m_Trap.back()->m_nTrapKind = TRAP_NEEDLE;
 		}
 		else if (i < MAX_TRAP / 2) {
 			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Fire.bin", NULL, false);
-			m_Trap.back()->SetTrapKind(TRAP_FIRE);
+			m_Trap.back()->m_nTrapKind = TRAP_FIRE;
 		}
 		else if (i < MAX_TRAP - (MAX_TRAP / 4)) {
 			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Slow.bin", NULL, false);
-			m_Trap.back()->SetTrapKind(TRAP_SLOW);
+			m_Trap.back()->m_nTrapKind = TRAP_SLOW;
 		}
 		else {
 			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Arrow.bin", NULL, false);
-			m_Trap.back()->SetTrapKind(TRAP_ARROW);
+			m_Trap.back()->m_nTrapKind = TRAP_ARROW;
 		}
 		m_Trap.back()->SetChild(TrapObj, false);
 		m_Trap.back()->SetEnable(1);
@@ -1065,13 +1065,14 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		if (m_Trap[i]) {
 			if (m_Trap[i]->is_active == false) continue;
 
-			//XMFLOAT3 pos = network_manager::GetInst()->m_trap_pool[i].trap_pos;
-
-			/*m_Monster[i]->SetRight(XMFLOAT3(world._11, world._12, world._13));
-			m_Monster[i]->SetUp(XMFLOAT3(world._21, world._22, world._23));
-			m_Monster[i]->SetLook(XMFLOAT3(world._31, world._32, world._33));*/
-			//m_Trap[i]->SetPostion(XMFLOAT3(pos.x, pos.y, pos.z));
-
+			if (network_manager::GetInst()->m_trap_pool[i].enable == true) {
+				XMFLOAT4X4 world = network_manager::GetInst()->m_trap_pool[i].trap4x4pos;
+				m_Trap[i]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+				m_Trap[i]->SetUp(XMFLOAT3(world._21, world._22, world._23));
+				m_Trap[i]->SetLook(XMFLOAT3(world._31, world._32, world._33));
+				m_Trap[i]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+			}
+			
 			m_Trap[i]->Animate(m_ElapsedTime, NULL);
 			m_Trap[i]->UpdateTransform(NULL);
 			m_Trap[i]->Render(CommandList);
@@ -1138,7 +1139,7 @@ void GameScene::CheckBuildTrap()
 			GameObject *TileObject = new GameObject();
 			switch (m_MapNum) {
 			case 1:
-				switch (m_target->GetTrapKind()) {
+				switch (m_target->m_nTrapKind) {
 				case TRAP_NEEDLE:
 				case TRAP_SLOW:
 					TileObject = m_Stage_01->CheckTileBound(StartPos, EndPos, true);
@@ -1150,7 +1151,7 @@ void GameScene::CheckBuildTrap()
 				}
 				break;
 			case 2:
-				switch (m_target->GetTrapKind()) {
+				switch (m_target->m_nTrapKind) {
 				case TRAP_NEEDLE:
 				case TRAP_SLOW:
 					TileObject = m_Stage_02->CheckTileBound(StartPos, EndPos, true);
@@ -1162,7 +1163,7 @@ void GameScene::CheckBuildTrap()
 				}
 				break;
 			case 3:
-				switch (m_target->GetTrapKind()) {
+				switch (m_target->m_nTrapKind) {
 				case TRAP_NEEDLE:
 				case TRAP_SLOW:
 					TileObject = m_Stage_03->CheckTileBound(StartPos, EndPos, true);
@@ -1174,7 +1175,7 @@ void GameScene::CheckBuildTrap()
 				}
 				break;
 			case 4:
-				switch (m_target->GetTrapKind()) {
+				switch (m_target->m_nTrapKind) {
 				case TRAP_NEEDLE:
 				case TRAP_SLOW:
 					TileObject = m_Stage_04->CheckTileBound(StartPos, EndPos, true);
@@ -1194,7 +1195,7 @@ void GameScene::CheckBuildTrap()
 				XMFLOAT3 TilePos = BoundTile.Center;
 				bool IsTrapPlaced = false;
 
-				if (m_target->GetTrapKind() == TRAP_FIRE || m_target->GetTrapKind() == TRAP_ARROW) { // 벽타일
+				if (m_target->m_nTrapKind == TRAP_FIRE || m_target->m_nTrapKind == TRAP_ARROW) { // 벽타일
 					if (BoundTile.Extents.x < BoundTile.Extents.z) {
 						if (StartPos.x < TilePos.x) {
 							m_target->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
@@ -1224,7 +1225,7 @@ void GameScene::CheckBuildTrap()
 						}
 					}
 				}
-				else if (m_target->GetTrapKind() == TRAP_NEEDLE || m_target->GetTrapKind() == TRAP_SLOW) {
+				else if (m_target->m_nTrapKind == TRAP_NEEDLE || m_target->m_nTrapKind == TRAP_SLOW) {
 					TilePos.y += 10.0f;
 				}
 				m_target->SetPostion(TilePos);
@@ -1288,7 +1289,7 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			if (m_target != NULL)
 				if (m_target->GetIsTrapAccess() == true && m_target->GetIsBuildTrap() == true && m_target->is_collision == false) {
 
-					network_manager::GetInst()->send_install_trap(m_target->GetTrapKind(), m_target->m_WorldPos);
+					network_manager::GetInst()->send_install_trap(m_target->m_nTrapKind, m_target->m_WorldPos);
 
 					m_target->BuildTrap(false);
 					m_target = NULL;
@@ -1349,8 +1350,9 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 				TileObj = m_Stage_04->CheckTileBound(StartPos, EndPos, false);
 				break;
 			}
+			
+			if ((TileObj == NULL && ResultObj != NULL) || (TileObj != NULL && ResultObj != NULL && TileObj->GetMesh()->m_fDistance > ResultDistance)) {
 
-			if (TileObj != NULL && TileObj->GetMesh()->m_fDistance > ResultDistance) {
 				if (strstr(ResultObj->GetFrameName(), "Head"))
 					network_manager::GetInst()->send_shoot(m_Monster[HitIndex]->m_id, true);
 				else
@@ -1419,7 +1421,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_bClick = true;
 
 			for (int i = 0; i < MAX_TRAP; ++i) {
-				if (m_Trap[i]->is_active == false && m_Trap[i]->GetTrapKind() == TRAP_NEEDLE) {
+				if (m_Trap[i]->is_active == false && m_Trap[i]->m_nTrapKind == TRAP_NEEDLE) {
 					m_Trap[i]->is_active = true;
 					m_Trap[i]->BuildTrap(true);
 					m_Trap[i]->ActiveTrap(true);
@@ -1475,7 +1477,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_bClick = true;
 
 			for (int i = 0; i < MAX_TRAP; ++i) {
-				if (m_Trap[i]->is_active == false && m_Trap[i]->GetTrapKind() == TRAP_FIRE) {
+				if (m_Trap[i]->is_active == false && m_Trap[i]->m_nTrapKind == TRAP_FIRE) {
 					m_Trap[i]->is_active = true;
 					m_Trap[i]->BuildTrap(true);
 					m_Trap[i]->ActiveTrap(true);
@@ -1531,7 +1533,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_bClick = true;
 
 			for (int i = 0; i < MAX_TRAP; ++i) {
-				if (m_Trap[i]->is_active == false && m_Trap[i]->GetTrapKind() == TRAP_SLOW) {
+				if (m_Trap[i]->is_active == false && m_Trap[i]->m_nTrapKind == TRAP_SLOW) {
 					m_Trap[i]->is_active = true;
 					m_Trap[i]->BuildTrap(true);
 					m_Trap[i]->ActiveTrap(true);
@@ -1587,7 +1589,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_bClick = true;
 
 			for (int i = 0; i < MAX_TRAP; ++i) {
-				if (m_Trap[i]->is_active == false && m_Trap[i]->GetTrapKind() == TRAP_ARROW) {
+				if (m_Trap[i]->is_active == false && m_Trap[i]->m_nTrapKind == TRAP_ARROW) {
 					m_Trap[i]->is_active = true;
 					m_Trap[i]->BuildTrap(true);
 					m_Trap[i]->ActiveTrap(true);

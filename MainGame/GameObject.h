@@ -440,10 +440,6 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
-#define TRAP_NEEDLE		0
-#define TRAP_FIRE		1
-#define TRAP_SLOW		2
-#define TRAP_ARROW		3
 
 // 3D ¸ðµ¨
 class Trap : public GameObject
@@ -456,11 +452,12 @@ private:
 	bool IsBuildTrap = false;
 	bool IsActive = false;
 	bool IsTrapAccess = false;
-	int m_nTrapKind;
 
 public:
 	bool is_active = false;
 	bool is_collision = false;
+
+	char m_nTrapKind;
 
 	void BuildTrap(bool Input) { IsBuildTrap = Input; }
 	void ActiveTrap(bool Input) { IsActive = Input; }
@@ -471,10 +468,6 @@ public:
 	bool GetIsTrapAccess() { return IsTrapAccess; }
 
 	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent);
-
-	void SetTrapKind(int nKindnum) { m_nTrapKind = nKindnum; }
-
-	int GetTrapKind() { return m_nTrapKind; }
 };
 
 class Monster : public GameObject
