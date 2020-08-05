@@ -1072,7 +1072,6 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 				m_Trap[i]->SetLook(XMFLOAT3(world._31, world._32, world._33));
 				m_Trap[i]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
 			}
-			
 			m_Trap[i]->Animate(m_ElapsedTime, NULL);
 			m_Trap[i]->UpdateTransform(NULL);
 			m_Trap[i]->Render(CommandList);
