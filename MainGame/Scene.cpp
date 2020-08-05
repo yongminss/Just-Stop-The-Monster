@@ -455,7 +455,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 		}
 		m_Trap.back()->SetChild(TrapObj, false);
 		m_Trap.back()->SetEnable(1);
-		//m_Trap.back()->SetPostion(XMFLOAT3(0, -1000.f, 0.f));
+		m_Trap.back()->SetPostion(XMFLOAT3(0, -1000.f, 0.f));
 	}
 	/*m_Needle = new TrapInstancingShader();
 	m_Needle->CreateShader(Device, CommandList, m_GraphicsRootSignature);
@@ -933,7 +933,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 	// 플레이어 렌더링
 	if (m_Player) m_Player->Render(CommandList);
-	cout << "x: " << m_Player->GetPosition().x << ", z: " << m_Player->GetPosition().z << endl;
+	//cout << "x: " << m_Player->GetPosition().x << ", z: " << m_Player->GetPosition().z << endl;
 
 	// UI
 	if (m_CharInfo) m_CharInfo->Render(CommandList);

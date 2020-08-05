@@ -28,7 +28,6 @@ void network_manager::init_data()
 	m_nameLogin = false;
 
 	ZeroMemory(&m_OtherInfo, sizeof(m_OtherInfo));
-	ZeroMemory(&m_monster_pool, sizeof(m_monster_pool));
 	ZeroMemory(&m_trap_pool, sizeof(m_trap_pool));
 
 	m_vec_gameRoom.reserve(20);
@@ -55,6 +54,7 @@ void network_manager::init_socket()
 
 void network_manager::init_pool()
 {
+
 	for (short i = 0; i < MAX_TRAP; ++i) {
 		m_trap_pool[i].enable = false;
 	}
@@ -222,6 +222,9 @@ void network_manager::PacketProccess(void * buf)
 		//cout << "anim: " << m_monster_pool[0].animation_state << endl;
 		//cout << "x:" << m_monster_pool[0].world_pos._41 << ", y: " << m_monster_pool[0].world_pos._42 << ", z: " << 
 		//m_monster_pool[0].world_pos._43 << endl;
+		if (m_monster_pool[40].isLive == true) {
+			cout << "40번 anim: " << m_monster_pool[40].animation_state << endl;
+		}
 		break;
 	}
 	case SC_TRAP_INFO: {
@@ -257,6 +260,11 @@ void network_manager::PacketProccess(void * buf)
 		sc_packet_game_info_update *game_info_update_packet = reinterpret_cast<sc_packet_game_info_update*>(buf);
 		if (game_info_update_packet->portalLife == -1000) { // wave 업데이트
 			m_myRoomInfo.wave_count = game_info_update_packet->wave;
+			cout << "wave update" << endl;
+			ZeroMemory(&m_monster_pool, sizeof(m_monster_pool));
+			for (short i = 0; i < MAX_MONSTER; ++i) {
+				m_monster_pool[i].isLive = false;
+			}
 		}
 		else if (game_info_update_packet->wave == -1000) { // portalLife 업데이트
 			m_myRoomInfo.portalLife = game_info_update_packet->portalLife;
