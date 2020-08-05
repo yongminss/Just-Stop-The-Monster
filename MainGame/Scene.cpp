@@ -434,7 +434,30 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_Stage_04->SetPostion(XMFLOAT3(-0.f, -50.f, 0.f));
 
 	// Trap Objects
-	m_Needle = new TrapInstancingShader();
+	for (int i = 0; i < MAX_TRAP; ++i) {
+		m_Trap.emplace_back(new Trap());
+		GameObject *TrapObj = NULL;
+		if (i < MAX_TRAP / 4) {
+			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
+			m_Trap.back()->SetTrapKind(TRAP_NEEDLE);
+		}
+		else if (i < MAX_TRAP / 2) {
+			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Fire.bin", NULL, false);
+			m_Trap.back()->SetTrapKind(TRAP_FIRE);
+		}
+		else if (i < MAX_TRAP - (MAX_TRAP / 4)) {
+			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Slow.bin", NULL, false);
+			m_Trap.back()->SetTrapKind(TRAP_SLOW);
+		}
+		else {
+			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Arrow.bin", NULL, false);
+			m_Trap.back()->SetTrapKind(TRAP_ARROW);
+		}
+		m_Trap.back()->SetChild(TrapObj, false);
+		m_Trap.back()->SetEnable(1);
+		m_Trap.back()->SetPostion(XMFLOAT3(0, -1000.f, 0.f));
+	}
+	/*m_Needle = new TrapInstancingShader();
 	m_Needle->CreateShader(Device, CommandList, m_GraphicsRootSignature);
 	m_Needle->BuildObject(Device, CommandList, m_GraphicsRootSignature, 0);
 
@@ -448,9 +471,18 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 
 	m_Arrow = new TrapInstancingShader();
 	m_Arrow->CreateShader(Device, CommandList, m_GraphicsRootSignature);
-	m_Arrow->BuildObject(Device, CommandList, m_GraphicsRootSignature, 3);
+	m_Arrow->BuildObject(Device, CommandList, m_GraphicsRootSignature, 3);*/
 
 	// Monster Object
+	for (int i = 0; i < MAX_MONSTER; ++i) {
+		GameObject *OrcObj = NULL;
+		OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
+		m_Monster.emplace_back(new Monster());
+		m_Monster.back()->SetChild(OrcObj, true);
+		m_Monster.back()->SetType(TYPE_ORC);
+		m_Monster.back()->SetEnable(2);
+		m_Monster.back()->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
+	}
 	/*m_Orc = new MonsterInstancingShader();
 	m_Orc->CreateShader(Device, CommandList, m_GraphicsRootSignature);
 	m_Orc->BuildObject(Device, CommandList, m_GraphicsRootSignature, TYPE_ORC);
@@ -476,16 +508,6 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	//m_FireEffect->CreateShader(Device, CommandList, m_GraphicsRootSignature);
 	//m_FireEffect->BuildObject(Device, CommandList, m_GraphicsRootSignature);
 
-	// 시연
-	for (int i = 0; i < MAX_MONSTER; ++i) {
-		GameObject *Orc = NULL;
-		m_Monster.emplace_back(new Monster());
-		Orc = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
-		m_Monster.back()->SetType(TYPE_ORC);
-		m_Monster.back()->SetChild(Orc, true);
-		m_Monster.back()->SetEnable(2);
-		m_Monster.back()->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
-	}
 	CreateShaderVariable(Device, CommandList);
 }
 
@@ -866,7 +888,7 @@ void GameScene::Animate(float ElapsedTime)
 	}
 
 	// Trap Object
-	if (m_Needle) m_Needle->Animate(ElapsedTime, m_Player->GetPosition());
+	//if (m_Needle) m_Needle->Animate(ElapsedTime, m_Player->GetPosition());
 
 	/*if (m_Orc) m_Orc->Animate(ElapsedTime);
 
@@ -993,7 +1015,7 @@ void GameScene::Animate(float ElapsedTime)
 		m_OtherPlayerModel->Animate(ElapsedTime, NULL);
 	}
 
-	switch (m_TrapType)
+	/*switch (m_TrapType)
 	{
 	case TRAP_NEEDLE: CheckBuildTrap(m_Needle); break;
 
@@ -1002,7 +1024,8 @@ void GameScene::Animate(float ElapsedTime)
 	case TRAP_SLOW: CheckBuildTrap(m_Slow); break;
 
 	case TRAP_ARROW: CheckBuildTrap(m_Arrow); break;
-	}
+	}*/
+	if (m_target) CheckBuildTrap();
 
 	m_ElapsedTime = ElapsedTime;
 }
@@ -1019,7 +1042,6 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 	// 조명을 사용하기 위한 함수 호출
 	UpdateShaderVariable(CommandList);
-
 
 	// 스카이박스 렌더링
 	for (int i = 0; i < 5; ++i) if (m_SkyBox[i]) m_SkyBox[i]->Render(CommandList);
@@ -1039,36 +1061,29 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	if (is_rend_04) if (m_Stage_04) m_Stage_04->Render(CommandList);
 
 	// Trap Objects
-	if (m_Needle) m_Needle->Render(CommandList);
+	for (int i = 0; i < MAX_TRAP; ++i) {
+		if (m_Trap[i]) {
+			if (m_Trap[i]->is_active == false) continue;
+			m_Trap[i]->Animate(m_ElapsedTime, NULL);
+			m_Trap[i]->UpdateTransform(NULL);
+			m_Trap[i]->Render(CommandList);
+		}
+	}
+	/*if (m_Needle) m_Needle->Render(CommandList);
 	if (m_Fire) m_Fire->Render(CommandList);
 	if (m_Slow) m_Slow->Render(CommandList);
-	if (m_Arrow) m_Arrow->Render(CommandList);
+	if (m_Arrow) m_Arrow->Render(CommandList);*/
 
 	// Monster Objects
-	/*if (m_Orc) m_Orc->Render(CommandList);
-	if (m_StrongOrc) m_StrongOrc->Render(CommandList);
-	if (m_Shaman) m_Shaman->Render(CommandList);
-	if (m_WolfRider) m_WolfRider->Render(CommandList);*/
-
-	// Ohter Player
-	if (network_manager::GetInst()->IsConnect())
-		m_OtherPlayerModel->Render(CommandList);
-
-	// Effect
-	//if (m_FireEffect) m_FireEffect->Render(CommandList);
-
 	for (int i = 0; i < MAX_MONSTER; ++i) {
 		if (m_Monster[i]) {
 			if (network_manager::GetInst()->m_monster_pool[i].isLive == false) continue;
-			
-			if (network_manager::GetInst()->m_monster_pool[i].type != m_Monster[i]->GetType()) {
-				//cout << i << " : " << m_Monster[i]->GetType() << endl;
-				continue;
-			}
 
+			/*if (network_manager::GetInst()->m_monster_pool[i].type != m_Monster[i]->GetType()) {
+				continue;
+			}*/
 			m_Monster[i]->m_id = network_manager::GetInst()->m_monster_pool[i].id;
 
-			//cout << "id: "<< m_Monster[i]->m_id << endl;
 			if (network_manager::GetInst()->m_monster_pool[i].animation_state != 0)
 				m_Monster[i]->SetEnable(network_manager::GetInst()->m_monster_pool[i].animation_state);
 
@@ -1084,6 +1099,17 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 			m_Monster[i]->Render(CommandList);
 		}
 	}
+	/*if (m_Orc) m_Orc->Render(CommandList);
+	if (m_StrongOrc) m_StrongOrc->Render(CommandList);
+	if (m_Shaman) m_Shaman->Render(CommandList);
+	if (m_WolfRider) m_WolfRider->Render(CommandList);*/
+
+	// Ohter Player
+	if (network_manager::GetInst()->IsConnect())
+		m_OtherPlayerModel->Render(CommandList);
+
+	// Effect
+	//if (m_FireEffect) m_FireEffect->Render(CommandList);
 }
 
 void GameScene::CheckTile()
@@ -1091,7 +1117,7 @@ void GameScene::CheckTile()
 	
 }
 
-void GameScene::CheckBuildTrap(TrapInstancingShader *Trap)
+void GameScene::CheckBuildTrap()
 {
 	if (m_bClick) {
 		Camera *pCamera = m_Player->GetCamera();
@@ -1100,11 +1126,11 @@ void GameScene::CheckBuildTrap(TrapInstancingShader *Trap)
 		XMFLOAT3 EndPos;
 		EndPos = Vector3::Normalize(pCamera->GetLook());
 
-		if (Trap->m_Trap.size() != 0 && Trap->m_Trap.back()->GetIsBuildTrap()) {
-			GameObject *TileObject = new GameObject;
+		if (m_target->GetIsBuildTrap()) {
+			GameObject *TileObject = new GameObject();
 			switch (m_MapNum) {
 			case 1:
-				switch (Trap->m_Trap.back()->GetTrapKind()) {
+				switch (m_target->GetTrapKind()) {
 				case TRAP_NEEDLE:
 				case TRAP_SLOW:
 					TileObject = m_Stage_01->CheckTileBound(StartPos, EndPos, true);
@@ -1116,7 +1142,7 @@ void GameScene::CheckBuildTrap(TrapInstancingShader *Trap)
 				}
 				break;
 			case 2:
-				switch (Trap->m_Trap.back()->GetTrapKind()) {
+				switch (m_target->GetTrapKind()) {
 				case TRAP_NEEDLE:
 				case TRAP_SLOW:
 					TileObject = m_Stage_02->CheckTileBound(StartPos, EndPos, true);
@@ -1128,7 +1154,7 @@ void GameScene::CheckBuildTrap(TrapInstancingShader *Trap)
 				}
 				break;
 			case 3:
-				switch (Trap->m_Trap.back()->GetTrapKind()) {
+				switch (m_target->GetTrapKind()) {
 				case TRAP_NEEDLE:
 				case TRAP_SLOW:
 					TileObject = m_Stage_03->CheckTileBound(StartPos, EndPos, true);
@@ -1140,7 +1166,7 @@ void GameScene::CheckBuildTrap(TrapInstancingShader *Trap)
 				}
 				break;
 			case 4:
-				switch (Trap->m_Trap.back()->GetTrapKind()) {
+				switch (m_target->GetTrapKind()) {
 				case TRAP_NEEDLE:
 				case TRAP_SLOW:
 					TileObject = m_Stage_04->CheckTileBound(StartPos, EndPos, true);
@@ -1154,67 +1180,70 @@ void GameScene::CheckBuildTrap(TrapInstancingShader *Trap)
 			}
 
 			if (TileObject != NULL) {
-				Trap->m_Trap.back()->AccessTrap(true);
+				m_target->AccessTrap(true);
 				BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
 				BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
 				XMFLOAT3 TilePos = BoundTile.Center;
 				bool IsTrapPlaced = false;
 
-				if (Trap->m_Trap.back()->GetTrapKind() == TRAP_FIRE || Trap->m_Trap.back()->GetTrapKind() == TRAP_ARROW) { // 벽타일
+				if (m_target->GetTrapKind() == TRAP_FIRE || m_target->GetTrapKind() == TRAP_ARROW) { // 벽타일
 					if (BoundTile.Extents.x < BoundTile.Extents.z) {
 						if (StartPos.x < TilePos.x) {
-							Trap->m_Trap.back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f * 140.f));
-							Trap->m_Trap.back()->SetRight(XMFLOAT3(0.0f, 1.0f * 140.f, 0.0f));
-							Trap->m_Trap.back()->SetUp(XMFLOAT3(-1.0f * 140.f, 0.0f, 0.0f));
+							m_target->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
+							m_target->SetRight(XMFLOAT3(0.0f, 1.0f, 0.0f));
+							m_target->SetUp(XMFLOAT3(-1.0f, 0.0f, 0.0f));
 							TilePos.x -= 15.0f;
 						}
 						else {
-							Trap->m_Trap.back()->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f * 140.f));
-							Trap->m_Trap.back()->SetRight(XMFLOAT3(0.0f, -1.0f * 140.f, 0.0f));
-							Trap->m_Trap.back()->SetUp(XMFLOAT3(1.0f * 140.f, 0.0f, 0.0f));
+							m_target->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
+							m_target->SetRight(XMFLOAT3(0.0f, -1.0f, 0.0f));
+							m_target->SetUp(XMFLOAT3(1.0f, 0.0f, 0.0f));
 							TilePos.x += 15.0f;
 						}
 					}
 					else {
 						if (StartPos.z < TilePos.z) {
-							Trap->m_Trap.back()->SetLook(XMFLOAT3(0.0f, 1.0f * 140.f, 0.0f));
-							Trap->m_Trap.back()->SetRight(XMFLOAT3(1.0f * 140.f, 0.0f, 0.0f));
-							Trap->m_Trap.back()->SetUp(XMFLOAT3(0.0f, 0.0f, -1.0f * 140.f));
+							m_target->SetLook(XMFLOAT3(0.0f, 1.0f, 0.0f));
+							m_target->SetRight(XMFLOAT3(1.0f, 0.0f, 0.0f));
+							m_target->SetUp(XMFLOAT3(0.0f, 0.0f, -1.0f));
 							TilePos.z -= 15.0f;
 						}
 						else {
-							Trap->m_Trap.back()->SetLook(XMFLOAT3(0.0f, -1.0f * 140.f, 0.0f));
-							Trap->m_Trap.back()->SetRight(XMFLOAT3(1.0f * 140.f, 0.0f, 0.0f));
-							Trap->m_Trap.back()->SetUp(XMFLOAT3(0.0f, 0.0f, 1.0f * 140.f));
+							m_target->SetLook(XMFLOAT3(0.0f, -1.0f, 0.0f));
+							m_target->SetRight(XMFLOAT3(1.0f, 0.0f, 0.0f));
+							m_target->SetUp(XMFLOAT3(0.0f, 0.0f, 1.0f));
 							TilePos.z += 15.0f;
 						}
 					}
 				}
-				else if (Trap->m_Trap.back()->GetTrapKind() == TRAP_NEEDLE || Trap->m_Trap.back()->GetTrapKind() == TRAP_SLOW) { 
+				else if (m_target->GetTrapKind() == TRAP_NEEDLE || m_target->GetTrapKind() == TRAP_SLOW) {
 					TilePos.y += 10.0f;
 				}
-				Trap->m_Trap.back()->SetPostion(TilePos);
+				m_target->SetPostion(TilePos);
 
-				for (auto iter = Trap->m_Trap.begin(); (*iter) != Trap->m_Trap.back(); ++iter) {
-					if (XMVector3Equal(XMLoadFloat3(&(*iter)->GetPosition()), XMLoadFloat3(&TilePos))) {
-						Trap->m_Trap.back()->MoveUp(5.f);
-						IsTrapPlaced = true;
-						break;
+				for (auto iter = m_Trap.begin(); iter != m_Trap.end(); ++iter) {
+					if ((*iter)->is_active == false) continue;
+					if ((*iter) != m_target) {
+						if (XMVector3Equal(XMLoadFloat3(&(*iter)->GetPosition()), XMLoadFloat3(&TilePos))) {
+							m_target->MoveUp(5.f);
+							m_target->is_collision = true;
+							IsTrapPlaced = true;
+							break;
+						}
 					}
 				}
-
-				Trap->m_Trap.back()->UpdateTransform(NULL);
+				m_target->UpdateTransform(NULL);
 				if (IsTrapPlaced == true) {
-					Trap->m_Trap.back()->SetRed(0x01);
+					m_target->SetRed(0x01);
 				}
 				else {
-					Trap->m_Trap.back()->SetRed(0x00);
+					m_target->SetRed(0x00);
+					m_target->is_collision = false;
 				}
 			}
 			else {
-				Trap->m_Trap.back()->AccessTrap(false);
-				Trap->m_Trap.back()->SetPostion(XMFLOAT3(0.0f, -200.0f, 0.0f));
-				Trap->m_Trap.back()->UpdateTransform(NULL);
+				m_target->AccessTrap(false);
+				m_target->SetPostion(XMFLOAT3(0.0f, -1000.0f, 0.0f));
 			}
 		}
 	}
@@ -1247,25 +1276,28 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		::SetCapture(hWnd);
 		::GetCursorPos(&m_ptOldCursorPos);
 		// 플레이어가 공격 버튼을 클릭했을 때, 함정 설치 중이었다면 더 이상 따라오지 않도록 함
-		if (m_bClick && m_TrapType != -1) {
-			switch (m_TrapType) {
-			case TRAP_NEEDLE:
-				if (m_Needle->m_Trap.back()->GetIsTrapAccess() == true && m_Needle->m_Trap.back()->GetIsBuildTrap() == true)
-					m_Needle->m_Trap.back()->BuildTrap(false);
-				break;
-			case TRAP_FIRE:
-				if (m_Fire->m_Trap.back()->GetIsTrapAccess() == true && m_Fire->m_Trap.back()->GetIsBuildTrap() == true)
-					m_Fire->m_Trap.back()->BuildTrap(false);
-				break;
-			case TRAP_SLOW:
-				if (m_Slow->m_Trap.back()->GetIsTrapAccess() == true && m_Slow->m_Trap.back()->GetIsBuildTrap() == true)
-					m_Slow->m_Trap.back()->BuildTrap(false);
-				break;
-			case TRAP_ARROW:
-				if (m_Arrow->m_Trap.back()->GetIsTrapAccess() == true && m_Arrow->m_Trap.back()->GetIsBuildTrap() == true)
-					m_Arrow->m_Trap.back()->BuildTrap(false);
-				break;
-			}
+		if (m_bClick) {
+			if (m_target != NULL)
+				if (m_target->GetIsTrapAccess() == true && m_target->GetIsBuildTrap() == true && m_target->is_collision == false) {
+					m_target->BuildTrap(false);
+					m_target = NULL;
+				}
+			/*if (m_Needle->m_Trap.back()->GetIsTrapAccess() == true && m_Needle->m_Trap.back()->GetIsBuildTrap() == true)
+				m_Needle->m_Trap.back()->BuildTrap(false);
+			break;
+		case TRAP_FIRE:
+			if (m_Fire->m_Trap.back()->GetIsTrapAccess() == true && m_Fire->m_Trap.back()->GetIsBuildTrap() == true)
+				m_Fire->m_Trap.back()->BuildTrap(false);
+			break;
+		case TRAP_SLOW:
+			if (m_Slow->m_Trap.back()->GetIsTrapAccess() == true && m_Slow->m_Trap.back()->GetIsBuildTrap() == true)
+				m_Slow->m_Trap.back()->BuildTrap(false);
+			break;
+		case TRAP_ARROW:
+			if (m_Arrow->m_Trap.back()->GetIsTrapAccess() == true && m_Arrow->m_Trap.back()->GetIsBuildTrap() == true)
+				m_Arrow->m_Trap.back()->BuildTrap(false);
+			break;*/
+
 			//m_TrapType = -1;
 		}
 		else {
@@ -1307,13 +1339,13 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 				break;
 			}
 
-			if (TileObj->GetMesh()->m_fDistance > ResultDistance) {
+			if (TileObj != NULL && TileObj->GetMesh()->m_fDistance > ResultDistance) {
 				if (strstr(ResultObj->GetFrameName(), "Head"))
 					network_manager::GetInst()->send_shoot(m_Monster[HitIndex]->m_id, true);
 				else
 					network_manager::GetInst()->send_shoot(m_Monster[HitIndex]->m_id, false);
 			}
-			
+
 			m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
 			m_Player->SetEnable(9);
 		}
@@ -1367,176 +1399,229 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_Player->SetPlayerAnimateType(ANIMATION_TYPE_RELOAD);
 			m_Player->SetEnable(18);
 			break;
-			// 함정 설치 준비
+
+			// 함정 설치
 		case '1':
 		{
-			if (m_bClick) {
-				if (m_TrapType == TRAP_NEEDLE) {
-					break; //가시 함정이 이미 만들어진 상태
-				}
-				else {
-					// 다른 함정이 이미 만들어진 상태 -> 삭제하고 가시함정 생성
-					switch (m_TrapType) {
-					case TRAP_FIRE:
-						if (m_Fire->m_Trap.back()->GetIsBuildTrap() == true) {
-							m_Fire->m_Trap.pop_back();
-							m_Needle->BuildTrap(TRAP_NEEDLE);
-						}
-						break;
-					case TRAP_SLOW:
-						if (m_Slow->m_Trap.back()->GetIsBuildTrap() == true) {
-							m_Slow->m_Trap.pop_back();
-							m_Needle->BuildTrap(TRAP_NEEDLE);
-						}
-						break;
-					case TRAP_ARROW:
-						if (m_Arrow->m_Trap.back()->GetIsBuildTrap() == true) {
-							m_Arrow->m_Trap.pop_back();
-							m_Needle->BuildTrap(TRAP_NEEDLE);
-						}
-						break;
-					case -1:
-						//m_Needle->BuildTrap(TRAP_NEEDLE);
-						break;
-					}
-					m_TrapType = TRAP_NEEDLE;
+			if (m_bClick) break;
+
+			m_bClick = true;
+
+			for (int i = 0; i < MAX_TRAP; ++i) {
+				if (m_Trap[i]->is_active == false && m_Trap[i]->GetTrapKind() == TRAP_NEEDLE) {
+					m_Trap[i]->is_active = true;
+					m_Trap[i]->BuildTrap(true);
+					m_Trap[i]->ActiveTrap(true);
+					m_target = m_Trap[i];
 					break;
 				}
 			}
-			else {
-				m_bClick = true;
-				m_Needle->BuildTrap(TRAP_NEEDLE);
-				m_TrapType = TRAP_NEEDLE;
-			}
+			//if (m_bClick) {
+			//	if (m_TrapType == TRAP_NEEDLE) {
+			//		break; //가시 함정이 이미 만들어진 상태
+			//	}
+			//	else {
+			//		// 다른 함정이 이미 만들어진 상태 -> 삭제하고 가시함정 생성
+			//		switch (m_TrapType) {
+			//		case TRAP_FIRE:
+			//			if (m_Fire->m_Trap.back()->GetIsBuildTrap() == true) {
+			//				m_Fire->m_Trap.pop_back();
+			//				m_Needle->BuildTrap(TRAP_NEEDLE);
+			//			}
+			//			break;
+			//		case TRAP_SLOW:
+			//			if (m_Slow->m_Trap.back()->GetIsBuildTrap() == true) {
+			//				m_Slow->m_Trap.pop_back();
+			//				m_Needle->BuildTrap(TRAP_NEEDLE);
+			//			}
+			//			break;
+			//		case TRAP_ARROW:
+			//			if (m_Arrow->m_Trap.back()->GetIsBuildTrap() == true) {
+			//				m_Arrow->m_Trap.pop_back();
+			//				m_Needle->BuildTrap(TRAP_NEEDLE);
+			//			}
+			//			break;
+			//		case -1:
+			//			//m_Needle->BuildTrap(TRAP_NEEDLE);
+			//			break;
+			//		}
+			//		m_TrapType = TRAP_NEEDLE;
+			//		break;
+			//	}
+			//}
+			//else {
+			//	m_bClick = true;
+			//	m_Needle->BuildTrap(TRAP_NEEDLE);
+			//	m_TrapType = TRAP_NEEDLE;
+			//}
 		}
 		break;
 
 		case '2':
 		{
-			if (m_bClick) {
-				if (m_TrapType == TRAP_FIRE) {
-					break; //불 함정이 이미 만들어진 상태
-				}
-				else {
-					// 다른 함정이 이미 만들어진 상태 -> 삭제하고 불함정 생성
-					switch (m_TrapType) {
-					case TRAP_NEEDLE:
-						if (m_Needle->m_Trap.back()->GetIsBuildTrap() == true) {
-							m_Needle->m_Trap.pop_back();
-							m_Fire->BuildTrap(TRAP_FIRE);
-						}
-						break;
-					case TRAP_SLOW:
-						if (m_Slow->m_Trap.back()->GetIsBuildTrap() == true) {
-							m_Slow->m_Trap.pop_back();
-							m_Fire->BuildTrap(TRAP_FIRE);
-						}
-						break;
-					case TRAP_ARROW:
-						if (m_Arrow->m_Trap.back()->GetIsBuildTrap() == true) {
-							m_Arrow->m_Trap.pop_back();
-							m_Fire->BuildTrap(TRAP_FIRE);
-						}
-						break;
-					case -1:
-						m_Fire->BuildTrap(TRAP_FIRE);
-						break;
-					}
-					m_TrapType = TRAP_FIRE;
+			if (m_bClick) break;
+
+			m_bClick = true;
+
+			for (int i = 0; i < MAX_TRAP; ++i) {
+				if (m_Trap[i]->is_active == false && m_Trap[i]->GetTrapKind() == TRAP_FIRE) {
+					m_Trap[i]->is_active = true;
+					m_Trap[i]->BuildTrap(true);
+					m_Trap[i]->ActiveTrap(true);
+					m_target = m_Trap[i];
 					break;
 				}
 			}
-			else {
-				m_bClick = true;
-				m_Fire->BuildTrap(TRAP_FIRE);
-				m_TrapType = TRAP_FIRE;
-			}
+			//if (m_bClick) {
+			//	if (m_TrapType == TRAP_FIRE) {
+			//		break; //불 함정이 이미 만들어진 상태
+			//	}
+			//	else {
+			//		// 다른 함정이 이미 만들어진 상태 -> 삭제하고 불함정 생성
+			//		switch (m_TrapType) {
+			//		case TRAP_NEEDLE:
+			//			if (m_Needle->m_Trap.back()->GetIsBuildTrap() == true) {
+			//				m_Needle->m_Trap.pop_back();
+			//				m_Fire->BuildTrap(TRAP_FIRE);
+			//			}
+			//			break;
+			//		case TRAP_SLOW:
+			//			if (m_Slow->m_Trap.back()->GetIsBuildTrap() == true) {
+			//				m_Slow->m_Trap.pop_back();
+			//				m_Fire->BuildTrap(TRAP_FIRE);
+			//			}
+			//			break;
+			//		case TRAP_ARROW:
+			//			if (m_Arrow->m_Trap.back()->GetIsBuildTrap() == true) {
+			//				m_Arrow->m_Trap.pop_back();
+			//				m_Fire->BuildTrap(TRAP_FIRE);
+			//			}
+			//			break;
+			//		case -1:
+			//			m_Fire->BuildTrap(TRAP_FIRE);
+			//			break;
+			//		}
+			//		m_TrapType = TRAP_FIRE;
+			//		break;
+			//	}
+			//}
+			//else {
+			//	m_bClick = true;
+			//	m_Fire->BuildTrap(TRAP_FIRE);
+			//	m_TrapType = TRAP_FIRE;
+			//}
 		}
 		break;
 
 		case '3':
 		{
-			if (m_bClick) {
-				if (m_TrapType == TRAP_SLOW) {
-					break; //불 함정이 이미 만들어진 상태
-				}
-				else {
-					// 다른 함정이 이미 만들어진 상태 -> 삭제하고 불함정 생성
-					switch (m_TrapType) {
-					case TRAP_NEEDLE:
-						if (m_Needle->m_Trap.back()->GetIsBuildTrap() == true) {
-							m_Needle->m_Trap.pop_back();
-							m_Slow->BuildTrap(TRAP_SLOW);
-						}
-						break;
-					case TRAP_FIRE:
-						if (m_Fire->m_Trap.back()->GetIsBuildTrap() == true) {
-							m_Fire->m_Trap.pop_back();
-							m_Slow->BuildTrap(TRAP_SLOW);
-						}
-						break;
-					case TRAP_ARROW:
-						if (m_Arrow->m_Trap.back()->GetIsBuildTrap() == true) {
-							m_Arrow->m_Trap.pop_back();
-							m_Slow->BuildTrap(TRAP_SLOW);
-						}
-						break;
-					case -1:
-						m_Slow->BuildTrap(TRAP_SLOW);
-						break;
-					}
-					m_TrapType = TRAP_SLOW;
+			if (m_bClick) break;
+
+			m_bClick = true;
+
+			for (int i = 0; i < MAX_TRAP; ++i) {
+				if (m_Trap[i]->is_active == false && m_Trap[i]->GetTrapKind() == TRAP_SLOW) {
+					m_Trap[i]->is_active = true;
+					m_Trap[i]->BuildTrap(true);
+					m_Trap[i]->ActiveTrap(true);
+					m_target = m_Trap[i];
 					break;
 				}
 			}
-			else {
-				m_bClick = true;
-				m_Slow->BuildTrap(TRAP_SLOW);
-				m_TrapType = TRAP_SLOW;
-			}
+			//if (m_bClick) {
+			//	if (m_TrapType == TRAP_SLOW) {
+			//		break; //불 함정이 이미 만들어진 상태
+			//	}
+			//	else {
+			//		// 다른 함정이 이미 만들어진 상태 -> 삭제하고 불함정 생성
+			//		switch (m_TrapType) {
+			//		case TRAP_NEEDLE:
+			//			if (m_Needle->m_Trap.back()->GetIsBuildTrap() == true) {
+			//				m_Needle->m_Trap.pop_back();
+			//				m_Slow->BuildTrap(TRAP_SLOW);
+			//			}
+			//			break;
+			//		case TRAP_FIRE:
+			//			if (m_Fire->m_Trap.back()->GetIsBuildTrap() == true) {
+			//				m_Fire->m_Trap.pop_back();
+			//				m_Slow->BuildTrap(TRAP_SLOW);
+			//			}
+			//			break;
+			//		case TRAP_ARROW:
+			//			if (m_Arrow->m_Trap.back()->GetIsBuildTrap() == true) {
+			//				m_Arrow->m_Trap.pop_back();
+			//				m_Slow->BuildTrap(TRAP_SLOW);
+			//			}
+			//			break;
+			//		case -1:
+			//			m_Slow->BuildTrap(TRAP_SLOW);
+			//			break;
+			//		}
+			//		m_TrapType = TRAP_SLOW;
+			//		break;
+			//	}
+			//}
+			//else {
+			//	m_bClick = true;
+			//	m_Slow->BuildTrap(TRAP_SLOW);
+			//	m_TrapType = TRAP_SLOW;
+			//}
 		}
 		break;
 
 		case '4':
 		{
-			if (m_bClick) {
-				if (m_TrapType == TRAP_ARROW) {
-					break; //불 함정이 이미 만들어진 상태
-				}
-				else {
-					// 다른 함정이 이미 만들어진 상태 -> 삭제하고 불함정 생성
-					switch (m_TrapType) {
-					case TRAP_NEEDLE:
-						if (m_Needle->m_Trap.back()->GetIsBuildTrap() == true) {
-							m_Needle->m_Trap.pop_back();
-							m_Arrow->BuildTrap(TRAP_ARROW);
-						}
-						break;
-					case TRAP_FIRE:
-						if (m_Fire->m_Trap.back()->GetIsBuildTrap() == true) {
-							m_Fire->m_Trap.pop_back();
-							m_Arrow->BuildTrap(TRAP_ARROW);
-						}
-						break;
-					case TRAP_SLOW:
-						if (m_Slow->m_Trap.back()->GetIsBuildTrap() == true) {
-							m_Slow->m_Trap.pop_back();
-							m_Arrow->BuildTrap(TRAP_ARROW);
-						}
-						break;
-					case -1:
-						m_Arrow->BuildTrap(TRAP_ARROW);
-						break;
-					}
-					m_TrapType = TRAP_ARROW;
+			if (m_bClick) break;
+
+			m_bClick = true;
+
+			for (int i = 0; i < MAX_TRAP; ++i) {
+				if (m_Trap[i]->is_active == false && m_Trap[i]->GetTrapKind() == TRAP_ARROW) {
+					m_Trap[i]->is_active = true;
+					m_Trap[i]->BuildTrap(true);
+					m_Trap[i]->ActiveTrap(true);
+					m_target = m_Trap[i];
 					break;
 				}
 			}
-			else {
-				m_bClick = true;
-				m_Arrow->BuildTrap(TRAP_ARROW);
-				m_TrapType = TRAP_ARROW;
-			}
+			//if (m_bClick) {
+			//	if (m_TrapType == TRAP_ARROW) {
+			//		break; //불 함정이 이미 만들어진 상태
+			//	}
+			//	else {
+			//		// 다른 함정이 이미 만들어진 상태 -> 삭제하고 불함정 생성
+			//		switch (m_TrapType) {
+			//		case TRAP_NEEDLE:
+			//			if (m_Needle->m_Trap.back()->GetIsBuildTrap() == true) {
+			//				m_Needle->m_Trap.pop_back();
+			//				m_Arrow->BuildTrap(TRAP_ARROW);
+			//			}
+			//			break;
+			//		case TRAP_FIRE:
+			//			if (m_Fire->m_Trap.back()->GetIsBuildTrap() == true) {
+			//				m_Fire->m_Trap.pop_back();
+			//				m_Arrow->BuildTrap(TRAP_ARROW);
+			//			}
+			//			break;
+			//		case TRAP_SLOW:
+			//			if (m_Slow->m_Trap.back()->GetIsBuildTrap() == true) {
+			//				m_Slow->m_Trap.pop_back();
+			//				m_Arrow->BuildTrap(TRAP_ARROW);
+			//			}
+			//			break;
+			//		case -1:
+			//			m_Arrow->BuildTrap(TRAP_ARROW);
+			//			break;
+			//		}
+			//		m_TrapType = TRAP_ARROW;
+			//		break;
+			//	}
+			//}
+			//else {
+			//	m_bClick = true;
+			//	m_Arrow->BuildTrap(TRAP_ARROW);
+			//	m_TrapType = TRAP_ARROW;
+			//}
 		}
 		break;
 
@@ -1580,74 +1665,34 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 	case WM_KEYUP:
 		switch (wParam) {
 		case '1':
-			if (m_bClick) {
-				if (m_Needle->m_Trap.back()->GetIsBuildTrap() == true) {
-					m_Needle->m_Trap.pop_back();
-					m_TrapType = -1;
-					m_bClick = false;
-					cout << "trap back 삭제 size: " << m_Needle->m_Trap.size() << endl;
-				}
-				else {
-					// 함정 배치가 완료된 경우
-					if (m_TrapType == TRAP_NEEDLE) {
-						m_TrapType = -1;
-						m_bClick = false;
-					}
-					else if (m_TrapType == -1) {
-						m_bClick = false;
-					}
-				}
-			}
-			break;
 		case '2':
-			if (m_bClick) {
-				if (m_Fire->m_Trap.back()->GetIsBuildTrap() == true) {
-					m_Fire->m_Trap.pop_back();
-					m_TrapType = -1;
-					m_bClick = false;
-				}
-				else {
-					// 함정 배치가 완료된 경우
-					if (m_TrapType == TRAP_FIRE) {
-
-						m_TrapType = -1;
-						m_bClick = false;
-					}
-				}
-			}
-			break;
 		case '3':
-			if (m_bClick) {
-				if (m_Slow->m_Trap.back()->GetIsBuildTrap() == true) {
-					m_Slow->m_Trap.pop_back();
-					m_TrapType = -1;
-					m_bClick = false;
-				}
-				else {
-					// 함정 배치가 완료된 경우
-					if (m_TrapType == TRAP_SLOW) {
-						m_TrapType = -1;
-						m_bClick = false;
-					}
-				}
-			}
-			break;
 		case '4':
 			if (m_bClick) {
-				if (m_Arrow->m_Trap.back()->GetIsBuildTrap() == true) {
-					m_Arrow->m_Trap.pop_back();
-
-					m_TrapType = -1;
-					m_bClick = false;
-				}
-				else {
-					// 함정 배치가 완료된 경우
-					if (m_TrapType == TRAP_ARROW) {
-						m_TrapType = -1;
-						m_bClick = false;
-					}
+				m_bClick = false;
+				if (m_target != NULL) {
+					m_target->is_active = false;
+					m_target = NULL;
 				}
 			}
+			//if (m_bClick) {
+			//	if (m_Needle->m_Trap.back()->GetIsBuildTrap() == true) {
+			//		m_Needle->m_Trap.pop_back();
+			//		m_TrapType = -1;
+			//		m_bClick = false;
+			//		cout << "trap back 삭제 size: " << m_Needle->m_Trap.size() << endl;
+			//	}
+			//	else {
+			//		// 함정 배치가 완료된 경우
+			//		if (m_TrapType == TRAP_NEEDLE) {
+			//			m_TrapType = -1;
+			//			m_bClick = false;
+			//		}
+			//		else if (m_TrapType == -1) {
+			//			m_bClick = false;
+			//		}
+			//	}
+			//}
 			break;
 
 		case 'w':

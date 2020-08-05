@@ -459,6 +459,9 @@ private:
 	int m_nTrapKind;
 
 public:
+	bool is_active = false;
+	bool is_collision = false;
+
 	void BuildTrap(bool Input) { IsBuildTrap = Input; }
 	void ActiveTrap(bool Input) { IsActive = Input; }
 	void AccessTrap(bool Input) { IsTrapAccess = Input; }
@@ -467,7 +470,7 @@ public:
 
 	bool GetIsTrapAccess() { return IsTrapAccess; }
 
-	void Animate(XMFLOAT3 Position, float ElapsedTime, XMFLOAT4X4 *Parent);
+	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent);
 
 	void SetTrapKind(int nKindnum) { m_nTrapKind = nKindnum; }
 

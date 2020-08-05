@@ -494,10 +494,10 @@ void TrapInstancingShader::UpdateShaderVariable()
 
 void TrapInstancingShader::Animate(float ElapsedTime, XMFLOAT3 Position)
 {
-	for (int i = 0; i < m_Trap.size(); ++i) {
+	/*for (int i = 0; i < m_Trap.size(); ++i) {
 		m_Trap[i]->Animate(Position, ElapsedTime, NULL);
 		m_Trap[i]->UpdateTransform(NULL);
-	}
+	}*/
 }
 
 void TrapInstancingShader::Render(ID3D12GraphicsCommandList *CommandList)
@@ -518,9 +518,6 @@ void TrapInstancingShader::BuildTrap(UINT Type)
 	if (m_Trap.size() < INSTANCE_NUM) {
 		Obj = new Trap();
 		Obj->SetChild(Model, false);
-		//Obj->m_AnimationController = new AnimationController(30);
-		//Obj->m_AnimationController = Model->m_AnimationController;
-		//Obj->m_AnimationController->SetAnimationSet(0);
 		Obj->SetScale(140.f, 140.f, 140.f);
 		Obj->BuildTrap(true);
 		Obj->ActiveTrap(true);

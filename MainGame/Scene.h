@@ -140,13 +140,10 @@ private:
 	// UI
 	UI							*m_CharInfo = NULL;
 	UI							*m_TrapListUi = NULL;
-
 	UI							*m_Scope = NULL;
 
 	// Map
 	SkyBox						*m_SkyBox[5];
-	//GameObject					*m_StageWall = NULL;
-	GameObject					*m_StageFloor = NULL;
 
 	GameObject					*m_Stage_01 = NULL;
 	GameObject					*m_Stage_02 = NULL;
@@ -163,12 +160,15 @@ private:
 	UINT m_TrapType = 0;
 
 	// Trap Objects
-	TrapInstancingShader		*m_Needle = NULL;
+	vector<Trap*> m_Trap;
+	Trap* m_target = NULL;
+	/*TrapInstancingShader		*m_Needle = NULL;
 	TrapInstancingShader		*m_Fire = NULL;
 	TrapInstancingShader		*m_Slow = NULL;
-	TrapInstancingShader		*m_Arrow = NULL;
+	TrapInstancingShader		*m_Arrow = NULL;*/
 
 	// Monster Objects
+	vector<Monster*> m_Monster;
 	/*MonsterInstancingShader		*m_Orc = NULL;
 	MonsterInstancingShader		*m_StrongOrc = NULL;
 	MonsterInstancingShader		*m_Shaman = NULL;
@@ -180,8 +180,6 @@ private:
 	// Other Player
 	GameObject					*m_OtherPlayerModel = NULL;
 
-	// 시연
-	vector<Monster*> m_Monster;
 	float m_ElapsedTime = 0.f;
 
 	// 디스크립터 힙을 게임 씬에서 만듬
@@ -225,7 +223,7 @@ public:
 
 	void CheckTile();
 
-	void CheckBuildTrap(TrapInstancingShader *Trap);
+	void CheckBuildTrap();
 
 	bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);

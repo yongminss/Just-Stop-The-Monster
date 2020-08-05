@@ -1548,16 +1548,8 @@ void Effect::Render(ID3D12GraphicsCommandList *CommandList)
 }
 
 
-void Trap::Animate(XMFLOAT3 Position, float ElapsedTime, XMFLOAT4X4 *Parent)
+void Trap::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
 {
-	// 함정의 위치를 설정하는 함수
-	//if (IsBuildTrap) {
-	//	SetPostion(Vector3::Add(Player->GetPosition(), Vector3::ScalarProduct(Player->GetLook(), 100)));
-	//	m_TransformPos._42 = -50.f;
-	//
-	//	UpdateTransform(NULL);
-	//}
-
 	// 함정 활성화
 	if (IsActive) {
 		if (m_AnimationController) m_AnimationController->AdvanceTime(ElapsedTime, NULL);
