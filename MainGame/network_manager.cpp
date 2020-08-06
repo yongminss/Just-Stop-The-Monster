@@ -6,7 +6,6 @@ network_manager* network_manager::Inst = NULL;
 network_manager::network_manager()
 {
 	//ZeroMemory(m_myRoomInfo, sizeof(m_myRoomInfo));
-	wsa = false;
 	init_data();
 }
 
@@ -26,9 +25,6 @@ void network_manager::init_data()
 	m_myRoomInfo.stage_number = 0;
 
 	m_nameLogin = false;
-
-	ZeroMemory(&m_OtherInfo, sizeof(m_OtherInfo));
-	ZeroMemory(&m_trap_pool, sizeof(m_trap_pool));
 
 	m_vec_gameRoom.reserve(20);
 	m_vec_trapPool.reserve(50);
@@ -54,7 +50,6 @@ void network_manager::init_socket()
 
 void network_manager::init_pool()
 {
-
 	for (short i = 0; i < MAX_TRAP; ++i) {
 		m_trap_pool[i].enable = false;
 	}
@@ -134,10 +129,10 @@ void network_manager::PacketProccess(void * buf)
 			m_my_info.Transform = pos_packet->world_pos;
 			cout << "내 위치 받기 확인" << endl;
 		}
-		else if (pos_packet->mover_id == m_OtherInfo.id) { // 다른 플레이어 위치
+		else { // 다른 플레이어 위치
+			m_OtherInfo.is_connect = true;
 			m_OtherInfo.Transform = pos_packet->world_pos;
 			m_OtherInfo.AnimateState = pos_packet->animation_state;
-			m_OtherInfo.is_connect = true;
 			cout << "다른 플레이어 위치 받기 확인" << endl;
 		}
 		break;
@@ -222,18 +217,14 @@ void network_manager::PacketProccess(void * buf)
 		//cout << "anim: " << m_monster_pool[0].animation_state << endl;
 		//cout << "x:" << m_monster_pool[0].world_pos._41 << ", y: " << m_monster_pool[0].world_pos._42 << ", z: " << 
 		//m_monster_pool[0].world_pos._43 << endl;
-		if (m_monster_pool[40].isLive == true) {
-			cout << "40번 anim: " << m_monster_pool[40].animation_state << endl;
-		}
 		break;
 	}
 	case SC_TRAP_INFO: {
 		sc_packet_trap_info *trap_info_packet = reinterpret_cast<sc_packet_trap_info*>(buf);
-		cout << "new trap"<< trap_info_packet->trap_id <<endl;
 		m_trap_pool[trap_info_packet->trap_id].enable = true;
 		m_trap_pool[trap_info_packet->trap_id].id = trap_info_packet->trap_id;
 		m_trap_pool[trap_info_packet->trap_id].trap_type = trap_info_packet->trap_type;
-		m_trap_pool[trap_info_packet->trap_id].trap4x4pos = trap_info_packet->trap_pos;
+		m_trap_pool[trap_info_packet->trap_id].trap_pos = trap_info_packet->trap_pos;
 		break;
 	}
 	case SC_JOIN_ROOM_OK: {
@@ -260,11 +251,6 @@ void network_manager::PacketProccess(void * buf)
 		sc_packet_game_info_update *game_info_update_packet = reinterpret_cast<sc_packet_game_info_update*>(buf);
 		if (game_info_update_packet->portalLife == -1000) { // wave 업데이트
 			m_myRoomInfo.wave_count = game_info_update_packet->wave;
-			cout << "wave update" << endl;
-			ZeroMemory(&m_monster_pool, sizeof(m_monster_pool));
-			for (short i = 0; i < MAX_MONSTER; ++i) {
-				m_monster_pool[i].isLive = false;
-			}
 		}
 		else if (game_info_update_packet->wave == -1000) { // portalLife 업데이트
 			m_myRoomInfo.portalLife = game_info_update_packet->portalLife;
@@ -339,13 +325,8 @@ void network_manager::send_change_state_packet(const char& state, const short& S
 	packet.change_state = state;
 	packet.stage_number = StageNum;
 	packet.size = sizeof(packet);
-
-	if (wsa == false) {
-		send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
-	}
-	else {
-		send_packet(&packet);
-	}
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
 void network_manager::send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_pos, const short& animation_state)
@@ -356,13 +337,8 @@ void network_manager::send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_
 	packet.player_world_pos = world_pos;
 	packet.animation_state = animation_state;
 	packet.size = sizeof(packet);
-
-	if (wsa == false) {
-		send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
-	}
-	else {
-		send_packet(&packet);
-	}
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
 void network_manager::send_make_room_packet()
@@ -371,13 +347,8 @@ void network_manager::send_make_room_packet()
 	packet.type = CS_MAKE_ROOM;
 	packet.id = m_my_info.id;
 	packet.size = sizeof(packet);
-
-	if (wsa == false) {
-		send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
-	}
-	else {
-		send_packet(&packet);
-	}
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
 void network_manager::send_request_join_room(const short& room_number)
@@ -387,16 +358,11 @@ void network_manager::send_request_join_room(const short& room_number)
 	packet.joiner_id = m_my_info.id;
 	packet.room_number = room_number;
 	packet.size = sizeof(packet);
-
-	if (wsa == false) {
-		send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
-	}
-	else {
-		send_packet(&packet);
-	}
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
-void network_manager::send_install_trap(char trap_type, DirectX::XMFLOAT4X4 trap_pos)
+void network_manager::send_install_trap(char trap_type, DirectX::XMFLOAT3 trap_pos)
 {
 	cs_packet_install_trap packet;
 	packet.type = CS_INSTALL_TRAP;
@@ -404,13 +370,8 @@ void network_manager::send_install_trap(char trap_type, DirectX::XMFLOAT4X4 trap
 	packet.trap_type = trap_type;
 	packet.trap_pos = trap_pos;
 	packet.size = sizeof(packet);
-
-	if (wsa == false) {
-		send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
-	}
-	else {
-		send_packet(&packet);
-	}
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
 void network_manager::send_shoot(short monster_id, bool headShot)
@@ -421,13 +382,8 @@ void network_manager::send_shoot(short monster_id, bool headShot)
 	packet.monster_id = monster_id;
 	packet.headShot = headShot;
 	packet.size = sizeof(packet);
-
-	if (wsa == false) {
-		send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
-	}
-	else {
-		send_packet(&packet);
-	}
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
 void network_manager::send_request_login(char name[])
@@ -437,13 +393,8 @@ void network_manager::send_request_login(char name[])
 	packet.id = m_my_info.id;
 	strcpy_s(packet.name, name);
 	packet.size = sizeof(packet);
-
-	if (wsa == false) {
-		send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
-	}
-	else {
-		send_packet(&packet);
-	}
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
 void network_manager::send_leaveRoom()
@@ -452,13 +403,8 @@ void network_manager::send_leaveRoom()
 	packet.type = CS_LEAVE_ROOM;
 	packet.id = m_my_info.id;
 	packet.size = sizeof(packet);
-
-	if (wsa == false) {
-		send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
-	}
-	else {
-		send_packet(&packet);
-	}
+	send(m_serverSocket, (char*)&packet, sizeof(packet), 0);
+	//send_packet(&packet);
 }
 
 

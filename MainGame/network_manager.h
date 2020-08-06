@@ -10,7 +10,7 @@ enum EVENT_TYPE {
 struct PLAYER_INFO
 {
 	int id;
-	volatile bool is_connect;
+	bool is_connect;
 	char player_state;
 	short room_number;
 	short AnimateState;
@@ -30,11 +30,10 @@ struct GAME_ROOM_C {
 };
 
 struct TRAPINFO_C {
-	volatile bool enable;
+	bool enable;
 	short id;
 	char trap_type;
 	DirectX::XMFLOAT3 trap_pos;
-	DirectX::XMFLOAT4X4 trap4x4pos;
 };
 
 struct OVER_EX {
@@ -65,7 +64,7 @@ public:
 	void send_my_world_pos_packet(const DirectX::XMFLOAT4X4& world_pos, const short& animation_state);
 	void send_make_room_packet();
 	void send_request_join_room(const short& room_number);
-	void send_install_trap(char trap_type, DirectX::XMFLOAT4X4 trap_pos);
+	void send_install_trap(char trap_type, DirectX::XMFLOAT3 trap_pos);
 	void send_shoot(short monster_id, bool headShot);
 	void send_request_login(char name[]);
 	void send_leaveRoom();
@@ -74,8 +73,6 @@ public:
 
 
 public:
-	bool wsa = false;
-
 	WSADATA m_WSAData;
 	SOCKET m_serverSocket;
 	sockaddr_in m_serverAddr;
