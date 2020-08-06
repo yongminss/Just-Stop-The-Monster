@@ -1359,6 +1359,26 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 					}
 				}
 			}
+			for (int i = 0; i < /*MAX_MONSTER*/m_StrongOrc.size(); ++i) {
+				MonObj = m_StrongOrc[i]->CheckMonster(StartPos, EndPos);
+				if (MonObj != NULL) {
+					if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
+						ResultObj = MonObj;
+						ResultDistance = ResultObj->GetMesh()->m_fDistance;
+						HitIndex = i;
+					}
+				}
+			}
+			for (int i = 0; i < /*MAX_MONSTER*/m_WolfRider.size(); ++i) {
+				MonObj = m_WolfRider[i]->CheckMonster(StartPos, EndPos);
+				if (MonObj != NULL) {
+					if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
+						ResultObj = MonObj;
+						ResultDistance = ResultObj->GetMesh()->m_fDistance;
+						HitIndex = i;
+					}
+				}
+			}
 			GameObject *TileObj = new GameObject();
 
 			switch (m_MapNum) {
@@ -1766,6 +1786,8 @@ void GameScene::Monster_Function(ID3D12GraphicsCommandList *CommandList, vector<
 			if (network_manager::GetInst()->m_riderPool[i].isLive == false) continue;
 			break;
 		}
+
+		m_Orc[i]->m_id = i;
 
 		// Monster Animation Set
 		int server_anim = 0;
