@@ -996,30 +996,33 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 			m_Monster[i]->is_active = false;
 		network_manager::GetInst()->is_wave = false;
 	}
+	
 	// Monster Objects
 	for (int i = 0; i < MAX_MONSTER; ++i) { // 활성화 시킬 Monster Object를 선택
 
 		if (network_manager::GetInst()->m_monster_pool[i].isLive == false) continue;
 
-		if (network_manager::GetInst()->m_monster_pool[i].type == m_Monster[i]->GetType()) {
-			m_Monster[i]->is_active = true;
-			m_Monster[i]->m_id = i;/*network_manager::GetInst()->m_monster_pool[i].id;*/
-		}
-		else {
-			char type = network_manager::GetInst()->m_monster_pool[i].type;
-			for (int j = i; j < MAX_MONSTER; ++j) {
-				if (m_Monster[j]->GetType() != type) continue;
+		if (network_manager::GetInst()->is_wave == false) {
 
-				if (m_Monster[j]->is_active == false) {
-					m_Monster[j]->is_active = true;
-					m_Monster[j]->m_id = i;/*network_manager::GetInst()->m_monster_pool[i].id;*/
-					break;
+			if (network_manager::GetInst()->m_monster_pool[i].type == m_Monster[i]->GetType()) {
+				m_Monster[i]->is_active = true;
+				m_Monster[i]->m_id = i;/*network_manager::GetInst()->m_monster_pool[i].id;*/
+			}
+			else {
+				char type = network_manager::GetInst()->m_monster_pool[i].type;
+				for (int j = i; j < MAX_MONSTER; ++j) {
+					if (m_Monster[j]->GetType() != type) continue;
+
+					if (m_Monster[j]->is_active == false) {
+						m_Monster[j]->is_active = true;
+						m_Monster[j]->m_id = i;/*network_manager::GetInst()->m_monster_pool[i].id;*/
+						break;
+					}
+
 				}
-
 			}
 		}
 	}
-
 
 	for (int i = 0; i < MAX_MONSTER; ++i) {
 		//if (network_manager::GetInst()->m_monster_pool[i].isLive == false) continue;
@@ -1029,8 +1032,25 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 		if (server_num == -1) break;
 
-		if (network_manager::GetInst()->m_monster_pool[server_num].animation_state != 0)
+		int animation_temp = m_Monster[i]->GetNowAnimationNum();
+
+		int server_animation = network_manager::GetInst()->m_monster_pool[server_num].animation_state;
+
+		if (server_animation <= 0 && server_animation > 30) server_animation = 0;
+
+		if (animation_temp != server_animation || m_Monster[i]->GetNowAnimationNum() == 0) {
+
+			if (server_animation == M_ANIM_DEATH /*server_animation == M_ANIM_ATT*/) {
+				m_Monster[i]->SetAnimateType(server_animation, ANIMATION_TYPE_ONCE);
+				m_Monster[i]->SetEnable(server_animation);
+			}
+			else
+				m_Monster[i]->SetEnable(server_animation);
+		}
+
+		/*if (network_manager::GetInst()->m_monster_pool[server_num].animation_state != 0) {
 			m_Monster[i]->SetEnable(network_manager::GetInst()->m_monster_pool[server_num].animation_state);
+		}*/
 		
 		XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[server_num].world_pos;
 
