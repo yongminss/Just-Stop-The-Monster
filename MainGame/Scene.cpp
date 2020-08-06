@@ -474,28 +474,32 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_Arrow->BuildObject(Device, CommandList, m_GraphicsRootSignature, 3);*/
 
 	// Monster Object
-	for (int i = 0; i < MAX_MONSTER; ++i) {
-		m_Monster.emplace_back(new Monster());
+	for (int i = 0; i < MAX_MONSTER - 40; ++i) {
 		GameObject *OrcObj = NULL;
-		if (i < 60) {
-			OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
-			m_Monster.back()->SetType(TYPE_ORC);
-		}
-		/*else if (i >= 80 && i < 90) {
-			OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Shaman.bin", NULL, true);
-			m_Monster.back()->SetType(TYPE_SHAMAN);
-		}*/
-		else if (i >= 80) {
-			OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_WolfRider.bin", NULL, true);
-			m_Monster.back()->SetType(TYPE_RIDER);
-		}
-		else {
-			OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Strong_Infantry.bin", NULL, true);
-			m_Monster.back()->SetType(TYPE_STRONGORC);
-		}
-		m_Monster.back()->SetChild(OrcObj, true);
-		m_Monster.back()->SetEnable(2);
-		m_Monster.back()->SetPostion(XMFLOAT3(0.f, -50.f, 0.f - (i * 50)));
+		OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
+		m_Orc.emplace_back(new Monster());
+		m_Orc.back()->SetType(TYPE_ORC);
+		m_Orc.back()->SetChild(OrcObj, true);
+		m_Orc.back()->SetEnable(2);
+		m_Orc.back()->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
+	}
+	for (int i = 0; i < MAX_MONSTER - 75; ++i) { // Strong Orc
+		GameObject *OrcObj = NULL;
+		OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Strong_Infantry.bin", NULL, true);
+		m_StrongOrc.emplace_back(new Monster());
+		m_StrongOrc.back()->SetType(TYPE_STRONGORC);
+		m_StrongOrc.back()->SetChild(OrcObj, true);
+		m_StrongOrc.back()->SetEnable(2);
+		m_StrongOrc.back()->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
+	}
+	for (int i = 0; i < MAX_MONSTER - 80; ++i) { // Wolf Rider
+		GameObject *OrcObj = NULL;
+		OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_WolfRider.bin", NULL, true);
+		m_WolfRider.emplace_back(new Monster());
+		m_WolfRider.back()->SetType(TYPE_RIDER);
+		m_WolfRider.back()->SetChild(OrcObj, true);
+		m_WolfRider.back()->SetEnable(2);
+		m_WolfRider.back()->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
 	}
 	/*m_Orc = new MonsterInstancingShader();
 	m_Orc->CreateShader(Device, CommandList, m_GraphicsRootSignature);
@@ -986,102 +990,108 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 			m_Trap[i]->Render(CommandList);
 		}
 	}
+
+	// Monster Object
+	Monster_Function(CommandList, m_Orc);
+	Monster_Function(CommandList, m_StrongOrc);
+	Monster_Function(CommandList, m_WolfRider);
+
 	/*if (m_Needle) m_Needle->Render(CommandList);
 	if (m_Fire) m_Fire->Render(CommandList);
 	if (m_Slow) m_Slow->Render(CommandList);
 	if (m_Arrow) m_Arrow->Render(CommandList);*/
 
-	if (network_manager::GetInst()->is_wave == true) {
+	/*if (network_manager::GetInst()->is_wave == true) {
 		for (int i = 0; i < MAX_MONSTER; ++i)
-			m_Monster[i]->is_active = false;
+			m_Orc[i]->is_active = false;
 		network_manager::GetInst()->is_wave = false;
-	}
+	}*/
 	
 	// Monster Objects
-	for (int i = 0; i < MAX_MONSTER; ++i) { // 활성화 시킬 Monster Object를 선택
-
-		if (network_manager::GetInst()->m_monster_pool[i].isLive == false) continue;
-
-		if (network_manager::GetInst()->is_wave == false) {
-
-			if (network_manager::GetInst()->m_monster_pool[i].type == m_Monster[i]->GetType()) {
-				m_Monster[i]->is_active = true;
-				m_Monster[i]->m_id = i;/*network_manager::GetInst()->m_monster_pool[i].id;*/
-			}
-			else {
-				char type = network_manager::GetInst()->m_monster_pool[i].type;
-				for (int j = i; j < MAX_MONSTER; ++j) {
-					if (m_Monster[j]->GetType() != type) continue;
-
-					if (m_Monster[j]->is_active == false) {
-						m_Monster[j]->is_active = true;
-						m_Monster[j]->m_id = i;/*network_manager::GetInst()->m_monster_pool[i].id;*/
-						break;
-					}
-
-				}
-			}
-		}
-	}
-
-	for (int i = 0; i < MAX_MONSTER; ++i) {
-		//if (network_manager::GetInst()->m_monster_pool[i].isLive == false) continue;
-		if (m_Monster[i]->is_active == false) continue;
-
-		int server_num = m_Monster[i]->m_id;
-
-		if (server_num == -1) break;
-
-		int animation_temp = m_Monster[i]->GetNowAnimationNum();
-
-		int server_animation = network_manager::GetInst()->m_monster_pool[server_num].animation_state;
-
-		if (server_animation <= 0 && server_animation > 30) server_animation = 0;
-
-		if (animation_temp != server_animation || m_Monster[i]->GetNowAnimationNum() == 0) {
-
-			if (server_animation == M_ANIM_DEATH /*server_animation == M_ANIM_ATT*/) {
-				m_Monster[i]->SetAnimateType(server_animation, ANIMATION_TYPE_ONCE);
-				m_Monster[i]->SetEnable(server_animation);
-			}
-			else
-				m_Monster[i]->SetEnable(server_animation);
-		}
-
-		/*if (network_manager::GetInst()->m_monster_pool[server_num].animation_state != 0) {
-			m_Monster[i]->SetEnable(network_manager::GetInst()->m_monster_pool[server_num].animation_state);
-		}*/
-		
-		XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[server_num].world_pos;
-
-		m_Monster[i]->SetRight(XMFLOAT3(world._11, world._12, world._13));
-		m_Monster[i]->SetUp(XMFLOAT3(world._21, world._22, world._23));
-		m_Monster[i]->SetLook(XMFLOAT3(world._31, world._32, world._33));
-		m_Monster[i]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
-
-		m_Monster[i]->Animate(m_ElapsedTime, NULL);
-		m_Monster[i]->UpdateTransform(NULL);
-		m_Monster[i]->Render(CommandList);
-
-		/*if (m_Monster[i]->is_active == false) continue;
-
-		cout << i << endl;
-*/
-		/*int server_num = m_Monster[i]->m_id;
-
-		XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[i].world_pos;
-
-		m_Monster[server_num]->SetRight(XMFLOAT3(world._11, world._12, world._13));
-		m_Monster[server_num]->SetUp(XMFLOAT3(world._21, world._22, world._23));
-		m_Monster[server_num]->SetLook(XMFLOAT3(world._31, world._32, world._33));
-		m_Monster[server_num]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
-
-		m_Monster[server_num]->Animate(m_ElapsedTime, NULL);
-		m_Monster[server_num]->UpdateTransform(NULL);
-		m_Monster[server_num]->Render(CommandList);*/
-
-
-	}
+//	for (int i = 0; i < MAX_MONSTER; ++i) { // 활성화 시킬 Monster Object를 선택
+//
+//		if (network_manager::GetInst()->m_monster_pool[i].isLive == false) continue;
+//
+//		if (network_manager::GetInst()->is_wave == false) {
+//
+//			if (network_manager::GetInst()->m_monster_pool[i].type == m_Orc[i]->GetType()) {
+//				m_Orc[i]->is_active = true;
+//				m_Orc[i]->m_id = i;/*network_manager::GetInst()->m_monster_pool[i].id;*/
+//			}
+//			else {
+//				char type = network_manager::GetInst()->m_monster_pool[i].type;
+//				for (int j = i; j < MAX_MONSTER; ++j) {
+//					if (m_Orc[j]->GetType() != type) continue;
+//
+//					if (m_Orc[j]->is_active == false) {
+//						m_Orc[j]->is_active = true;
+//						m_Orc[j]->m_id = i;/*network_manager::GetInst()->m_monster_pool[i].id;*/
+//						break;
+//					}
+//
+//				}
+//			}
+//		}
+//	}
+//
+//	for (int i = 0; i < MAX_MONSTER; ++i) {
+//		//if (network_manager::GetInst()->m_monster_pool[i].isLive == false) continue;
+//		if (m_Orc[i]->is_active == false) continue;
+//
+//		int server_num = m_Orc[i]->m_id;
+//
+//		if (server_num == -1) break;
+//
+//		int animation_temp = m_Orc[i]->GetNowAnimationNum();
+//
+//		int server_animation = network_manager::GetInst()->m_monster_pool[server_num].animation_state;
+//
+//		if (server_animation <= 0 && server_animation > 30) server_animation = 0;
+//
+//		if (animation_temp != server_animation || m_Orc[i]->GetNowAnimationNum() == 0) {
+//
+//			if (server_animation == M_ANIM_DEATH /*server_animation == M_ANIM_ATT*/) {
+//				m_Orc[i]->SetAnimateType(server_animation, ANIMATION_TYPE_ONCE);
+//				m_Orc[i]->SetEnable(server_animation);
+//			}
+//			else
+//				m_Orc[i]->SetEnable(server_animation);
+//		}
+//
+//		/*if (network_manager::GetInst()->m_monster_pool[server_num].animation_state != 0) {
+//			m_Monster[i]->SetEnable(network_manager::GetInst()->m_monster_pool[server_num].animation_state);
+//		}*/
+//		
+//		XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[server_num].world_pos;
+//
+//		m_Orc[i]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+//		m_Orc[i]->SetUp(XMFLOAT3(world._21, world._22, world._23));
+//		m_Orc[i]->SetLook(XMFLOAT3(world._31, world._32, world._33));
+//		m_Orc[i]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+//
+//		m_Orc[i]->Animate(m_ElapsedTime, NULL);
+//		m_Orc[i]->UpdateTransform(NULL);
+//		m_Orc[i]->Render(CommandList);
+//
+//		/*if (m_Monster[i]->is_active == false) continue;
+//
+//		cout << i << endl;
+//*/
+//		/*int server_num = m_Monster[i]->m_id;
+//
+//		XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[i].world_pos;
+//
+//		m_Monster[server_num]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+//		m_Monster[server_num]->SetUp(XMFLOAT3(world._21, world._22, world._23));
+//		m_Monster[server_num]->SetLook(XMFLOAT3(world._31, world._32, world._33));
+//		m_Monster[server_num]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+//
+//		m_Monster[server_num]->Animate(m_ElapsedTime, NULL);
+//		m_Monster[server_num]->UpdateTransform(NULL);
+//		m_Monster[server_num]->Render(CommandList);*/
+//
+//
+//	}
 
 
 		
@@ -1339,8 +1349,8 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			GameObject *MonObj = new GameObject();
 			GameObject *ResultObj = new GameObject();
 
-			for (int i = 0; i < MAX_MONSTER; ++i) {
-				MonObj = m_Monster[i]->CheckMonster(StartPos, EndPos);
+			for (int i = 0; i < /*MAX_MONSTER*/m_Orc.size(); ++i) {
+				MonObj = m_Orc[i]->CheckMonster(StartPos, EndPos);
 				if (MonObj != NULL) {
 					if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
 						ResultObj = MonObj;
@@ -1369,9 +1379,9 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			if ((TileObj == NULL && ResultObj != NULL) || (TileObj != NULL && ResultObj != NULL && TileObj->GetMesh()->m_fDistance > ResultDistance)) {
 
 				if (strstr(ResultObj->GetFrameName(), "Head"))
-					network_manager::GetInst()->send_shoot(m_Monster[HitIndex]->m_id, true);
+					network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, true);
 				else
-					network_manager::GetInst()->send_shoot(m_Monster[HitIndex]->m_id, false);
+					network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, false);
 			}
 
 			m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
@@ -1643,13 +1653,13 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			//		}
 			//		m_TrapType = TRAP_ARROW;
 			//		break;
-			//	}
-			//}
-			//else {
-			//	m_bClick = true;
-			//	m_Arrow->BuildTrap(TRAP_ARROW);
-			//	m_TrapType = TRAP_ARROW;
-			//}
+//	}
+//}
+//else {
+//	m_bClick = true;
+//	m_Arrow->BuildTrap(TRAP_ARROW);
+//	m_TrapType = TRAP_ARROW;
+//}
 		}
 		break;
 
@@ -1657,7 +1667,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			m_MapNum = 1;
 			break;
 		case '8':
-			m_MapNum = 2;	
+			m_MapNum = 2;
 			break;
 		case '9':
 			m_MapNum = 3;
@@ -1737,4 +1747,75 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		break;
 	}
 	return false;
+}
+
+void GameScene::Monster_Function(ID3D12GraphicsCommandList *CommandList, vector<Monster*> Orc)
+{
+	for (int i = 0; i < Orc.size(); ++i) {
+
+		switch (Orc[i]->m_Type) {
+		case TYPE_ORC:
+			if (network_manager::GetInst()->m_orcPool[i].isLive == false) continue;
+			break;
+
+		case TYPE_STRONGORC:
+			if (network_manager::GetInst()->m_strongorcPool[i].isLive == false) continue;
+			break;
+
+		case TYPE_RIDER:
+			if (network_manager::GetInst()->m_riderPool[i].isLive == false) continue;
+			break;
+		}
+
+		// Monster Animation Set
+		int server_anim = 0;
+		switch (Orc[i]->m_Type) {
+		case TYPE_ORC:
+			server_anim = network_manager::GetInst()->m_orcPool[i].animation_state;
+			break;
+
+		case TYPE_STRONGORC:
+			server_anim = network_manager::GetInst()->m_strongorcPool[i].animation_state;
+			break;
+
+		case TYPE_RIDER:
+			server_anim = network_manager::GetInst()->m_riderPool[i].animation_state;
+			break;
+		}
+
+		if (server_anim <= 0 && server_anim > 30) server_anim = 0;
+
+		if (server_anim != 0 && server_anim != Orc[i]->GetNowAnimationNum()) {
+			if (server_anim == M_ANIM_DEATH) {
+				Orc[i]->SetAnimateType(ANIMATION_TYPE_ONCE, server_anim);
+				Orc[i]->SetEnable(server_anim);
+			}
+			else
+				Orc[i]->SetEnable(server_anim);
+		}
+
+		// Monster Pos Set
+		XMFLOAT4X4 world{};
+		switch (Orc[i]->m_Type) {
+		case TYPE_ORC:
+			world = network_manager::GetInst()->m_orcPool[i].world_pos;
+			break;
+
+		case TYPE_STRONGORC:
+			world = network_manager::GetInst()->m_strongorcPool[i].world_pos;
+			break;
+
+		case TYPE_RIDER:
+			world = network_manager::GetInst()->m_riderPool[i].world_pos;
+			break;
+		}
+		Orc[i]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+		Orc[i]->SetUp(XMFLOAT3(world._21, world._22, world._23));
+		Orc[i]->SetLook(XMFLOAT3(world._31, world._32, world._33));
+		Orc[i]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+
+		Orc[i]->Animate(m_ElapsedTime, NULL);
+		Orc[i]->UpdateTransform(NULL);
+		Orc[i]->Render(CommandList);
+	}
 }

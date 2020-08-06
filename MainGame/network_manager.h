@@ -56,6 +56,7 @@ public:
 	void init_data();
 	void init_socket();
 	void init_pool();
+	void init_mon_pool();
 	void rq_connect_server(const char * server_ip);
 	void ReadBuffer(SOCKET sock);
 	void PacketProccess(void * buf);
@@ -94,6 +95,10 @@ public:
 	vector<TRAPINFO_C*> m_vec_trapPool;
 	MONSTER m_monster_pool[MAX_MONSTER];
 	TRAPINFO_C m_trap_pool[MAX_TRAP];
+
+	MONSTER m_orcPool[MAX_MONSTER];
+	MONSTER m_strongorcPool[MAX_MONSTER];
+	MONSTER m_riderPool[MAX_MONSTER];
 
 
 public:

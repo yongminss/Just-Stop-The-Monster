@@ -29,6 +29,9 @@ void network_manager::init_data()
 
 	ZeroMemory(&m_OtherInfo, sizeof(m_OtherInfo));
 	ZeroMemory(&m_trap_pool, sizeof(m_trap_pool));
+	ZeroMemory(&m_orcPool, sizeof(m_orcPool));
+	ZeroMemory(&m_strongorcPool, sizeof(m_strongorcPool));
+	ZeroMemory(&m_riderPool, sizeof(m_riderPool));
 
 	m_vec_gameRoom.reserve(20);
 	m_vec_trapPool.reserve(50);
@@ -58,8 +61,19 @@ void network_manager::init_pool()
 	for (short i = 0; i < MAX_TRAP; ++i) {
 		m_trap_pool[i].enable = false;
 	}
+	this->init_mon_pool();
+}
+
+void network_manager::init_mon_pool()
+{
 	for (short i = 0; i < MAX_MONSTER; ++i) {
 		m_monster_pool[i].isLive = false;
+		m_orcPool[i].isLive = false;
+		m_orcPool[i].type = TYPE_ORC;
+		m_strongorcPool[i].isLive = false;
+		m_strongorcPool[i].type = TYPE_STRONGORC;
+		m_riderPool[i].isLive = false;
+		m_riderPool[i].type = TYPE_RIDER;
 	}
 }
 
@@ -216,9 +230,26 @@ void network_manager::PacketProccess(void * buf)
 	case SC_MONSTER_POS: {
 		sc_packet_monster_pos *monster_pos_packet = reinterpret_cast<sc_packet_monster_pos*>(buf);
 		memcpy_s(m_monster_pool, sizeof(m_monster_pool), monster_pos_packet->monsterArr, sizeof(monster_pos_packet->monsterArr));
-		/*for (short i = 0; i < MAX_MONSTER; ++i) {
-			m_monster_pool[i].id = monster_pos_packet->monsterArr[i].id;
-		}*/
+		for (short i = 0; i < MAX_MONSTER; ++i) {
+			if (monster_pos_packet->monsterArr[i].type == TYPE_ORC) {
+				m_orcPool[i].isLive = monster_pos_packet->monsterArr[i].isLive;
+				m_orcPool[i].id = monster_pos_packet->monsterArr[i].id;
+				m_orcPool[i].animation_state = monster_pos_packet->monsterArr[i].animation_state;
+				m_orcPool[i].world_pos = monster_pos_packet->monsterArr[i].world_pos;
+			}
+			else if (monster_pos_packet->monsterArr[i].type == TYPE_STRONGORC) {
+				m_strongorcPool[i].isLive = monster_pos_packet->monsterArr[i].isLive;
+				m_strongorcPool[i].id = monster_pos_packet->monsterArr[i].id;
+				m_strongorcPool[i].animation_state = monster_pos_packet->monsterArr[i].animation_state;
+				m_strongorcPool[i].world_pos = monster_pos_packet->monsterArr[i].world_pos;
+			}
+			else if (monster_pos_packet->monsterArr[i].type == TYPE_RIDER) {
+				m_riderPool[i].isLive = monster_pos_packet->monsterArr[i].isLive;
+				m_riderPool[i].id = monster_pos_packet->monsterArr[i].id;
+				m_riderPool[i].animation_state = monster_pos_packet->monsterArr[i].animation_state;
+				m_riderPool[i].world_pos = monster_pos_packet->monsterArr[i].world_pos;
+			}
+		}
 		break;
 	}
 	case SC_TRAP_INFO: {
@@ -297,7 +328,8 @@ void network_manager::PacketProccess(void * buf)
 	}
 	case SC_WAVE_END: {
 		sc_packet_wave_end *wave_end_packet = reinterpret_cast<sc_packet_wave_end*>(buf);
-		init_pool();
+		cout << "wave end \n";
+		init_mon_pool();
 		break;
 	}
 

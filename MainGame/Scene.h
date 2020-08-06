@@ -163,7 +163,10 @@ private:
 	TrapInstancingShader		*m_Arrow = NULL;*/
 
 	// Monster Objects
-	vector<Monster*> m_Monster;
+	vector<Monster*> m_Orc;
+	vector<Monster*> m_StrongOrc;
+	vector<Monster*> m_WolfRider;
+
 	/*MonsterInstancingShader		*m_Orc = NULL;
 	MonsterInstancingShader		*m_StrongOrc = NULL;
 	MonsterInstancingShader		*m_Shaman = NULL;
@@ -222,6 +225,8 @@ public:
 
 	bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
+
+	void Monster_Function(ID3D12GraphicsCommandList *CommandList, vector<Monster*> Orc);
 
 	// Player가 가지고 있는 정보를 Framework에 보내주자
 	short		GetPlayerAnimate() { return m_Player->GetAnimateState(); }
