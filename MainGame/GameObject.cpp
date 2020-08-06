@@ -123,7 +123,7 @@ void Material::UpdateShaderVariable(ID3D12GraphicsCommandList *CommandList)
 
 
 	for (int i = 0; i < m_nTexture; ++i)
-		if (m_Texture[i]) m_Texture[i]->UpdateShaderVariable(CommandList, i);
+		if (m_Texture[i]) m_Texture[i]->UpdateShaderVariable(CommandList, 0);
 }
 
 void Material::LoadTexutreFromFile(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, UINT nType, UINT nRootParameter, _TCHAR *TextureName, Texture **ObjTexture, FILE *InFile, GameObject *Parent, Shader *Shader, Material *ObjMaterial)

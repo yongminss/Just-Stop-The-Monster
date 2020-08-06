@@ -427,7 +427,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_Stage_02 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage02.bin", NULL, false);
 	m_Stage_02->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
 
-	m_Stage_03 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage03.bin", NULL, false);
+	m_Stage_03 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_03.bin", NULL, false);
 	m_Stage_03->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
 
 	m_Stage_04 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage04.bin", NULL, false);
@@ -481,11 +481,11 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 			OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
 			m_Monster.back()->SetType(TYPE_ORC);
 		}
-		else if (i >= 80 && i < 90) {
+		/*else if (i >= 80 && i < 90) {
 			OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Shaman.bin", NULL, true);
 			m_Monster.back()->SetType(TYPE_SHAMAN);
-		}
-		else if (i >= 90) {
+		}*/
+		else if (i >= 80) {
 			OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_WolfRider.bin", NULL, true);
 			m_Monster.back()->SetType(TYPE_RIDER);
 		}
@@ -991,32 +991,118 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	if (m_Slow) m_Slow->Render(CommandList);
 	if (m_Arrow) m_Arrow->Render(CommandList);*/
 
+	if (network_manager::GetInst()->is_wave == true) {
+		for (int i = 0; i < MAX_MONSTER; ++i)
+			m_Monster[i]->is_active = false;
+		network_manager::GetInst()->is_wave = false;
+	}
 	// Monster Objects
+	for (int i = 0; i < MAX_MONSTER; ++i) { // 활성화 시킬 Monster Object를 선택
+
+		if (network_manager::GetInst()->m_monster_pool[i].isLive == false) continue;
+
+		if (network_manager::GetInst()->m_monster_pool[i].type == m_Monster[i]->GetType()) {
+			m_Monster[i]->is_active = true;
+			m_Monster[i]->m_id = i;/*network_manager::GetInst()->m_monster_pool[i].id;*/
+		}
+		else {
+			char type = network_manager::GetInst()->m_monster_pool[i].type;
+			for (int j = i; j < MAX_MONSTER; ++j) {
+				if (m_Monster[j]->GetType() != type) continue;
+
+				if (m_Monster[j]->is_active == false) {
+					m_Monster[j]->is_active = true;
+					m_Monster[j]->m_id = i;/*network_manager::GetInst()->m_monster_pool[i].id;*/
+					break;
+				}
+
+			}
+		}
+	}
+
+
 	for (int i = 0; i < MAX_MONSTER; ++i) {
-		if (m_Monster[i]) {
-			if (network_manager::GetInst()->m_monster_pool[i].isLive == false) continue;
+		//if (network_manager::GetInst()->m_monster_pool[i].isLive == false) continue;
+		if (m_Monster[i]->is_active == false) continue;
 
-			if (network_manager::GetInst()->m_monster_pool[i].type != m_Monster[i]->GetType()) continue;
+		int server_num = m_Monster[i]->m_id;
+
+		if (server_num == -1) break;
+
+		if (network_manager::GetInst()->m_monster_pool[server_num].animation_state != 0)
+			m_Monster[i]->SetEnable(network_manager::GetInst()->m_monster_pool[server_num].animation_state);
+		
+		XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[server_num].world_pos;
+
+		m_Monster[i]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+		m_Monster[i]->SetUp(XMFLOAT3(world._21, world._22, world._23));
+		m_Monster[i]->SetLook(XMFLOAT3(world._31, world._32, world._33));
+		m_Monster[i]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+
+		m_Monster[i]->Animate(m_ElapsedTime, NULL);
+		m_Monster[i]->UpdateTransform(NULL);
+		m_Monster[i]->Render(CommandList);
+
+		/*if (m_Monster[i]->is_active == false) continue;
+
+		cout << i << endl;
+*/
+		/*int server_num = m_Monster[i]->m_id;
+
+		XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[i].world_pos;
+
+		m_Monster[server_num]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+		m_Monster[server_num]->SetUp(XMFLOAT3(world._21, world._22, world._23));
+		m_Monster[server_num]->SetLook(XMFLOAT3(world._31, world._32, world._33));
+		m_Monster[server_num]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+
+		m_Monster[server_num]->Animate(m_ElapsedTime, NULL);
+		m_Monster[server_num]->UpdateTransform(NULL);
+		m_Monster[server_num]->Render(CommandList);*/
+
+
+	}
+
+
+		
+		
+		/*if (network_manager::GetInst()->m_monster_pool[i].animation_state != 0)
+			m_Monster[m_Monster[i]->m_id]->SetEnable(network_manager::GetInst()->m_monster_pool[i].animation_state);*/
+
+	/*	int server_id = m_Monster[i]->m_id;
+
+		cout << i << " : " << server_id << endl;*/
+
+		//XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[i].world_pos;
+
+		/*m_Monster[server_id]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+		m_Monster[server_id]->SetUp(XMFLOAT3(world._21, world._22, world._23));
+		m_Monster[server_id]->SetLook(XMFLOAT3(world._31, world._32, world._33));
+		m_Monster[server_id]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+
+		m_Monster[server_id]->Animate(m_ElapsedTime, NULL);
+		m_Monster[server_id]->UpdateTransform(NULL);
+		m_Monster[server_id]->Render(CommandList);*/
 	
-			m_Monster[i]->m_id = network_manager::GetInst()->m_monster_pool[i].id;
 
-			int server_id = m_Monster[i]->m_id;
+		/*m_Monster[i]->m_id = network_manager::GetInst()->m_monster_pool[i].id;
 
-			if (network_manager::GetInst()->m_monster_pool[i].animation_state != 0)
-				m_Monster[m_Monster[i]->m_id]->SetEnable(network_manager::GetInst()->m_monster_pool[i].animation_state);
+		int server_id = m_Monster[i]->m_id;*/
 
-			XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[i].world_pos;
+		/*if (network_manager::GetInst()->m_monster_pool[i].animation_state != 0)
+			m_Monster[m_Monster[i]->m_id]->SetEnable(network_manager::GetInst()->m_monster_pool[i].animation_state);*/
 
-			m_Monster[server_id]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+			//XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[i].world_pos;
+
+			/*m_Monster[server_id]->SetRight(XMFLOAT3(world._11, world._12, world._13));
 			m_Monster[server_id]->SetUp(XMFLOAT3(world._21, world._22, world._23));
 			m_Monster[server_id]->SetLook(XMFLOAT3(world._31, world._32, world._33));
 			m_Monster[server_id]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
 
 			m_Monster[server_id]->Animate(m_ElapsedTime, NULL);
 			m_Monster[server_id]->UpdateTransform(NULL);
-			m_Monster[server_id]->Render(CommandList);
-		}
-	}
+			m_Monster[server_id]->Render(CommandList);*/
+
 	/*if (m_Orc) m_Orc->Render(CommandList);
 	if (m_StrongOrc) m_StrongOrc->Render(CommandList);
 	if (m_Shaman) m_Shaman->Render(CommandList);

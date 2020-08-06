@@ -76,6 +76,8 @@ public:
 public:
 	bool wsa = false;
 
+	bool is_wave = false;
+
 	WSADATA m_WSAData;
 	SOCKET m_serverSocket;
 	sockaddr_in m_serverAddr;

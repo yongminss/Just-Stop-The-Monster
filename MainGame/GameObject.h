@@ -476,7 +476,7 @@ public:
 	Monster() { }
 	~Monster() { }
 
-	bool IsClose = false;
+	bool is_active = false;
 	float nInporation = 0.0f;
 	int nCheckPoint = 0;
 	XMFLOAT3 StartLook = XMFLOAT3(0.0f, 0.0f, 0.0f);

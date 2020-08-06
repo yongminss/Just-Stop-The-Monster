@@ -205,6 +205,7 @@ void network_manager::PacketProccess(void * buf)
 	}
 	case SC_GAME_START: {
 		sc_packet_game_start *game_start_packet = reinterpret_cast<sc_packet_game_start*>(buf);
+		cout << "game start packet \n";
 		m_my_info.player_state = PLAYER_STATE_playing_game;
 		m_my_info.hp = 200;
 		m_my_info.gold = 500;
@@ -214,14 +215,10 @@ void network_manager::PacketProccess(void * buf)
 	}
 	case SC_MONSTER_POS: {
 		sc_packet_monster_pos *monster_pos_packet = reinterpret_cast<sc_packet_monster_pos*>(buf);
-		//cout << "id: " << monster_pos_packet->monsterArr[0].id << endl;
-		//cout << "id: " << monster_pos_packet->monsterArr[10].id << endl;
-		//cout << "id: " << monster_pos_packet->monsterArr[90].id << endl;
-		//cout << "id: " << monster_pos_packet->monsterArr[99].id << endl;
 		memcpy_s(m_monster_pool, sizeof(m_monster_pool), monster_pos_packet->monsterArr, sizeof(monster_pos_packet->monsterArr));
-		//cout << "anim: " << m_monster_pool[0].animation_state << endl;
-		//cout << "x:" << m_monster_pool[0].world_pos._41 << ", y: " << m_monster_pool[0].world_pos._42 << ", z: " << 
-		//m_monster_pool[0].world_pos._43 << endl;
+		/*for (short i = 0; i < MAX_MONSTER; ++i) {
+			m_monster_pool[i].id = monster_pos_packet->monsterArr[i].id;
+		}*/
 		break;
 	}
 	case SC_TRAP_INFO: {
@@ -258,7 +255,7 @@ void network_manager::PacketProccess(void * buf)
 		if (game_info_update_packet->portalLife == -1000) { // wave 업데이트
 			m_myRoomInfo.wave_count = game_info_update_packet->wave;
 			cout << "wave update" << endl;
-			ZeroMemory(&m_monster_pool, sizeof(m_monster_pool));
+			is_wave = true;
 			for (short i = 0; i < MAX_MONSTER; ++i) {
 				m_monster_pool[i].isLive = false;
 			}
@@ -272,10 +269,10 @@ void network_manager::PacketProccess(void * buf)
 		// 게임종료
 		sc_packet_game_end *game_end_packet = reinterpret_cast<sc_packet_game_end*>(buf);
 		if (game_end_packet->clear == true) { // 클리어
-
+			cout << "stage clear\n";
 		}
 		else {// 실패
-
+			cout << "stage fail\n";
 		}
 
 		m_my_info.player_state = PLAYER_STATE_in_lobby;
