@@ -1113,6 +1113,16 @@ void GameObject::SetPlayerAnimateType(int nType)
 	if (m_Child) m_Child->SetPlayerAnimateType(nType);
 }
 
+GameObject *GameObject::GetPlayerWeapon()
+{
+	if (m_AnimationController) return m_AnimationController->m_AnimationBoneFrameCache[25];
+
+	if (m_Sibling) return m_Sibling->GetPlayerWeapon();
+	if (m_Child) return m_Child->GetPlayerWeapon();
+
+	return NULL;
+}
+
 void GameObject::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
 {
 	if (m_AnimationController) m_AnimationController->AdvanceTime(ElapsedTime, NULL);
@@ -1544,12 +1554,12 @@ Effect::Effect(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3
 {
 	TextureMesh *ObjMesh = NULL;
 
-	ObjMesh = new TextureMesh(Device, CommandList, 25.f, 25.f, 25.f, 0.f, 0.f, 0.f, 0);
+	ObjMesh = new TextureMesh(Device, CommandList, 20.f, 20.f, 20.f, 0.f, 0.f, 0.f, 0);
 	SetMesh(ObjMesh);
 
 	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
 
-	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/spark.dds", 0);
+	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/GunEffect.dds", 0);
 
 	EffectShader *ObjShader = new EffectShader();
 	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);

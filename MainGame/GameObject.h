@@ -390,6 +390,8 @@ public:
 	void SetAnimateType(int nAnimationSet, int nType);
 	void SetPlayerAnimateType(int nType);
 
+	GameObject *GetPlayerWeapon();
+
 	short GetAnimateState() { return m_AnimateState; }
 
 	int GetNowAnimationNum() {

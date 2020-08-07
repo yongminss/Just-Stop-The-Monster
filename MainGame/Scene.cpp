@@ -1186,15 +1186,21 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	shoot_time += m_ElapsedTime * 10;
 	if (m_BulletEffect) {
 		if (is_shoot == 0 || is_shoot == 2 || is_shoot == 4) {
-			XMFLOAT4X4 pos = m_Player->m_WorldPos;
+			GameObject *WeaponObj= m_Player->GetPlayerWeapon();
+			
+			if (WeaponObj != NULL) {
+				XMFLOAT4X4 Respos = WeaponObj->m_TransformPos;
+				cout << WeaponObj->GetFrameName() <<endl;
+				XMFLOAT4X4 pos = Matrix4x4::Multiply(Respos, m_Player->m_WorldPos);
+				m_BulletEffect->SetRight(XMFLOAT3(pos._11, pos._12, pos._13));
+				m_BulletEffect->SetUp(XMFLOAT3(pos._21, pos._22, pos._23));
+				m_BulletEffect->SetLook(XMFLOAT3(pos._31, pos._22, pos._33));
+				XMFLOAT3 position = Vector3::Add(XMFLOAT3(pos._41, pos._42, pos._43), Vector3::ScalarProduct(m_BulletEffect->GetRight(), 8));
+				position = Vector3::Add(position, Vector3::ScalarProduct(m_BulletEffect->GetLook(), 15));
+				m_BulletEffect->SetPostion(position);
 
-			m_BulletEffect->SetRight(XMFLOAT3(pos._11, pos._12, pos._13));
-			m_BulletEffect->SetUp(XMFLOAT3(pos._21, pos._22, pos._23));
-			m_BulletEffect->SetLook(XMFLOAT3(pos._31, pos._22, pos._33));
-			XMFLOAT3 position = Vector3::Add(XMFLOAT3(pos._41, pos._42, pos._43), Vector3::ScalarProduct(m_Player->GetLook(), 20));
-			m_BulletEffect->SetPostion(position);
-
-			m_BulletEffect->Render(CommandList);
+				m_BulletEffect->Render(CommandList);
+			}
 		}
 	}
 	if (shoot_time > 0.5f && is_shoot > -1) {
