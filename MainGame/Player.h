@@ -21,6 +21,8 @@ protected:
 	bool			m_MoveLeft = false;
 	bool			m_MoveRight = false;
 
+	int				m_PlayerLife = 9; // 10
+	int				m_BulletCount = 9; // 10
 	HWND			m_hWnd = NULL;
 	POINT			m_OldCursorPos{};
 
@@ -39,6 +41,14 @@ public:
 	void SetMoveReturn(float ElapsedTime);
 
 	bool GetForwardInfo() { bool IsTrue = false; (m_MoveUp && !m_MoveDown && !m_MoveLeft && !m_MoveRight) ? IsTrue = true : IsTrue = false; return IsTrue; }
+
+	int GetPlayerLife() { return m_PlayerLife; }
+
+	int GetPlayerBullet() { return m_BulletCount; }
+
+	void SetPlayerLife(int pLife) { m_PlayerLife = pLife; }
+
+	void SetPlayerBullet(int pBullet) { m_BulletCount = pBullet; }
 
 	void CreateCameraSet(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 	void UpdateCameraSet(ID3D12GraphicsCommandList *CommandList);

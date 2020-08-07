@@ -1349,6 +1349,30 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	case UI_SCOPE:
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Scope.dds", 0);
 		break;
+	case UI_HpBar:
+	case UI_HpBar + 1:
+	case UI_HpBar + 2:
+	case UI_HpBar + 3:
+	case UI_HpBar + 4:
+	case UI_HpBar + 5:
+	case UI_HpBar + 6:
+	case UI_HpBar + 7:
+	case UI_HpBar + 8:
+	case UI_HpBar + 9:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_HP_Bar.dds", 0);
+		break;
+	case UI_Bullet:
+	case UI_Bullet+1:
+	case UI_Bullet + 2:
+	case UI_Bullet + 3:
+	case UI_Bullet + 4:
+	case UI_Bullet + 5:
+	case UI_Bullet + 6:
+	case UI_Bullet + 7:
+	case UI_Bullet + 8:
+	case UI_Bullet + 9:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_Bullet.dds", 0);
+		break;
 	default:
 		break;
 	}
