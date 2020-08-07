@@ -51,6 +51,8 @@ public:
 
 	void SetPlayerBullet(int pBullet) { m_BulletCount = pBullet; }
 
+
+
 	XMFLOAT3 GetRight() { return XMFLOAT3(m_Right.x, m_Right.y, m_Right.z); }
 	XMFLOAT3 GetUp() { return XMFLOAT3(m_Up.x, m_Up.y, m_Up.z); }
 	XMFLOAT3 GetLook() { return XMFLOAT3(m_Look.x, m_Look.y, m_Look.z); }

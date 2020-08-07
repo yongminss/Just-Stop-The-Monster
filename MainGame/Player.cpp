@@ -30,8 +30,6 @@ Player::~Player()
 
 }
 
-
-
 void Player::SetMoveReturn(float ElapsedTime)
 {
 	if (m_MoveUp) MoveForward(-260.f * ElapsedTime);
