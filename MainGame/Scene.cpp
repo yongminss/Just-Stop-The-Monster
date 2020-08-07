@@ -1459,14 +1459,24 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			if ((TileObj == NULL && ResultObj != NULL) || (TileObj != NULL && ResultObj != NULL && TileObj->GetMesh()->m_fDistance > ResultDistance)) {
 				if (strstr(ResultObj->GetFrameName(), "Head")) {
 					switch (ResultObj->m_Type) {
-					case TYPE_ORC: 
+					case TYPE_ORC:
 					{
 						m_Orc[HitIndex]->m_RedHit = true;
 						network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, true);
 					}
 					break;
-					case TYPE_STRONGORC: network_manager::GetInst()->send_shoot(m_StrongOrc[HitIndex]->m_id, true); break;
-					case TYPE_RIDER: network_manager::GetInst()->send_shoot(m_WolfRider[HitIndex]->m_id, true); break;
+					case TYPE_STRONGORC:
+					{
+						m_StrongOrc[HitIndex]->m_RedHit = true;
+						network_manager::GetInst()->send_shoot(m_StrongOrc[HitIndex]->m_id, true);
+					}
+					break;
+					case TYPE_RIDER:
+					{
+						m_WolfRider[HitIndex]->m_RedHit = true;
+						network_manager::GetInst()->send_shoot(m_WolfRider[HitIndex]->m_id, true);
+					}
+					break;
 					}
 				}
 				else {
@@ -1477,9 +1487,18 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 						network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, false);
 					}
 					break;
-
-					case TYPE_STRONGORC: network_manager::GetInst()->send_shoot(m_StrongOrc[HitIndex]->m_id, false); break;
-					case TYPE_RIDER: network_manager::GetInst()->send_shoot(m_WolfRider[HitIndex]->m_id, false); break;
+					case TYPE_STRONGORC:
+					{
+						m_StrongOrc[HitIndex]->m_RedHit = true;
+						network_manager::GetInst()->send_shoot(m_StrongOrc[HitIndex]->m_id, false);
+					}
+					break;
+					case TYPE_RIDER:
+					{
+						m_WolfRider[HitIndex]->m_RedHit = true;
+						network_manager::GetInst()->send_shoot(m_WolfRider[HitIndex]->m_id, false);
+					}
+					break;
 					}
 				}
 			}
