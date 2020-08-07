@@ -129,7 +129,33 @@ void network_manager::ReadBuffer(SOCKET sock)
 	}
 	//cout << "iobyte: " << iobyte << endl;
 
-	unsigned short * temp_size = reinterpret_cast<unsigned short*>(m_buffer);
+	unsigned short size = 0;
+	char* ptr = reinterpret_cast<char*>(m_buffer);
+	char packet_buffer[10000];
+
+	while (iobyte != 0)
+	{
+		memcpy(&size, ptr, sizeof(unsigned short));
+		if (in_packet_size == 0) in_packet_size = size;
+		if (iobyte + saved_packet_size >= in_packet_size)
+		{
+			memcpy(packet_buffer + saved_packet_size, ptr, in_packet_size - saved_packet_size);
+			PacketProccess(packet_buffer);
+			ptr += in_packet_size - saved_packet_size;
+			iobyte -= in_packet_size - saved_packet_size;
+			in_packet_size = 0;
+			saved_packet_size = 0;
+		}
+		else
+		{
+			memcpy(packet_buffer + saved_packet_size, ptr, iobyte);
+			saved_packet_size += iobyte;
+			iobyte = 0;
+		}
+	}
+
+
+	/*unsigned short * temp_size = reinterpret_cast<unsigned short*>(m_buffer);
 	char * temp = reinterpret_cast<char*>(m_buffer);
 
 	while (iobyte != 0)
@@ -153,7 +179,7 @@ void network_manager::ReadBuffer(SOCKET sock)
 			saved_packet_size += iobyte;
 			iobyte = 0;
 		}
-	}
+	}*/
 }
 
 void network_manager::PacketProccess(void * buf)

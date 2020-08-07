@@ -40,6 +40,11 @@ public:
 
 	bool GetForwardInfo() { bool IsTrue = false; (m_MoveUp && !m_MoveDown && !m_MoveLeft && !m_MoveRight) ? IsTrue = true : IsTrue = false; return IsTrue; }
 
+	XMFLOAT3 GetRight() { return XMFLOAT3(m_Right.x, m_Right.y, m_Right.z); }
+	XMFLOAT3 GetUp() { return XMFLOAT3(m_Up.x, m_Up.y, m_Up.z); }
+	XMFLOAT3 GetLook() { return XMFLOAT3(m_Look.x, m_Look.y, m_Look.z); }
+	XMFLOAT3 GetPosition() { return XMFLOAT3(m_Position.x, m_Position.y, m_Position.z); }
+
 	void CreateCameraSet(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 	void UpdateCameraSet(ID3D12GraphicsCommandList *CommandList);
 	

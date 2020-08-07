@@ -345,10 +345,10 @@ public:
 
 	UINT GetMeshType() { return (m_Mesh) ? m_Mesh->GetType() : 0; }
 
-	XMFLOAT3 GetRight() { return XMFLOAT3(m_TransformPos._11, m_TransformPos._12, m_TransformPos._13); }
-	XMFLOAT3 GetUp() { return XMFLOAT3(m_TransformPos._21, m_TransformPos._22, m_TransformPos._23); }
-	XMFLOAT3 GetLook() { return XMFLOAT3(m_TransformPos._31, m_TransformPos._32, m_TransformPos._33); }
-	XMFLOAT3 GetPosition() { return XMFLOAT3(m_TransformPos._41, m_TransformPos._42, m_TransformPos._43); }
+	virtual XMFLOAT3 GetRight() { return XMFLOAT3(m_TransformPos._11, m_TransformPos._12, m_TransformPos._13); }
+	virtual XMFLOAT3 GetUp() { return XMFLOAT3(m_TransformPos._21, m_TransformPos._22, m_TransformPos._23); }
+	virtual XMFLOAT3 GetLook() { return XMFLOAT3(m_TransformPos._31, m_TransformPos._32, m_TransformPos._33); }
+	virtual XMFLOAT3 GetPosition() { return XMFLOAT3(m_TransformPos._41, m_TransformPos._42, m_TransformPos._43); }
 	XMFLOAT4X4 GetTransform() { return m_TransformPos; }
 
 	XMFLOAT3 GetCamUp() { return m_CamUp; }
@@ -437,7 +437,7 @@ class Effect : public GameObject
 {
 public:
 	Effect() {}
-	Effect(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT type);
+	Effect(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
 	~Effect() {}
 
 private:

@@ -173,7 +173,7 @@ private:
 	MonsterInstancingShader		*m_WolfRider = NULL;*/
 
 	// Effect
-	//EffectShader				*m_FireEffect = NULL;
+	Effect						*m_BulletEffect = NULL;
 
 	// Other Player
 	GameObject					*m_OtherPlayerModel = NULL;
@@ -233,4 +233,7 @@ public:
 	XMFLOAT4X4	GetPlayerInfo() { return m_Player->GetTransform(); }
 
 	int AnimateState = 0;
+	int is_shoot = -1;
+
+	float shoot_time = 0.f;
 };

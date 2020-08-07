@@ -1503,33 +1503,37 @@ void SkyBox::Render(ID3D12GraphicsCommandList *CommandList)
 }
 
 
-Effect::Effect(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT type)
+Effect::Effect(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
 {
-	
+	TextureMesh *ObjMesh = NULL;
+
+	ObjMesh = new TextureMesh(Device, CommandList, 25.f, 25.f, 25.f, 0.f, 0.f, 0.f, 0);
+	SetMesh(ObjMesh);
+
+	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
+
+	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/spark.dds", 0);
+
+	EffectShader *ObjShader = new EffectShader();
+	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
+	GameScene::CreateShaderResourceView(Device, CommandList, ObjTexture, 2, false);
+
+	Material *ObjMaterial = new Material(1);
+	ObjMaterial->SetTexture(ObjTexture);
+	m_nMaterial = 1;
+
+	m_Material = new Material*();
+	m_Material[0] = NULL;
+	SetMaterial(0, ObjMaterial);
+	SetCbvGPUDescriptorHandle(ObjShader->GetGPUCbvDescriptorStartHandle());
+	SetShader(0, ObjShader);
+
+	ObjMaterial = NULL;
 }
 
 void Effect::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
 {
-	/*if (flag < 10)
-		m_WorldPos._41 -= 30 * ElapsedTime;
-	if (flag >= 10)
-		m_WorldPos._41 += 30 * ElapsedTime;
 
-	++flag;
-
-	if (flag == 20) flag = 0;*/
-
-	if (flag < 30) {
-		SetScale(1.f, 1.01f, 1.f);
-		m_WorldPos._41 -= 30 * ElapsedTime;
-	}
-	if (flag >= 30) {
-		SetScale(1.f, 0.99f, 1.f);
-		m_WorldPos._41 += 30 * ElapsedTime;
-	}
-	++flag;
-
-	if (flag == 60) flag = 0;
 }
 
 void Effect::Render(ID3D12GraphicsCommandList *CommandList)
@@ -1540,7 +1544,7 @@ void Effect::Render(ID3D12GraphicsCommandList *CommandList)
 		for (int i = 0; i < m_nMaterial; ++i) {
 			if (m_Material[i]->m_Shader)
 				m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
-			//m_Material[i]->UpdateShaderVariable(CommandList);
+			m_Material[i]->UpdateShaderVariable(CommandList);
 			if (m_Mesh)
 				m_Mesh->Render(CommandList);
 		}

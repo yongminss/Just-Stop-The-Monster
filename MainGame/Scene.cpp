@@ -521,6 +521,9 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_OtherPlayerModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Soldier_Player.bin", NULL, true);
 	m_OtherPlayerModel->SetPostion(XMFLOAT3(-1000.f, -15.f, 0.f));
 
+	m_BulletEffect = new Effect(Device, CommandList, m_GraphicsRootSignature);
+	m_BulletEffect->SetPostion(XMFLOAT3(0.f, 0.f, 0.f));
+
 	// Effect
 	//m_FireEffect = new EffectShader();
 	//m_FireEffect->CreateShader(Device, CommandList, m_GraphicsRootSignature);
@@ -1143,7 +1146,24 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		m_OtherPlayerModel->Render(CommandList);
 
 	// Effect
-	//if (m_FireEffect) m_FireEffect->Render(CommandList);
+	shoot_time += m_ElapsedTime * 10;
+	if (m_BulletEffect) {
+		if (is_shoot == 0 || is_shoot == 2 || is_shoot == 4) {
+			XMFLOAT4X4 pos = m_Player->m_WorldPos;
+
+			m_BulletEffect->SetRight(XMFLOAT3(pos._11, pos._12, pos._13));
+			m_BulletEffect->SetUp(XMFLOAT3(pos._21, pos._22, pos._23));
+			m_BulletEffect->SetLook(XMFLOAT3(pos._31, pos._22, pos._33));
+			XMFLOAT3 position = Vector3::Add(XMFLOAT3(pos._41, pos._42, pos._43), Vector3::ScalarProduct(m_Player->GetLook(), 20));
+			m_BulletEffect->SetPostion(position);
+
+			m_BulletEffect->Render(CommandList);
+		}
+	}
+	if (shoot_time > 0.5f && is_shoot > -1) {
+		shoot_time = 0.f;
+		is_shoot -= 1;
+	}
 }
 
 void GameScene::CheckTile()
@@ -1416,8 +1436,12 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 				}
 			}
 
-			m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
-			m_Player->SetEnable(9);
+			if (m_Player->GetNowAnimationNum() < 9 || m_Player->GetNowAnimationNum() > 28) {
+				is_shoot = 4;
+
+				m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
+				m_Player->SetEnable(9);
+			}
 		}
 		break;
 

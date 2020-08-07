@@ -259,7 +259,7 @@ D3D12_INPUT_LAYOUT_DESC EffectShader::CreateInputLayout()
 	D3D12_INPUT_ELEMENT_DESC *InputElementDesc = new D3D12_INPUT_ELEMENT_DESC[nInputElementDesc];
 
 	InputElementDesc[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
-	InputElementDesc[1] = { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	InputElementDesc[1] = { "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
 
 	D3D12_INPUT_LAYOUT_DESC InputLayoutDesc;
 	InputLayoutDesc.pInputElementDescs = InputElementDesc;
@@ -270,12 +270,12 @@ D3D12_INPUT_LAYOUT_DESC EffectShader::CreateInputLayout()
 
 D3D12_SHADER_BYTECODE EffectShader::CreateVertexShader()
 {
-	return Shader::CompileShaderFromFile(L"Shaders.hlsl", "VSEffect", "vs_5_1", &m_VertexShaderBlob);
+	return Shader::CompileShaderFromFile(L"Shaders.hlsl", "VSTexture", "vs_5_1", &m_VertexShaderBlob);
 }
 
 D3D12_SHADER_BYTECODE EffectShader::CreatePixelShader()
 {
-	return Shader::CompileShaderFromFile(L"Shaders.hlsl", "PSEffect", "ps_5_1", &m_PixelShaderBlob);
+	return Shader::CompileShaderFromFile(L"Shaders.hlsl", "PSPictureColor", "ps_5_1", &m_PixelShaderBlob);
 }
 
 D3D12_BLEND_DESC EffectShader::CreateBlendState()
@@ -309,24 +309,6 @@ void EffectShader::CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList 
 	m_PipelineStates = new ID3D12PipelineState*[m_nPipelineState];
 
 	Shader::CreateShader(Device, CommandList, GraphicsRootSignature);
-}
-
-void EffectShader::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
-{
-	m_Effect = new Effect();
-
-	CubeMesh *ObjMesh = NULL;
-	ObjMesh = new CubeMesh(Device, CommandList);
-	m_Effect->SetMesh(ObjMesh);
-
-	m_Effect->SetPostion(XMFLOAT3(0.f, 0.f, 0.f));
-}
-
-void EffectShader::Render(ID3D12GraphicsCommandList *CommandList)
-{
-	Shader::OnPrepareRender(CommandList, 0);
-
-	if (m_Effect) m_Effect->Render(CommandList);
 }
 
 // Standard & Skinned Animation Shader

@@ -90,9 +90,6 @@ public:
 	EffectShader() { }
 	~EffectShader() { }
 
-private:
-	Effect *m_Effect = NULL;
-
 public:
 	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
@@ -101,10 +98,6 @@ public:
 	virtual D3D12_BLEND_DESC CreateBlendState();
 
 	virtual void CreateShader(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
-
-	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
-
-	void Render(ID3D12GraphicsCommandList *CommandList);
 };
 
 
