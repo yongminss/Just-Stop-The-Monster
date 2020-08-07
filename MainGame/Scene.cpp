@@ -442,9 +442,9 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.3f, 0.125f, UI_TrapList, 1);
 	m_Scope = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.0365f, UI_SCOPE, 1);
 
-	for (int i = 0; i < 10; i++) {
+	/*for (int i = 0; i < 10; i++) {
 		m_Bullet[i] = new UI(Device, CommandList, m_GraphicsRootSignature, 0.04f, 0.06f, UI_Bullet + i, 1);
-	}
+	}*/
 	// 스카이박스
 	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
 
@@ -984,9 +984,10 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	for (int i = m_Player->GetPlayerLife(); i >= 0; i--) {
 		if (m_HpBar[i]) m_HpBar[i]->Render(CommandList);
 	}
-	for (int i = m_Player->GetPlayerBullet(); i >= 0; i--) {
+
+	/*for (int i = m_Player->GetPlayerBullet(); i >= 0; i--) {
 		if (m_Bullet[i]) m_Bullet[i]->Render(CommandList);
-	}
+	}*/
 
 	// 플레이어 렌더링
 	if (m_Player) m_Player->Render(CommandList);
@@ -1762,6 +1763,20 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 //	m_Arrow->BuildTrap(TRAP_ARROW);
 //	m_TrapType = TRAP_ARROW;
 //}
+		}
+		break;
+
+		case '5':
+		{
+			int hp = m_Player->GetPlayerLife();
+			m_Player->SetPlayerLife(--hp);
+		}
+		break;
+
+		case '6':
+		{
+			int hp = m_Player->GetPlayerLife();
+			m_Player->SetPlayerLife(++hp);
 		}
 		break;
 
