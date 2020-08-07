@@ -534,23 +534,23 @@ LRESULT CALLBACK GameFramework::OnProcessingWindowMessage(HWND hwnd, UINT Messag
 		m_nWndClientWidth = LOWORD(lParam);
 		m_nWndClientHeight = HIWORD(lParam);
 		break;
-	case WM_SOCKET:
-		if (WSAGETASYNCERROR(lParam)) {
-			closesocket((SOCKET)wParam);
-		}
-		switch (WSAGETSELECTEVENT(lParam))
-		{
-		case FD_READ:
-			network_manager::GetInst()->ReadBuffer((SOCKET)wParam);
-			break;
-		case FD_CLOSE:
-			cout << "close \n";
-			break;
-		default:
-			break;
-		}
-		//InvalidateRgn(hWnd, NULL, FALSE);
-		break;
+	//case WM_SOCKET:
+	//	if (WSAGETASYNCERROR(lParam)) {
+	//		closesocket((SOCKET)wParam);
+	//	}
+	//	switch (WSAGETSELECTEVENT(lParam))
+	//	{
+	//	case FD_READ:
+	//		network_manager::GetInst()->ReadBuffer((SOCKET)wParam);
+	//		break;
+	//	case FD_CLOSE:
+	//		cout << "close \n";
+	//		break;
+	//	default:
+	//		break;
+	//	}
+	//	//InvalidateRgn(hWnd, NULL, FALSE);
+	//	break;
 
 	case WM_LBUTTONDOWN:
 	case WM_RBUTTONDOWN:

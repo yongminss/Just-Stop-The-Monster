@@ -63,6 +63,7 @@ public:
 	void test_connect(HWND& hwnd);
 	void ReadBuffer(SOCKET sock);
 	void PacketProccess(void * buf);
+	void recvThread();
 
 	void send_packet(void *buf);
 	void send_change_state_packet(const char& state, const short& StageNum);
@@ -87,7 +88,9 @@ public:
 	sockaddr_in m_serverAddr;
 
 	WSABUF m_recv_buf;	// 최초에 recv한 데이터 받아올 버퍼
+	WSABUF send_wsabuf;
 	char m_buffer[MAX_BUFFER];
+	char send_buffer[MAX_BUFFER];
 
 	PLAYER_INFO m_my_info;
 	PLAYER_INFO m_OtherInfo;

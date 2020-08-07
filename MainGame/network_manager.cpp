@@ -80,11 +80,11 @@ void network_manager::init_mon_pool()
 
 void network_manager::rq_connect_server(const char * server_ip)
 {
-	//memset(&m_serverAddr, 0, sizeof(SOCKADDR_IN));
-	//m_serverAddr.sin_family = AF_INET;
-	//m_serverAddr.sin_port = htons(SERVER_PORT);
-	//inet_pton(AF_INET, server_ip, &m_serverAddr.sin_addr);// ipv4에서 ipv6로 변환	
-	//connect(m_serverSocket, (struct sockaddr *)&m_serverAddr, sizeof(m_serverAddr));
+	memset(&m_serverAddr, 0, sizeof(SOCKADDR_IN));
+	m_serverAddr.sin_family = AF_INET;
+	m_serverAddr.sin_port = htons(SERVER_PORT);
+	inet_pton(AF_INET, server_ip, &m_serverAddr.sin_addr);// ipv4에서 ipv6로 변환	
+	connect(m_serverSocket, (struct sockaddr *)&m_serverAddr, sizeof(m_serverAddr));
 }
 
 void network_manager::test_connect(HWND & hwnd)
@@ -110,6 +110,9 @@ void network_manager::test_connect(HWND & hwnd)
 
 	m_recv_buf.len = MAX_BUFFER;
 	m_recv_buf.buf = m_buffer;
+
+	send_wsabuf.len = MAX_BUFFER;
+	send_wsabuf.buf = send_buffer;
 }
 
 void network_manager::ReadBuffer(SOCKET sock)
@@ -278,12 +281,12 @@ void network_manager::PacketProccess(void * buf)
 		break;
 	}
 	case SC_TRAP_INFO: {
-		/*sc_packet_trap_info *trap_info_packet = reinterpret_cast<sc_packet_trap_info*>(buf);
+		sc_packet_trap_info *trap_info_packet = reinterpret_cast<sc_packet_trap_info*>(buf);
 		cout << "new trap" << trap_info_packet->trap_id << endl;
 		m_trap_pool[trap_info_packet->trap_id].enable = true;
 		m_trap_pool[trap_info_packet->trap_id].id = trap_info_packet->trap_id;
 		m_trap_pool[trap_info_packet->trap_id].trap_type = trap_info_packet->trap_type;
-		m_trap_pool[trap_info_packet->trap_id].trap4x4pos = trap_info_packet->trap_pos;*/
+		m_trap_pool[trap_info_packet->trap_id].trap4x4pos = trap_info_packet->trap_pos;
 		break;
 	}
 	case SC_JOIN_ROOM_OK: {
@@ -362,11 +365,54 @@ void network_manager::PacketProccess(void * buf)
 	}
 }
 
+void network_manager::recvThread()
+{
+	while (true) {
+		int in_packet_size = 0;
+		int saved_packet_size = 0;
+
+		DWORD iobyte, ioflag = 0;
+		int ret = WSARecv(m_serverSocket, &m_recv_buf, 1, &iobyte, &ioflag, NULL, NULL);
+		if (ret != 0) {
+			int err_no = WSAGetLastError();
+			if (WSA_IO_PENDING != err_no)
+				socket_err_display("WSASend Error :", err_no);
+		}
+		//cout << "iobyte: " << iobyte << endl;
+
+		unsigned short * temp_size = reinterpret_cast<unsigned short*>(m_buffer);
+		char * temp = reinterpret_cast<char*>(m_buffer);
+
+		while (iobyte != 0)
+		{
+			if (in_packet_size == 0)
+			{
+				in_packet_size = temp_size[0];
+			}
+			if (iobyte + saved_packet_size >= in_packet_size)
+			{
+				memcpy(m_buffer + saved_packet_size, temp, in_packet_size - saved_packet_size);
+				PacketProccess(m_buffer);
+				temp += in_packet_size - saved_packet_size;
+				iobyte -= in_packet_size - saved_packet_size;
+				in_packet_size = 0;
+				saved_packet_size = 0;
+			}
+			else
+			{
+				memcpy(m_buffer + saved_packet_size, temp, iobyte);
+				saved_packet_size += iobyte;
+				iobyte = 0;
+			}
+		}
+	}
+}
+
 void network_manager::send_packet(void * buf)
 {
 	char* packet = reinterpret_cast<char*>(buf);
 	int packet_size = packet[0];
-	OVER_EX *send_over = new OVER_EX;
+	/*OVER_EX *send_over = new OVER_EX;
 	memset(send_over, 0x00, sizeof(OVER_EX));
 	send_over->event_type = EV_SEND;
 	memcpy(send_over->net_buf, packet, packet_size);
@@ -378,8 +424,18 @@ void network_manager::send_packet(void * buf)
 		int err_no = WSAGetLastError();
 		if (WSA_IO_PENDING != err_no)
 			socket_err_display("WSASend Error :", err_no);
-	}
+	}*/
 
+	DWORD iobytes;
+	memcpy(send_buffer, packet, packet_size);
+	send_wsabuf.len = packet_size;
+	send_wsabuf.buf = send_buffer;
+	int ret = WSASend(m_serverSocket, &send_wsabuf, 1, &iobytes, 0, NULL, NULL);
+	if (0 != ret) {
+		int err_no = WSAGetLastError();
+		if (WSA_IO_PENDING != err_no)
+			socket_err_display("WSASend Error :", err_no);
+	}
 }
 
 void network_manager::send_change_state_packet(const char& state, const short& StageNum = 1)
