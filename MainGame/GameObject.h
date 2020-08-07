@@ -288,10 +288,14 @@ protected:
 
 	short							m_AnimateState = 0;
 
+	float hit_anime = 0.f;
+
 public:
 	GameObject * m_Parent = NULL;
 
 	AnimationController				*m_AnimationController = NULL;
+
+	bool m_RedHit = false;
 
 public:
 
@@ -409,6 +413,8 @@ public:
 	// 애니메이션
 	void CacheSkinningBoneFrame(GameObject *RootFrame);
 	void LoadAnimationFromFile(FILE *InFile);
+
+	void Monster_Hit(float ElapsedTime);
 };
 
 class UI : public GameObject

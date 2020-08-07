@@ -1232,6 +1232,19 @@ void GameObject::LoadAnimationFromFile(FILE *InFile)
 	}
 }
 
+void GameObject::Monster_Hit(float ElapsedTime)
+{
+	hit_anime += ElapsedTime * 100;
+
+	SetRed(0x02);
+
+	if (hit_anime > 10.f) {
+		SetRed(0x00);
+		hit_anime = 0.f;
+		m_RedHit = false;
+	}
+}
+
 
 // UI
 UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, float x, float y, int Type, int SceneNum)

@@ -1422,14 +1422,25 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			if ((TileObj == NULL && ResultObj != NULL) || (TileObj != NULL && ResultObj != NULL && TileObj->GetMesh()->m_fDistance > ResultDistance)) {
 				if (strstr(ResultObj->GetFrameName(), "Head")) {
 					switch (ResultObj->m_Type) {
-					case TYPE_ORC: network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, true); break;
+					case TYPE_ORC: 
+					{
+						m_Orc[HitIndex]->m_RedHit = true;
+						network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, true);
+					}
+					break;
 					case TYPE_STRONGORC: network_manager::GetInst()->send_shoot(m_StrongOrc[HitIndex]->m_id, true); break;
 					case TYPE_RIDER: network_manager::GetInst()->send_shoot(m_WolfRider[HitIndex]->m_id, true); break;
 					}
 				}
 				else {
 					switch (ResultObj->m_Type) {
-					case TYPE_ORC: network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, false); break;
+					case TYPE_ORC:
+					{
+						m_Orc[HitIndex]->m_RedHit = true;
+						network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, false);
+					}
+					break;
+
 					case TYPE_STRONGORC: network_manager::GetInst()->send_shoot(m_StrongOrc[HitIndex]->m_id, false); break;
 					case TYPE_RIDER: network_manager::GetInst()->send_shoot(m_WolfRider[HitIndex]->m_id, false); break;
 					}
@@ -1438,7 +1449,6 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 
 			if (m_Player->GetNowAnimationNum() < 9 || m_Player->GetNowAnimationNum() > 28) {
 				is_shoot = 4;
-
 				m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
 				m_Player->SetEnable(9);
 			}
@@ -1880,6 +1890,8 @@ void GameScene::Monster_Function(ID3D12GraphicsCommandList *CommandList, vector<
 		}
 		break;
 		}
+		if (Orc[i]->m_RedHit == true) Orc[i]->Monster_Hit(m_ElapsedTime);
+
 		Orc[i]->SetRight(XMFLOAT3(world._11, world._12, world._13));
 		Orc[i]->SetUp(XMFLOAT3(world._21, world._22, world._23));
 		Orc[i]->SetLook(XMFLOAT3(world._31, world._32, world._33));

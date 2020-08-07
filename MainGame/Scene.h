@@ -236,4 +236,5 @@ public:
 	int is_shoot = -1;
 
 	float shoot_time = 0.f;
+
 };

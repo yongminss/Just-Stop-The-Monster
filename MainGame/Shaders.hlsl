@@ -264,7 +264,11 @@ float4 PSStandard(VS_STANDARD_OUTPUT input) : SV_TARGET
 		cColor.x = 1.0f;
 		cColor.w = 0.3f;
 	}
-    return (lerp(cColor, cIllumination, 0.5f));
+    else if (gbRed & 0x02)
+    {
+        cColor.x = 0.8f;
+    }
+        return (lerp(cColor, cIllumination, 0.5f));
 
 }
 
