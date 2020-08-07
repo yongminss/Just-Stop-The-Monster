@@ -1697,8 +1697,11 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 			break;
 
 		case VK_SHIFT:
-			m_Player->SetAnimateType(27, ANIMATION_TYPE_ONCE);
-			m_Player->SetEnable(27);
+			if (m_Player->GetForwardInfo()) {
+				//m_Player->SetMoveRoll(true);
+				m_Player->SetAnimateType(27, ANIMATION_TYPE_ONCE);
+				m_Player->SetEnable(27);
+			}
 			break;
 		default:
 			break;

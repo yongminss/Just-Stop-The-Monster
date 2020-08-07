@@ -138,6 +138,8 @@ void Player::SetRotate(float Pitch, float Yaw, float Roll)
 void Player::MoveForward(float Distance)
 {
 	XMFLOAT3 Shift = XMFLOAT3(0.f, 0.f, 0.f);
+
+	if (GetNowAnimationNum() == 27) Distance *= 2;
 	Shift = Vector3::Add(Shift, m_Look, Distance);
 
 	m_Position = Vector3::Add(m_Position, Shift);
@@ -153,10 +155,45 @@ void Player::MoveRight(float Distance)
 
 void Player::Move(float ElapsedTime)
 {
-	if (m_MoveUp) MoveForward(250.f * ElapsedTime);
-	if (m_MoveDown) MoveForward(-(250.f * ElapsedTime));
-	if (m_MoveLeft) MoveRight(-(250.f * ElapsedTime));
-	if (m_MoveRight) MoveRight(250.f * ElapsedTime);
+	if (m_MoveUp && m_MoveDown) m_MoveUp = false, m_MoveDown = false;
+	if (m_MoveLeft && m_MoveRight) m_MoveLeft = false, m_MoveRight = false;
+
+	if (m_MoveUp) {
+		if (m_MoveLeft) {
+			ElapsedTime *= 1.5f;
+			MoveForward(125.f * ElapsedTime);
+			MoveRight(-(125.f * ElapsedTime));
+		}
+		else if (m_MoveRight) {
+			ElapsedTime *= 1.5f;
+			MoveForward(125.f * ElapsedTime);
+			MoveRight(125.f * ElapsedTime);
+		}
+		else {
+			MoveForward(250.f * ElapsedTime);
+		}
+	}
+	else if (m_MoveDown) {
+		if (m_MoveLeft) {
+			ElapsedTime *= 1.5f;
+			MoveForward(-(125.f * ElapsedTime));
+			MoveRight(-(125.f * ElapsedTime));
+		}
+		else if (m_MoveRight) {
+			ElapsedTime *= 1.5f;
+			MoveForward(-(125.f * ElapsedTime));
+			MoveRight(125.f * ElapsedTime);
+		}
+		else {
+			MoveForward(-(250.f * ElapsedTime));
+		}
+	}
+	else if (m_MoveLeft) {
+		MoveRight(-(250.f * ElapsedTime));
+	}
+	else if (m_MoveRight) {
+		MoveRight(250.f * ElapsedTime);
+	}
 
 	if (m_MoveUp) {
 		if (m_MoveLeft) {
