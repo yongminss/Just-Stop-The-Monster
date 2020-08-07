@@ -260,24 +260,28 @@ void network_manager::PacketProccess(void * buf)
 		//memcpy_s(m_monster_pool, sizeof(m_monster_pool), monster_pos_packet->monsterArr, sizeof(monster_pos_packet->monsterArr));
 		for (short i = 0; i < MAX_MONSTER; ++i) {
 			if (monster_pos_packet->monsterArr[i].type == TYPE_ORC) {
-				m_orcPool[i].isLive = monster_pos_packet->monsterArr[i].isLive;
-				m_orcPool[i].id = monster_pos_packet->monsterArr[i].id;
-				m_orcPool[i].animation_state = monster_pos_packet->monsterArr[i].animation_state;
-				m_orcPool[i].world_pos = monster_pos_packet->monsterArr[i].world_pos;
+				int monster_id = orc_id++;
+				m_orcPool[monster_id].isLive = true;
+				m_orcPool[monster_id].id = monster_pos_packet->monsterArr[i].id;
+				m_orcPool[monster_id].animation_state = monster_pos_packet->monsterArr[i].animation_state;
+				m_orcPool[monster_id].world_pos = monster_pos_packet->monsterArr[i].world_pos;
 			}
 			else if (monster_pos_packet->monsterArr[i].type == TYPE_STRONGORC) {
-				m_strongorcPool[i].isLive = monster_pos_packet->monsterArr[i].isLive;
-				m_strongorcPool[i].id = monster_pos_packet->monsterArr[i].id;
-				m_strongorcPool[i].animation_state = monster_pos_packet->monsterArr[i].animation_state;
-				m_strongorcPool[i].world_pos = monster_pos_packet->monsterArr[i].world_pos;
+				int monster_id = sorc_id++;
+				m_strongorcPool[monster_id].isLive = true;
+				m_strongorcPool[monster_id].id = monster_pos_packet->monsterArr[i].id;
+				m_strongorcPool[monster_id].animation_state = monster_pos_packet->monsterArr[i].animation_state;
+				m_strongorcPool[monster_id].world_pos = monster_pos_packet->monsterArr[i].world_pos;
 			}
 			else if (monster_pos_packet->monsterArr[i].type == TYPE_RIDER) {
-				m_riderPool[i].isLive = monster_pos_packet->monsterArr[i].isLive;
-				m_riderPool[i].id = monster_pos_packet->monsterArr[i].id;
-				m_riderPool[i].animation_state = monster_pos_packet->monsterArr[i].animation_state;
-				m_riderPool[i].world_pos = monster_pos_packet->monsterArr[i].world_pos;
+				int monster_id = wolf_id++;
+				m_riderPool[monster_id].id = monster_pos_packet->monsterArr[i].id;
+				m_riderPool[monster_id].isLive = true;
+				m_riderPool[monster_id].animation_state = monster_pos_packet->monsterArr[i].animation_state;
+				m_riderPool[monster_id].world_pos = monster_pos_packet->monsterArr[i].world_pos;
 			}
 		}
+		orc_id = 0, sorc_id = 0, wolf_id = 0;
 		break;
 	}
 	case SC_TRAP_INFO: {

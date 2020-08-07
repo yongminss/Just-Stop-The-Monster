@@ -284,7 +284,7 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 
 	switch (nMessageID)
 	{
-		
+
 	case WM_LBUTTONDOWN:
 		MousePos.x = LOWORD(lParam);
 		MousePos.y = HIWORD(lParam);
@@ -338,7 +338,7 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 				if (m_StageNumber < 4) m_StageNumber += 1;
 				cout << "StageNumber UP " << m_StageNumber << endl;
 			}
-			
+
 			break;
 
 		default:
@@ -357,7 +357,7 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 			// Back Button
 			if (MousePos.x > 80 && MousePos.x < 160 && MousePos.y > 60 && MousePos.y < 120) {
 				//m_BackButton->SetRed(0x01);
-				
+
 			}
 			else {
 				//m_BackButton->SetRed(0x00);
@@ -478,8 +478,8 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 		GameObject *OrcObj = NULL;
 		OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
 		m_Orc.emplace_back(new Monster());
-		m_Orc.back()->SetType(TYPE_ORC);
 		m_Orc.back()->SetChild(OrcObj, true);
+		m_Orc.back()->SetMonsterType(TYPE_ORC);
 		m_Orc.back()->SetEnable(2);
 		m_Orc.back()->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
 	}
@@ -487,8 +487,8 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 		GameObject *OrcObj = NULL;
 		OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Strong_Infantry.bin", NULL, true);
 		m_StrongOrc.emplace_back(new Monster());
-		m_StrongOrc.back()->SetType(TYPE_STRONGORC);
 		m_StrongOrc.back()->SetChild(OrcObj, true);
+		m_StrongOrc.back()->SetMonsterType(TYPE_STRONGORC);
 		m_StrongOrc.back()->SetEnable(2);
 		m_StrongOrc.back()->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
 	}
@@ -496,8 +496,8 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 		GameObject *OrcObj = NULL;
 		OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_WolfRider.bin", NULL, true);
 		m_WolfRider.emplace_back(new Monster());
-		m_WolfRider.back()->SetType(TYPE_RIDER);
 		m_WolfRider.back()->SetChild(OrcObj, true);
+		m_WolfRider.back()->SetMonsterType(TYPE_RIDER);
 		m_WolfRider.back()->SetEnable(2);
 		m_WolfRider.back()->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
 	}
@@ -560,7 +560,7 @@ void GameScene::BuildDefaultLightsAndMaterials()
 	m_Lights[0].m_Position = XMFLOAT3(30.f, 30.f, 30.f);
 	m_Lights[0].m_Direction = XMFLOAT3(0.f, 0.f, 0.f);
 	m_Lights[0].m_Attenuation = XMFLOAT3(1.f, 0.001f, 0.0001f);
-	
+
 	m_Lights[1].m_Enable = true;
 	m_Lights[1].m_nType = SPOT_LIGHT;
 	m_Lights[1].m_Range = 500.f;
@@ -573,7 +573,7 @@ void GameScene::BuildDefaultLightsAndMaterials()
 	m_Lights[1].m_Falloff = 8.f;
 	m_Lights[1].m_Phi = (float)cos(XMConvertToRadians(40.f));
 	m_Lights[1].m_Theta = (float)cos(XMConvertToRadians(20.f));
-	
+
 	m_Lights[2].m_Enable = true;
 	m_Lights[2].m_nType = DIRECTIONAL_LIGHT;
 	m_Lights[2].m_Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.f);
@@ -1006,7 +1006,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 			m_Orc[i]->is_active = false;
 		network_manager::GetInst()->is_wave = false;
 	}*/
-	
+
 	// Monster Objects
 //	for (int i = 0; i < MAX_MONSTER; ++i) { // 활성화 시킬 Monster Object를 선택
 //
@@ -1094,51 +1094,51 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 //	}
 
 
-		
-		
-		/*if (network_manager::GetInst()->m_monster_pool[i].animation_state != 0)
-			m_Monster[m_Monster[i]->m_id]->SetEnable(network_manager::GetInst()->m_monster_pool[i].animation_state);*/
 
-	/*	int server_id = m_Monster[i]->m_id;
-
-		cout << i << " : " << server_id << endl;*/
-
-		//XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[i].world_pos;
-
-		/*m_Monster[server_id]->SetRight(XMFLOAT3(world._11, world._12, world._13));
-		m_Monster[server_id]->SetUp(XMFLOAT3(world._21, world._22, world._23));
-		m_Monster[server_id]->SetLook(XMFLOAT3(world._31, world._32, world._33));
-		m_Monster[server_id]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
-
-		m_Monster[server_id]->Animate(m_ElapsedTime, NULL);
-		m_Monster[server_id]->UpdateTransform(NULL);
-		m_Monster[server_id]->Render(CommandList);*/
-	
-
-		/*m_Monster[i]->m_id = network_manager::GetInst()->m_monster_pool[i].id;
-
-		int server_id = m_Monster[i]->m_id;*/
 
 		/*if (network_manager::GetInst()->m_monster_pool[i].animation_state != 0)
 			m_Monster[m_Monster[i]->m_id]->SetEnable(network_manager::GetInst()->m_monster_pool[i].animation_state);*/
 
-			//XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[i].world_pos;
+			/*	int server_id = m_Monster[i]->m_id;
 
-			/*m_Monster[server_id]->SetRight(XMFLOAT3(world._11, world._12, world._13));
-			m_Monster[server_id]->SetUp(XMFLOAT3(world._21, world._22, world._23));
-			m_Monster[server_id]->SetLook(XMFLOAT3(world._31, world._32, world._33));
-			m_Monster[server_id]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+				cout << i << " : " << server_id << endl;*/
 
-			m_Monster[server_id]->Animate(m_ElapsedTime, NULL);
-			m_Monster[server_id]->UpdateTransform(NULL);
-			m_Monster[server_id]->Render(CommandList);*/
+				//XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[i].world_pos;
 
-	/*if (m_Orc) m_Orc->Render(CommandList);
-	if (m_StrongOrc) m_StrongOrc->Render(CommandList);
-	if (m_Shaman) m_Shaman->Render(CommandList);
-	if (m_WolfRider) m_WolfRider->Render(CommandList);*/
+				/*m_Monster[server_id]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+				m_Monster[server_id]->SetUp(XMFLOAT3(world._21, world._22, world._23));
+				m_Monster[server_id]->SetLook(XMFLOAT3(world._31, world._32, world._33));
+				m_Monster[server_id]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
 
-	// Ohter Player
+				m_Monster[server_id]->Animate(m_ElapsedTime, NULL);
+				m_Monster[server_id]->UpdateTransform(NULL);
+				m_Monster[server_id]->Render(CommandList);*/
+
+
+				/*m_Monster[i]->m_id = network_manager::GetInst()->m_monster_pool[i].id;
+
+				int server_id = m_Monster[i]->m_id;*/
+
+				/*if (network_manager::GetInst()->m_monster_pool[i].animation_state != 0)
+					m_Monster[m_Monster[i]->m_id]->SetEnable(network_manager::GetInst()->m_monster_pool[i].animation_state);*/
+
+					//XMFLOAT4X4 world = network_manager::GetInst()->m_monster_pool[i].world_pos;
+
+					/*m_Monster[server_id]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+					m_Monster[server_id]->SetUp(XMFLOAT3(world._21, world._22, world._23));
+					m_Monster[server_id]->SetLook(XMFLOAT3(world._31, world._32, world._33));
+					m_Monster[server_id]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+
+					m_Monster[server_id]->Animate(m_ElapsedTime, NULL);
+					m_Monster[server_id]->UpdateTransform(NULL);
+					m_Monster[server_id]->Render(CommandList);*/
+
+					/*if (m_Orc) m_Orc->Render(CommandList);
+					if (m_StrongOrc) m_StrongOrc->Render(CommandList);
+					if (m_Shaman) m_Shaman->Render(CommandList);
+					if (m_WolfRider) m_WolfRider->Render(CommandList);*/
+
+					// Ohter Player
 	if (network_manager::GetInst()->IsConnect())
 		m_OtherPlayerModel->Render(CommandList);
 
@@ -1148,7 +1148,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 void GameScene::CheckTile()
 {
-	
+
 }
 
 void GameScene::CheckBuildTrap()
@@ -1349,7 +1349,7 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			GameObject *MonObj = new GameObject();
 			GameObject *ResultObj = new GameObject();
 
-			for (int i = 0; i < /*MAX_MONSTER*/m_Orc.size(); ++i) {
+			for (int i = 0; i < m_Orc.size(); ++i) {
 				MonObj = m_Orc[i]->CheckMonster(StartPos, EndPos);
 				if (MonObj != NULL) {
 					if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
@@ -1359,7 +1359,8 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 					}
 				}
 			}
-			for (int i = 0; i < /*MAX_MONSTER*/m_StrongOrc.size(); ++i) {
+			MonObj = NULL;
+			for (int i = 0; i < m_StrongOrc.size(); ++i) {
 				MonObj = m_StrongOrc[i]->CheckMonster(StartPos, EndPos);
 				if (MonObj != NULL) {
 					if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
@@ -1369,7 +1370,8 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 					}
 				}
 			}
-			for (int i = 0; i < /*MAX_MONSTER*/m_WolfRider.size(); ++i) {
+			MonObj = NULL;
+			for (int i = 0; i < m_WolfRider.size(); ++i) {
 				MonObj = m_WolfRider[i]->CheckMonster(StartPos, EndPos);
 				if (MonObj != NULL) {
 					if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
@@ -1379,6 +1381,7 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 					}
 				}
 			}
+
 			GameObject *TileObj = new GameObject();
 
 			switch (m_MapNum) {
@@ -1395,13 +1398,22 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 				TileObj = m_Stage_04->CheckTileBound(StartPos, EndPos, false);
 				break;
 			}
-			
-			if ((TileObj == NULL && ResultObj != NULL) || (TileObj != NULL && ResultObj != NULL && TileObj->GetMesh()->m_fDistance > ResultDistance)) {
 
-				if (strstr(ResultObj->GetFrameName(), "Head"))
-					network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, true);
-				else
-					network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, false);
+			if ((TileObj == NULL && ResultObj != NULL) || (TileObj != NULL && ResultObj != NULL && TileObj->GetMesh()->m_fDistance > ResultDistance)) {
+				if (strstr(ResultObj->GetFrameName(), "Head")) {
+					switch (ResultObj->m_Type) {
+					case TYPE_ORC: network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, true); break;
+					case TYPE_STRONGORC: network_manager::GetInst()->send_shoot(m_StrongOrc[HitIndex]->m_id, true); break;
+					case TYPE_RIDER: network_manager::GetInst()->send_shoot(m_WolfRider[HitIndex]->m_id, true); break;
+					}
+				}
+				else {
+					switch (ResultObj->m_Type) {
+					case TYPE_ORC: network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, false); break;
+					case TYPE_STRONGORC: network_manager::GetInst()->send_shoot(m_StrongOrc[HitIndex]->m_id, false); break;
+					case TYPE_RIDER: network_manager::GetInst()->send_shoot(m_WolfRider[HitIndex]->m_id, false); break;
+					}
+				}
 			}
 
 			m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
@@ -1790,8 +1802,6 @@ void GameScene::Monster_Function(ID3D12GraphicsCommandList *CommandList, vector<
 			break;
 		}
 
-		m_Orc[i]->m_id = i;
-
 		// Monster Animation Set
 		int server_anim = 0;
 		switch (Orc[i]->m_Type) {
@@ -1812,7 +1822,7 @@ void GameScene::Monster_Function(ID3D12GraphicsCommandList *CommandList, vector<
 
 		if (server_anim != 0 && server_anim != Orc[i]->GetNowAnimationNum()) {
 			if (server_anim == M_ANIM_DEATH) {
-				Orc[i]->SetAnimateType(ANIMATION_TYPE_ONCE, server_anim);
+				Orc[i]->SetAnimateType(server_anim, ANIMATION_TYPE_ONCE);
 				Orc[i]->SetEnable(server_anim);
 			}
 			else
@@ -1821,18 +1831,30 @@ void GameScene::Monster_Function(ID3D12GraphicsCommandList *CommandList, vector<
 
 		// Monster Pos Set
 		XMFLOAT4X4 world{};
+
+		int monster_id = 0;
+
 		switch (Orc[i]->m_Type) {
 		case TYPE_ORC:
+		{
+			Orc[i]->m_id = network_manager::GetInst()->m_orcPool[i].id;
 			world = network_manager::GetInst()->m_orcPool[i].world_pos;
-			break;
+		}
+		break;
 
 		case TYPE_STRONGORC:
+		{
+			Orc[i]->m_id = network_manager::GetInst()->m_strongorcPool[i].id;
 			world = network_manager::GetInst()->m_strongorcPool[i].world_pos;
-			break;
+		}
+		break;
 
 		case TYPE_RIDER:
+		{
+			Orc[i]->m_id = network_manager::GetInst()->m_riderPool[i].id;
 			world = network_manager::GetInst()->m_riderPool[i].world_pos;
-			break;
+		}
+		break;
 		}
 		Orc[i]->SetRight(XMFLOAT3(world._11, world._12, world._13));
 		Orc[i]->SetUp(XMFLOAT3(world._21, world._22, world._23));

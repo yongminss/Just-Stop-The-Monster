@@ -82,6 +82,7 @@ public:
 	bool wsa = false;
 
 	bool is_wave = false;
+	int orc_id = 0, sorc_id = 0, wolf_id = 0;
 
 	WSADATA m_WSAData;
 	SOCKET m_serverSocket;

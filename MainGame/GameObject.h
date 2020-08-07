@@ -263,6 +263,8 @@ public:
 	XMFLOAT4X4						m_WorldPos;
 	XMFLOAT4X4						m_TransformPos;
 
+	char m_Type;
+
 protected:
 	D3D12_GPU_DESCRIPTOR_HANDLE		m_CbvGPUDescriptorHandle;
 
@@ -303,6 +305,13 @@ public:
 		}
 		if (m_Sibling) m_Sibling->SetRed(bRed);
 		if (m_Child) m_Child->SetRed(bRed);
+	}
+	void SetMonsterType(char type)
+	{
+		m_Type = type;
+
+		if (m_Sibling) m_Sibling->SetMonsterType(type);
+		if (m_Child) m_Child->SetMonsterType(type);
 	}
 
 	char* GetFrameName() { return m_FrameName; }
@@ -483,10 +492,6 @@ public:
 
 public:
 	int m_id = -1;
-	char m_Type;
-
-	void SetType(char type) { m_Type = type; }
-	char GetType() { return m_Type; }
 
 	void SetDirection(XMFLOAT3 Position);
 	void SetLookDirection(XMFLOAT3 Look);
