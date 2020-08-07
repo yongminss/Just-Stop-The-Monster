@@ -261,22 +261,22 @@ void network_manager::PacketProccess(void * buf)
 		for (short i = 0; i < MAX_MONSTER; ++i) {
 			if (monster_pos_packet->monsterArr[i].type == TYPE_ORC) {
 				int monster_id = orc_id++;
-				m_orcPool[monster_id].isLive = true;
+				m_orcPool[monster_id].isLive = monster_pos_packet->monsterArr[i].isLive;
 				m_orcPool[monster_id].id = monster_pos_packet->monsterArr[i].id;
 				m_orcPool[monster_id].animation_state = monster_pos_packet->monsterArr[i].animation_state;
 				m_orcPool[monster_id].world_pos = monster_pos_packet->monsterArr[i].world_pos;
 			}
 			else if (monster_pos_packet->monsterArr[i].type == TYPE_STRONGORC) {
 				int monster_id = sorc_id++;
-				m_strongorcPool[monster_id].isLive = true;
+				m_strongorcPool[monster_id].isLive = monster_pos_packet->monsterArr[i].isLive;
 				m_strongorcPool[monster_id].id = monster_pos_packet->monsterArr[i].id;
 				m_strongorcPool[monster_id].animation_state = monster_pos_packet->monsterArr[i].animation_state;
 				m_strongorcPool[monster_id].world_pos = monster_pos_packet->monsterArr[i].world_pos;
 			}
 			else if (monster_pos_packet->monsterArr[i].type == TYPE_RIDER) {
 				int monster_id = wolf_id++;
+				m_riderPool[monster_id].isLive = monster_pos_packet->monsterArr[i].isLive;
 				m_riderPool[monster_id].id = monster_pos_packet->monsterArr[i].id;
-				m_riderPool[monster_id].isLive = true;
 				m_riderPool[monster_id].animation_state = monster_pos_packet->monsterArr[i].animation_state;
 				m_riderPool[monster_id].world_pos = monster_pos_packet->monsterArr[i].world_pos;
 			}
@@ -318,7 +318,6 @@ void network_manager::PacketProccess(void * buf)
 		if (game_info_update_packet->portalLife == -1000) { // wave 업데이트
 			m_myRoomInfo.wave_count = game_info_update_packet->wave;
 			cout << "wave update" << endl;
-			is_wave = true;
 			for (short i = 0; i < MAX_MONSTER; ++i) {
 				//m_monster_pool[i].isLive = false;
 			}
