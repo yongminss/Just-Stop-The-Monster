@@ -155,6 +155,10 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 	if (Num_3 == ImageType) tempX = -0.5f, tempY = 0.22f;
 	// Stage Num 4
 	if (Num_4 == ImageType) tempX = -0.5f, tempY = 0.22f;
+	// HpBar UI
+	if (UI_HpBar <= ImageType && ImageType <= UI_HpBar + 9) tempX = -0.735f + (float)(ImageType - UI_HpBar) * 0.051f, tempY = 0.897f;
+	// Bullet UI
+	if (UI_Bullet <= ImageType && ImageType <= UI_Bullet + 9) tempX = -0.735f, tempY = -0.9f + (float)(ImageType - UI_Bullet) * 0.05f;
 
 	switch (type)
 	{

@@ -93,7 +93,9 @@ enum {
 	// Game Scene
 	UI_PlayerInfo,
 	UI_TrapList,
-	UI_SCOPE
+	UI_SCOPE,
+	UI_HpBar,
+	UI_Bullet = UI_HpBar + 10
 };
 
 extern UINT nCbvSrvDescriptorIncrementSize;

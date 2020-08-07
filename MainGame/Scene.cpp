@@ -66,8 +66,29 @@ void TitleScene::ReleaseObject()
 	if (m_GraphicsRootSignature) m_GraphicsRootSignature->Release();
 
 	if (m_Background) delete m_Background;
-
 	if (m_RoomList) delete m_RoomList;
+	if (m_Title) delete m_Title;
+	if (m_Single) delete m_Single;
+	if (m_Multi) delete m_Multi;
+	if (m_Room_1) delete m_Room_1;
+	if (m_Room_2) delete m_Room_2;
+	if (m_Room_3) delete m_Room_3;
+	if (m_Room_4) delete m_Room_4;
+	if (m_JoinRoom) delete m_JoinRoom;
+	if (m_MakeRoom) delete m_MakeRoom;
+	if (m_StageSelect) delete m_StageSelect;
+	if (m_StageLeft) delete m_StageLeft;
+	if (m_StageRight) delete m_StageRight;
+	if (m_StartButton) delete m_StartButton;
+	if (m_PlayerInfo) delete m_PlayerInfo;
+	if (m_Player_1) delete m_Player_1;
+	if (m_Player_2) delete m_Player_2;
+	if (m_MyPlayer) delete m_MyPlayer;
+	if (m_BackButton) delete m_BackButton;
+	if (m_Number_1) delete m_Number_1;
+	if (m_Number_2) delete m_Number_2;
+	if (m_Number_3) delete m_Number_3;
+	if (m_Number_4) delete m_Number_4;
 }
 
 ID3D12RootSignature *TitleScene::CreateGraphicsRootSignature(ID3D12Device *Device)
@@ -413,10 +434,17 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_Player = new Player(Device, CommandList, m_GraphicsRootSignature);
 
 	// UI
+	for (int i = 0; i < 10; i++) {
+		m_HpBar[i] = new UI(Device, CommandList, m_GraphicsRootSignature, 0.04f, 0.06f, UI_HpBar + i, 1);
+	}
+
 	m_CharInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.125f, UI_PlayerInfo, 1);
 	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.3f, 0.125f, UI_TrapList, 1);
 	m_Scope = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.0365f, UI_SCOPE, 1);
 
+	for (int i = 0; i < 10; i++) {
+		m_Bullet[i] = new UI(Device, CommandList, m_GraphicsRootSignature, 0.04f, 0.06f, UI_Bullet + i, 1);
+	}
 	// 스카이박스
 	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
 
@@ -951,6 +979,14 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 	// 스카이박스 렌더링
 	for (int i = 0; i < 5; ++i) if (m_SkyBox[i]) m_SkyBox[i]->Render(CommandList);
+
+	// UI
+	for (int i = m_Player->GetPlayerLife(); i >= 0; i--) {
+		if (m_HpBar[i]) m_HpBar[i]->Render(CommandList);
+	}
+	for (int i = m_Player->GetPlayerBullet(); i >= 0; i--) {
+		if (m_Bullet[i]) m_Bullet[i]->Render(CommandList);
+	}
 
 	// 플레이어 렌더링
 	if (m_Player) m_Player->Render(CommandList);

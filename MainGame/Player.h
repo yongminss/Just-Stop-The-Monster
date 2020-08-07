@@ -21,6 +21,9 @@ protected:
 	bool			m_MoveLeft = false;
 	bool			m_MoveRight = false;
 
+	int				m_PlayerLife = 9;
+	int				m_BulletCount = 9;
+
 	HWND			m_hWnd = NULL;
 	POINT			m_OldCursorPos{};
 
@@ -39,6 +42,14 @@ public:
 	void SetMoveReturn(float ElapsedTime);
 
 	bool GetForwardInfo() { bool IsTrue = false; (m_MoveUp && !m_MoveDown && !m_MoveLeft && !m_MoveRight) ? IsTrue = true : IsTrue = false; return IsTrue; }
+
+	int GetPlayerLife() { return m_PlayerLife; }
+
+	int GetPlayerBullet() { return m_BulletCount; }
+
+	void SetPlayerLife(int pLife) { m_PlayerLife = pLife; }
+
+	void SetPlayerBullet(int pBullet) { m_BulletCount = pBullet; }
 
 	XMFLOAT3 GetRight() { return XMFLOAT3(m_Right.x, m_Right.y, m_Right.z); }
 	XMFLOAT3 GetUp() { return XMFLOAT3(m_Up.x, m_Up.y, m_Up.z); }

@@ -141,7 +141,8 @@ private:
 	UI							*m_CharInfo = NULL;
 	UI							*m_TrapListUi = NULL;
 	UI							*m_Scope = NULL;
-
+	UI							*m_HpBar[10];
+	UI							*m_Bullet[10];
 	// Map
 	SkyBox						*m_SkyBox[5];
 
