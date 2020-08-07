@@ -7,6 +7,7 @@ network_manager::network_manager()
 {
 	//ZeroMemory(m_myRoomInfo, sizeof(m_myRoomInfo));
 	wsa = false;
+	m_OtherInfo.is_connect = false;
 	init_data();
 }
 
@@ -67,7 +68,7 @@ void network_manager::init_pool()
 void network_manager::init_mon_pool()
 {
 	for (short i = 0; i < MAX_MONSTER; ++i) {
-		m_monster_pool[i].isLive = false;
+		//m_monster_pool[i].isLive = false;
 		m_orcPool[i].isLive = false;
 		m_orcPool[i].type = TYPE_ORC;
 		m_strongorcPool[i].isLive = false;
@@ -79,12 +80,36 @@ void network_manager::init_mon_pool()
 
 void network_manager::rq_connect_server(const char * server_ip)
 {
-	memset(&m_serverAddr, 0, sizeof(SOCKADDR_IN));
-	m_serverAddr.sin_family = AF_INET;
-	m_serverAddr.sin_port = htons(SERVER_PORT);
-	inet_pton(AF_INET, server_ip, &m_serverAddr.sin_addr);// ipv4에서 ipv6로 변환	
-	connect(m_serverSocket, (struct sockaddr *)&m_serverAddr, sizeof(m_serverAddr));
-	//return m_serverSocket;
+	//memset(&m_serverAddr, 0, sizeof(SOCKADDR_IN));
+	//m_serverAddr.sin_family = AF_INET;
+	//m_serverAddr.sin_port = htons(SERVER_PORT);
+	//inet_pton(AF_INET, server_ip, &m_serverAddr.sin_addr);// ipv4에서 ipv6로 변환	
+	//connect(m_serverSocket, (struct sockaddr *)&m_serverAddr, sizeof(m_serverAddr));
+}
+
+void network_manager::test_connect(HWND & hwnd)
+{
+	WSAStartup(MAKEWORD(2, 0), &m_WSAData);	//  네트워크 기능을 사용하기 위함, 인터넷 표준을 사용하기 위해
+	m_serverSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, 0);
+	int opt_val = TRUE;
+	setsockopt(m_serverSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&opt_val, sizeof(opt_val));
+
+	SOCKADDR_IN ServerAddr;
+	ZeroMemory(&ServerAddr, sizeof(SOCKADDR_IN));
+	ServerAddr.sin_family = AF_INET;
+	ServerAddr.sin_port = htons(SERVER_PORT);
+	ServerAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+	int retval = WSAConnect(m_serverSocket, (sockaddr *)&ServerAddr, sizeof(ServerAddr), NULL, NULL, NULL, NULL);
+	if (retval == SOCKET_ERROR) {
+		printf("소켓 연결 안됨\n");
+	}
+
+	async_handle = hwnd;
+	WSAAsyncSelect(m_serverSocket, async_handle, WM_SOCKET, FD_READ || FD_CLOSE);
+
+	m_recv_buf.len = MAX_BUFFER;
+	m_recv_buf.buf = m_buffer;
 }
 
 void network_manager::ReadBuffer(SOCKET sock)
@@ -93,7 +118,7 @@ void network_manager::ReadBuffer(SOCKET sock)
 	int saved_packet_size = 0;
 
 	DWORD iobyte, ioflag = 0;
-	int ret = WSARecv(sock, &m_recv_buf, 1, &iobyte, &ioflag, NULL, NULL);
+	int ret = WSARecv(m_serverSocket, &m_recv_buf, 1, &iobyte, &ioflag, NULL, NULL);
 	if (ret != 0) {
 		int err_no = WSAGetLastError();
 		if (WSA_IO_PENDING != err_no)
@@ -152,7 +177,7 @@ void network_manager::PacketProccess(void * buf)
 			m_OtherInfo.Transform = pos_packet->world_pos;
 			m_OtherInfo.AnimateState = pos_packet->animation_state;
 			m_OtherInfo.is_connect = true;
-			cout << "다른 플레이어 위치 받기 확인" << endl;
+			//cout << "다른 플레이어 위치 받기 확인" << endl;
 		}
 		break;
 	}
@@ -229,7 +254,7 @@ void network_manager::PacketProccess(void * buf)
 	}
 	case SC_MONSTER_POS: {
 		sc_packet_monster_pos *monster_pos_packet = reinterpret_cast<sc_packet_monster_pos*>(buf);
-		memcpy_s(m_monster_pool, sizeof(m_monster_pool), monster_pos_packet->monsterArr, sizeof(monster_pos_packet->monsterArr));
+		//memcpy_s(m_monster_pool, sizeof(m_monster_pool), monster_pos_packet->monsterArr, sizeof(monster_pos_packet->monsterArr));
 		for (short i = 0; i < MAX_MONSTER; ++i) {
 			if (monster_pos_packet->monsterArr[i].type == TYPE_ORC) {
 				m_orcPool[i].isLive = monster_pos_packet->monsterArr[i].isLive;
@@ -253,12 +278,12 @@ void network_manager::PacketProccess(void * buf)
 		break;
 	}
 	case SC_TRAP_INFO: {
-		sc_packet_trap_info *trap_info_packet = reinterpret_cast<sc_packet_trap_info*>(buf);
+		/*sc_packet_trap_info *trap_info_packet = reinterpret_cast<sc_packet_trap_info*>(buf);
 		cout << "new trap" << trap_info_packet->trap_id << endl;
 		m_trap_pool[trap_info_packet->trap_id].enable = true;
 		m_trap_pool[trap_info_packet->trap_id].id = trap_info_packet->trap_id;
 		m_trap_pool[trap_info_packet->trap_id].trap_type = trap_info_packet->trap_type;
-		m_trap_pool[trap_info_packet->trap_id].trap4x4pos = trap_info_packet->trap_pos;
+		m_trap_pool[trap_info_packet->trap_id].trap4x4pos = trap_info_packet->trap_pos;*/
 		break;
 	}
 	case SC_JOIN_ROOM_OK: {
@@ -288,7 +313,7 @@ void network_manager::PacketProccess(void * buf)
 			cout << "wave update" << endl;
 			is_wave = true;
 			for (short i = 0; i < MAX_MONSTER; ++i) {
-				m_monster_pool[i].isLive = false;
+				//m_monster_pool[i].isLive = false;
 			}
 		}
 		else if (game_info_update_packet->wave == -1000) { // portalLife 업데이트

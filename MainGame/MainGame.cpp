@@ -121,13 +121,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    if (!hWnd) return FALSE;
    net_manager = new network_manager;
-   network_manager::GetInst()->init_socket();
-   network_manager::GetInst()->rq_connect_server("127.0.0.1");
-   WSAAsyncSelect(network_manager::GetInst()->m_serverSocket, hWnd, WM_SOCKET, FD_READ || FD_CLOSE);
+   network_manager::GetInst()->test_connect(hWnd);
+   //network_manager::GetInst()->init_socket();
+   //network_manager::GetInst()->rq_connect_server("127.0.0.1");
+   //WSAAsyncSelect(network_manager::GetInst()->m_serverSocket, hWnd, WM_SOCKET, FD_READ || FD_CLOSE);
    m_GameFramework.OnCreate(hInstance, hWnd);
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+   ::ShowWindow(hWnd, nCmdShow);
+   ::UpdateWindow(hWnd);
 
    return TRUE;
 }
@@ -202,7 +203,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		default:
 			break;
 		}
-		InvalidateRgn(hWnd, NULL, FALSE);
+		//InvalidateRgn(hWnd, NULL, FALSE);
 		break;
     case WM_DESTROY:
         PostQuitMessage(0);

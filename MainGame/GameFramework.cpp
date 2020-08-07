@@ -59,6 +59,8 @@ bool GameFramework::OnCreate(HINSTANCE hInstance, HWND MainHwnd)
 
 	BuildObject();
 
+	/*network_manager *net_manager = new network_manager;
+	network_manager::GetInst()->test_connect(MainHwnd);*/
 	return true;
 }
 
@@ -409,7 +411,7 @@ void GameFramework::FrameAdvance()
 			}
 		}
 		// 여기서 패킷을 보냄
-		if (m_CheckTime > 0.016) {
+		if (m_CheckTime > 0.032) {
 			m_CheckTime = 0;
 			//network_manager::GetInst()->send_change_state_packet(PLAYER_STATE_playing_game);
 			network_manager::GetInst()->send_my_world_pos_packet(m_GameScene->GetPlayerInfo(), m_GameScene->GetPlayerAnimate());
@@ -531,6 +533,23 @@ LRESULT CALLBACK GameFramework::OnProcessingWindowMessage(HWND hwnd, UINT Messag
 	case WM_SIZE:
 		m_nWndClientWidth = LOWORD(lParam);
 		m_nWndClientHeight = HIWORD(lParam);
+		break;
+	case WM_SOCKET:
+		if (WSAGETASYNCERROR(lParam)) {
+			closesocket((SOCKET)wParam);
+		}
+		switch (WSAGETSELECTEVENT(lParam))
+		{
+		case FD_READ:
+			network_manager::GetInst()->ReadBuffer((SOCKET)wParam);
+			break;
+		case FD_CLOSE:
+			cout << "close \n";
+			break;
+		default:
+			break;
+		}
+		//InvalidateRgn(hWnd, NULL, FALSE);
 		break;
 
 	case WM_LBUTTONDOWN:

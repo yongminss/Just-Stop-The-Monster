@@ -15,6 +15,7 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <stdio.h> 
 #include <WS2tcpip.h> 
+#include <ws2def.h>
 #pragma comment(lib, "Ws2_32.lib") //소켓2버젼 라이브러리
 #include "..\..\JSTMserver\jstm_server\jstm_server\protocol.h"
 

@@ -2,6 +2,8 @@
 //#include "globals.h"
 #include "stdafx.h"
 #include <algorithm>
+#include <thread>
+#define IPADDR = "127.0.0.1"
 
 enum EVENT_TYPE {
 	EV_RECV, EV_SEND
@@ -58,6 +60,7 @@ public:
 	void init_pool();
 	void init_mon_pool();
 	void rq_connect_server(const char * server_ip);
+	void test_connect(HWND& hwnd);
 	void ReadBuffer(SOCKET sock);
 	void PacketProccess(void * buf);
 
@@ -99,6 +102,9 @@ public:
 	MONSTER m_orcPool[MAX_MONSTER];
 	MONSTER m_strongorcPool[MAX_MONSTER];
 	MONSTER m_riderPool[MAX_MONSTER];
+
+	HWND async_handle;
+	bool first_recv;
 
 
 public:
