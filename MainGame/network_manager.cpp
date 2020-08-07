@@ -182,16 +182,18 @@ void network_manager::ReadBuffer(SOCKET sock)
 	}*/
 }
 
-void network_manager::PacketProccess(void * buf)
+void network_manager::PacketProccess(char* buf)
 {
-	char* temp = reinterpret_cast<char*>(buf);
+	//char* temp = reinterpret_cast<char*>(buf);
 
-	switch (temp[2]) {
+	switch (buf[2]) {
 	case SC_SEND_ID:
 	{
 		sc_packet_send_id *send_id_packet = reinterpret_cast<sc_packet_send_id*>(buf);
-		m_my_info.id = send_id_packet->id;
-		cout << "id받기 확인" << m_my_info.id << endl;
+		if (send_id_packet->id >= 0 && send_id_packet->id < 50) {
+			m_my_info.id = send_id_packet->id;
+			cout << "id받기 확인" << m_my_info.id << endl;
+		}
 		break;
 	}
 	case SC_POS:
@@ -199,7 +201,7 @@ void network_manager::PacketProccess(void * buf)
 		sc_packet_pos *pos_packet = reinterpret_cast<sc_packet_pos*>(buf);
 		//cout << "id: " << pos_packet->id << endl;
 		if (pos_packet->mover_id == m_my_info.id) { // 자기자신 위치
-			m_my_info.Transform = pos_packet->world_pos;
+			//m_my_info.Transform = pos_packet->world_pos;
 			cout << "내 위치 받기 확인" << endl;
 		}
 		else if (pos_packet->mover_id == m_OtherInfo.id) { // 다른 플레이어 위치
@@ -216,7 +218,7 @@ void network_manager::PacketProccess(void * buf)
 		if (new_id != m_my_info.id) {
 			m_OtherInfo.id = new_id;
 			//m_OtherInfo.is_connect = true;
-			cout << "다른 플레이어 풋 확인" << endl;
+			cout << "다른 플레이어 풋 확인"<< new_id << endl;
 		}
 		break;
 	}
@@ -284,27 +286,30 @@ void network_manager::PacketProccess(void * buf)
 	case SC_MONSTER_POS: {
 		sc_packet_monster_pos *monster_pos_packet = reinterpret_cast<sc_packet_monster_pos*>(buf);
 		//memcpy_s(m_monster_pool, sizeof(m_monster_pool), monster_pos_packet->monsterArr, sizeof(monster_pos_packet->monsterArr));
+		if (monster_pos_packet->monsterArr == NULL) { break; }
 		for (short i = 0; i < MAX_MONSTER; ++i) {
-			if (monster_pos_packet->monsterArr[i].type == TYPE_ORC) {
-				int monster_id = orc_id++;
-				m_orcPool[monster_id].isLive = monster_pos_packet->monsterArr[i].isLive;
-				m_orcPool[monster_id].id = monster_pos_packet->monsterArr[i].id;
-				m_orcPool[monster_id].animation_state = monster_pos_packet->monsterArr[i].animation_state;
-				m_orcPool[monster_id].world_pos = monster_pos_packet->monsterArr[i].world_pos;
-			}
-			else if (monster_pos_packet->monsterArr[i].type == TYPE_STRONGORC) {
-				int monster_id = sorc_id++;
-				m_strongorcPool[monster_id].isLive = monster_pos_packet->monsterArr[i].isLive;
-				m_strongorcPool[monster_id].id = monster_pos_packet->monsterArr[i].id;
-				m_strongorcPool[monster_id].animation_state = monster_pos_packet->monsterArr[i].animation_state;
-				m_strongorcPool[monster_id].world_pos = monster_pos_packet->monsterArr[i].world_pos;
-			}
-			else if (monster_pos_packet->monsterArr[i].type == TYPE_RIDER) {
-				int monster_id = wolf_id++;
-				m_riderPool[monster_id].isLive = monster_pos_packet->monsterArr[i].isLive;
-				m_riderPool[monster_id].id = monster_pos_packet->monsterArr[i].id;
-				m_riderPool[monster_id].animation_state = monster_pos_packet->monsterArr[i].animation_state;
-				m_riderPool[monster_id].world_pos = monster_pos_packet->monsterArr[i].world_pos;
+			if (monster_pos_packet->monsterArr[i].isLive == false || monster_pos_packet->monsterArr[i].isLive == true) {
+				if (monster_pos_packet->monsterArr[i].type == TYPE_ORC) {
+					int monster_id = orc_id++;
+					m_orcPool[monster_id].isLive = monster_pos_packet->monsterArr[i].isLive;
+					m_orcPool[monster_id].id = monster_pos_packet->monsterArr[i].id;
+					m_orcPool[monster_id].animation_state = monster_pos_packet->monsterArr[i].animation_state;
+					m_orcPool[monster_id].world_pos = monster_pos_packet->monsterArr[i].world_pos;
+				}
+				else if (monster_pos_packet->monsterArr[i].type == TYPE_STRONGORC) {
+					int monster_id = sorc_id++;
+					m_strongorcPool[monster_id].isLive = monster_pos_packet->monsterArr[i].isLive;
+					m_strongorcPool[monster_id].id = monster_pos_packet->monsterArr[i].id;
+					m_strongorcPool[monster_id].animation_state = monster_pos_packet->monsterArr[i].animation_state;
+					m_strongorcPool[monster_id].world_pos = monster_pos_packet->monsterArr[i].world_pos;
+				}
+				else if (monster_pos_packet->monsterArr[i].type == TYPE_RIDER) {
+					int monster_id = wolf_id++;
+					m_riderPool[monster_id].isLive = monster_pos_packet->monsterArr[i].isLive;
+					m_riderPool[monster_id].id = monster_pos_packet->monsterArr[i].id;
+					m_riderPool[monster_id].animation_state = monster_pos_packet->monsterArr[i].animation_state;
+					m_riderPool[monster_id].world_pos = monster_pos_packet->monsterArr[i].world_pos;
+				}
 			}
 		}
 		orc_id = 0, sorc_id = 0, wolf_id = 0;
@@ -312,11 +317,13 @@ void network_manager::PacketProccess(void * buf)
 	}
 	case SC_TRAP_INFO: {
 		sc_packet_trap_info *trap_info_packet = reinterpret_cast<sc_packet_trap_info*>(buf);
-		cout << "new trap" << trap_info_packet->trap_id << endl;
-		m_trap_pool[trap_info_packet->trap_id].enable = true;
-		m_trap_pool[trap_info_packet->trap_id].id = trap_info_packet->trap_id;
-		m_trap_pool[trap_info_packet->trap_id].trap_type = trap_info_packet->trap_type;
-		m_trap_pool[trap_info_packet->trap_id].trap4x4pos = trap_info_packet->trap_pos;
+		if (trap_info_packet->trap_id >= 0 && trap_info_packet->trap_id < 50) {
+			cout << "new trap" << trap_info_packet->trap_id << endl;
+			m_trap_pool[trap_info_packet->trap_id].enable = true;
+			m_trap_pool[trap_info_packet->trap_id].id = trap_info_packet->trap_id;
+			m_trap_pool[trap_info_packet->trap_id].trap_type = trap_info_packet->trap_type;
+			m_trap_pool[trap_info_packet->trap_id].trap4x4pos = trap_info_packet->trap_pos;
+		}
 		break;
 	}
 	case SC_JOIN_ROOM_OK: {

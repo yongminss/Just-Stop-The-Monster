@@ -411,7 +411,7 @@ void GameFramework::FrameAdvance()
 			}
 		}
 		// 여기서 패킷을 보냄
-		if (m_CheckTime > 0.032) {
+		if (m_CheckTime > 0.050) {
 			m_CheckTime = 0;
 			//network_manager::GetInst()->send_change_state_packet(PLAYER_STATE_playing_game);
 			network_manager::GetInst()->send_my_world_pos_packet(m_GameScene->GetPlayerInfo(), m_GameScene->GetPlayerAnimate());

@@ -62,7 +62,7 @@ public:
 	void rq_connect_server(const char * server_ip);
 	void test_connect(HWND& hwnd);
 	void ReadBuffer(SOCKET sock);
-	void PacketProccess(void * buf);
+	void PacketProccess(char* buf);
 	void recvThread();
 
 	void send_packet(void *buf);
