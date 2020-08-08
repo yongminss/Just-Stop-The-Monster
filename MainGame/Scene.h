@@ -40,7 +40,7 @@ private:
 	UI                     *m_Number_3 = NULL;
 	UI                     *m_Number_4 = NULL;
 
-	int							m_StageNumber = 1;
+	int							m_StageNumber = 2;
 
 	D3D12_VIEWPORT				m_Viewport;
 	D3D12_RECT					m_ScissorRect;
@@ -148,12 +148,11 @@ private:
 	// Map
 	SkyBox						*m_SkyBox[5];
 
-	GameObject					*m_Stage_01 = NULL;
 	GameObject					*m_Stage_02 = NULL;
 	GameObject					*m_Stage_03 = NULL;
 	GameObject					*m_Stage_04 = NULL;
 
-	int m_MapNum = 2;
+	int m_MapNum = 0;
 
 	UINT m_TrapType = 0;
 

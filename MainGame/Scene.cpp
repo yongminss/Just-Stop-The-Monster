@@ -274,8 +274,7 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 		if (m_StageNumber == 1 && m_Number_1) m_Number_1->Render(CommandList);
 		else if (m_StageNumber == 2 && m_Number_2) m_Number_2->Render(CommandList);
 		else if (m_StageNumber == 3 && m_Number_3) m_Number_3->Render(CommandList);
-		else if (m_StageNumber == 4 && m_Number_4) m_Number_4->Render(CommandList);
-
+		
 		if (m_StageLeft) m_StageLeft->Render(CommandList);
 		if (m_StageRight) m_StageRight->Render(CommandList);
 		if (m_StageSelect) m_StageSelect->Render(CommandList);
@@ -328,7 +327,6 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 			if (MousePos.x > 625 && MousePos.x < 785 && MousePos.y > 175 && MousePos.y < 220) {
 				network_manager::GetInst()->send_make_room_packet();
 				m_state = Wait_Room;
-				m_StageNumber = 1;
 			}
 			// Join Room
 			if (MousePos.x > 240 && MousePos.x < 590 && MousePos.y > 70 && MousePos.y < 120)
@@ -356,7 +354,7 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 			}
 			// Stage Select Next
 			if (MousePos.x > 250 && MousePos.x < 300 && MousePos.y > 215 && MousePos.y < 255) {
-				if (m_StageNumber < 4) m_StageNumber += 1;
+				if (m_StageNumber < 3) m_StageNumber += 1;
 				//cout << "StageNumber UP " << m_StageNumber << endl;
 			}
 
@@ -450,18 +448,14 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 
 	switch (m_MapNum) {
 	case 1:
-		m_Stage_01 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage01.bin", NULL, false);
-		m_Stage_01->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
-		break;
-	case 2:
 		m_Stage_02 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage02.bin", NULL, false);
 		m_Stage_02->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
 		break;
-	case 3:
+	case 2:
 		m_Stage_03 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage03.bin", NULL, false);
 		m_Stage_03->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
 		break;
-	case 4:
+	case 3:
 		m_Stage_04 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage04.bin", NULL, false);
 		m_Stage_04->SetPostion(XMFLOAT3(-0.f, -50.f, 0.f));
 		break;
@@ -915,15 +909,12 @@ void GameScene::Animate(float ElapsedTime)
 			BoundingBox BoundPlayer = m_Player->GetBodyBounding();
 			switch (m_MapNum) {
 			case 1:
-				TileObject = m_Stage_01->IsStageIntersect(BoundPlayer);
-				break;
-			case 2:
 				TileObject = m_Stage_02->IsStageIntersect(BoundPlayer);
 				break;
-			case 3:
+			case 2:
 				TileObject = m_Stage_03->IsStageIntersect(BoundPlayer);
 				break;
-			case 4:
+			case 3:
 				TileObject = m_Stage_04->IsStageIntersect(BoundPlayer);
 				break;
 			}
@@ -1008,15 +999,12 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	// GameScene에 등장할 오브젝트 렌더링
 	switch (m_MapNum) {
 	case 1:
-		if (m_Stage_01) m_Stage_01->Render(CommandList);
-		break;
-	case 2:
 		if (m_Stage_02) m_Stage_02->Render(CommandList);
 		break;
-	case 3:
+	case 2:
 		if (m_Stage_03) m_Stage_03->Render(CommandList);
 		break;
-	case 4:
+	case 3:
 		if (m_Stage_04) m_Stage_04->Render(CommandList);
 		break;
 	}
@@ -1280,18 +1268,6 @@ void GameScene::CheckBuildTrap()
 				switch (m_target->m_nTrapKind) {
 				case TRAP_NEEDLE:
 				case TRAP_SLOW:
-					TileObject = m_Stage_01->CheckTileBound(StartPos, EndPos, true);
-					break;
-				case TRAP_FIRE:
-				case TRAP_ARROW:
-					TileObject = m_Stage_01->CheckTileBound(StartPos, EndPos, false);
-					break;
-				}
-				break;
-			case 2:
-				switch (m_target->m_nTrapKind) {
-				case TRAP_NEEDLE:
-				case TRAP_SLOW:
 					TileObject = m_Stage_02->CheckTileBound(StartPos, EndPos, true);
 					break;
 				case TRAP_FIRE:
@@ -1300,7 +1276,7 @@ void GameScene::CheckBuildTrap()
 					break;
 				}
 				break;
-			case 3:
+			case 2:
 				switch (m_target->m_nTrapKind) {
 				case TRAP_NEEDLE:
 				case TRAP_SLOW:
@@ -1312,7 +1288,7 @@ void GameScene::CheckBuildTrap()
 					break;
 				}
 				break;
-			case 4:
+			case 3:
 				switch (m_target->m_nTrapKind) {
 				case TRAP_NEEDLE:
 				case TRAP_SLOW:
@@ -1506,15 +1482,12 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 
 				switch (m_MapNum) {
 				case 1:
-					TileObj = m_Stage_01->CheckTileBound(StartPos, EndPos, false);
-					break;
-				case 2:
 					TileObj = m_Stage_02->CheckTileBound(StartPos, EndPos, false);
 					break;
-				case 3:
+				case 2:
 					TileObj = m_Stage_03->CheckTileBound(StartPos, EndPos, false);
 					break;
-				case 4:
+				case 3:
 					TileObj = m_Stage_04->CheckTileBound(StartPos, EndPos, false);
 					break;
 				}
@@ -1869,19 +1842,6 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 				m_Player->SetPlayerBullet(++bul);
 		}
 		break;
-
-		case '7':
-			m_MapNum = 1;
-			break;
-		case '8':
-			m_MapNum = 2;
-			break;
-		case '9':
-			m_MapNum = 3;
-			break;
-		case '0':
-			m_MapNum = 4;
-			break;
 
 		case VK_SHIFT:
 			if (m_Player->GetForwardInfo()) {
