@@ -474,6 +474,8 @@ public:
 	bool is_active = false;
 	bool is_collision = false;
 
+	int m_id = -1;
+
 	char m_nTrapKind;
 
 	void BuildTrap(bool Input) { IsBuildTrap = Input; }

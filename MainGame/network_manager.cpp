@@ -136,7 +136,7 @@ void network_manager::ReadBuffer(SOCKET sock)
 		if (in_packet_size == 0) in_packet_size = size;
 		if (iobyte + saved_packet_size >= in_packet_size)
 		{
-			cout << size << ", " << (int)ptr[2] << endl;
+			//cout << size << ", " << (int)ptr[2] << endl;
 			memcpy(packet_buffer + saved_packet_size, ptr, in_packet_size - saved_packet_size);
 			PacketProccess(packet_buffer);
 			ptr += in_packet_size - saved_packet_size;
@@ -315,12 +315,14 @@ void network_manager::PacketProccess(char* buf)
 	}
 	case SC_TRAP_INFO: {
 		sc_packet_trap_info *trap_info_packet = reinterpret_cast<sc_packet_trap_info*>(buf);
-		if (trap_info_packet->trap_id >= 0 && trap_info_packet->trap_id < 50) {
-			cout << "new trap" << trap_info_packet->trap_id << endl;
-			m_trap_pool[trap_info_packet->trap_id].enable = true;
-			m_trap_pool[trap_info_packet->trap_id].id = trap_info_packet->trap_id;
-			m_trap_pool[trap_info_packet->trap_id].trap_type = trap_info_packet->trap_type;
-			m_trap_pool[trap_info_packet->trap_id].trap4x4pos = trap_info_packet->trap_pos;
+		if (trap_info_packet->trap_index >= 0 && trap_info_packet->trap_index < 50) {
+			cout << "new trap" << trap_info_packet->trap_index << endl;
+			m_trap_pool[trap_info_packet->trap_index].enable = true;
+			m_trap_pool[trap_info_packet->trap_index].id = trap_info_packet->trap_local_id;
+			m_trap_pool[trap_info_packet->trap_index].trap_type = trap_info_packet->trap_type;
+			m_trap_pool[trap_info_packet->trap_index].trap4x4pos = trap_info_packet->trap_pos;
+
+			cout << "Server에서 받은 Trap ID : " << trap_info_packet->trap_index;
 		}
 		break;
 	}
@@ -537,11 +539,12 @@ void network_manager::send_request_join_room(const short& room_number)
 	}
 }
 
-void network_manager::send_install_trap(char trap_type, DirectX::XMFLOAT4X4 trap_pos)
+void network_manager::send_install_trap(unsigned short trap_local_id, char trap_type, DirectX::XMFLOAT4X4 trap_pos)
 {
 	cs_packet_install_trap packet;
 	packet.type = CS_INSTALL_TRAP;
 	packet.id = m_my_info.id;
+	packet.trap_local_id = trap_local_id;
 	packet.trap_type = trap_type;
 	packet.trap_pos = trap_pos;
 	packet.size = sizeof(packet);

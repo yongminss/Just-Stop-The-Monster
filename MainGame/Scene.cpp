@@ -482,6 +482,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 			m_Trap.back()->m_nTrapKind = TRAP_ARROW;
 		}
 		m_Trap.back()->SetChild(TrapObj, false);
+		m_Trap.back()->m_id = i;
 		m_Trap.back()->SetEnable(1);
 		m_Trap.back()->SetPostion(XMFLOAT3(0, -1000.f, 0.f));
 	}
@@ -1016,15 +1017,39 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 	// Trap Objects
 	for (int i = 0; i < MAX_TRAP; ++i) {
+		if (network_manager::GetInst()->m_trap_pool[i].enable == false) continue;
+		// 0 - 11 Needle (12)
+		// 12 - 24 Fire (13)
+		// 25 - 37 Slow (13)
+		// 38 - 49 Arrow (12)
+		//char trap_type = network_manager::GetInst()->m_trap_pool[i].trap_type;
+
+		/*switch (trap_type) {
+		case TRAP_NEEDLE: break;
+		case TRAP_FIRE: render_id += 12; break;
+		case TRAP_SLOW: render_id += 25; break;
+		case TRAP_ARROW: render_id += 38; break;
+		}*/
+
+		int trap_id = m_Trap[network_manager::GetInst()->m_trap_pool[i].id]->m_id;
+		
+		if (m_Trap[trap_id]->GetIsBuildTrap() == false) {
+
+			XMFLOAT4X4 world = network_manager::GetInst()->m_trap_pool[i].trap4x4pos;
+
+			//cout << i << "¹øÂ° trapÀÇ ID - " << trap_id << endl;
+			
+			m_Trap[trap_id]->is_active = true;
+			m_Trap[trap_id]->SetRight(XMFLOAT3(world._11, world._12, world._13));
+			m_Trap[trap_id]->SetUp(XMFLOAT3(world._21, world._22, world._23));
+			m_Trap[trap_id]->SetLook(XMFLOAT3(world._31, world._32, world._33));
+			m_Trap[trap_id]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+		}
+	}
+
+	for (int i = 0; i < MAX_TRAP; ++i) {
+		if (m_Trap[i]->is_active == false) continue;
 		if (m_Trap[i]) {
-			if (m_Trap[i]->is_active == false) continue;
-			//if (network_manager::GetInst()->m_trap_pool[i].enable == true) {
-			//	XMFLOAT4X4 world = network_manager::GetInst()->m_trap_pool[i].trap4x4pos;
-			//	m_Trap[i]->SetRight(XMFLOAT3(world._11, world._12, world._13));
-			//	m_Trap[i]->SetUp(XMFLOAT3(world._21, world._22, world._23));
-			//	m_Trap[i]->SetLook(XMFLOAT3(world._31, world._32, world._33));
-			//	m_Trap[i]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
-			//}
 			m_Trap[i]->Animate(m_ElapsedTime, NULL);
 			m_Trap[i]->UpdateTransform(NULL);
 			m_Trap[i]->Render(CommandList);
@@ -1377,7 +1402,7 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			if (m_target != NULL)
 				if (m_target->GetIsTrapAccess() == true && m_target->GetIsBuildTrap() == true && m_target->is_collision == false) {
 
-					network_manager::GetInst()->send_install_trap(m_target->m_nTrapKind, m_target->m_WorldPos);
+					network_manager::GetInst()->send_install_trap(m_target->m_id, m_target->m_nTrapKind, m_target->m_WorldPos);
 
 					m_target->BuildTrap(false);
 					m_target = NULL;
