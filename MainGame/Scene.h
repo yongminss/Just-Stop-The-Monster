@@ -33,14 +33,26 @@ private:
 	UI                     *m_PlayerInfo = NULL;
 	UI                     *m_Player_1 = NULL;
 	UI                     *m_Player_2 = NULL;
-	UI                     *m_MyPlayer = NULL;
+	UI					   *m_Player_3 = NULL;
+	UI						*m_Player_4 = NULL;
 	UI                     *m_BackButton = NULL;
 	UI                     *m_Number_1 = NULL;
 	UI                     *m_Number_2 = NULL;
 	UI                     *m_Number_3 = NULL;
-	UI                     *m_Number_4 = NULL;
 
-	int							m_StageNumber = 2;
+	UI						*m_NumID_1 = NULL;
+	UI						*m_NumID_2 = NULL;
+	UI						*m_NumID_3 = NULL;
+	UI						*m_NumID_4 = NULL;
+	UI						*m_NumID_5 = NULL;
+	UI						*m_NumID_6 = NULL;
+	UI						*m_NumID_7 = NULL;
+	UI						*m_NumID_8 = NULL;
+	UI						*m_NumID_9 = NULL;
+	UI						*m_NumID_0 = NULL;
+
+
+	int							m_StageNumber = 1;
 
 	D3D12_VIEWPORT				m_Viewport;
 	D3D12_RECT					m_ScissorRect;

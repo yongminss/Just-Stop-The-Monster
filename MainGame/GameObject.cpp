@@ -1334,32 +1334,32 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/PlayerBox.dds", 0);
 		break;
 	case Player_1:
-		// Player Info
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Player1.dds", 0);
+		// Player 1
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Player_1.dds", 0);
 		break;
 	case Player_2:
-		// Player Info
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Player2.dds", 0);
+		// Player 2
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Player_2.dds", 0);
 		break;
-	case MyPlayer:
-		// Player Info
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/MyPlayer.dds", 0);
+	case Player_3:
+		// Player 3
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Player_3.dds", 0);
 		break;
-	case Num_1:
+	case Player_4:
+		// Player 4
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Player_4.dds", 0);
+		break;
+	case StageNum_1:
 		//Number 1
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Number_1.dds", 0);
 		break;
-	case Num_2:
+	case StageNum_2:
 		//Number 2
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Number_2.dds", 0);
 		break;
-	case Num_3:
+	case StageNum_3:
 		//Number 3
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Number_3.dds", 0);
-		break;
-	case Num_4:
-		//Number 4
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Number_4.dds", 0);
 		break;
 	case UI_PlayerInfo:
 		// Charactor Information
@@ -1371,6 +1371,9 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 		break;
 	case UI_SCOPE:
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Scope.dds", 0);
+		break;
+	case IDNum_0:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/n_0black.dds", 0);
 		break;
 	case UI_HpBar:
 	case UI_HpBar + 1:

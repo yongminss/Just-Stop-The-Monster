@@ -136,11 +136,13 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 	// Player Infomation
 	if (PlayerInfo == ImageType) tempX = +0.5f, tempY = -0.1f;
 	// Player 1
-	if (Player_1 == ImageType) tempX = +0.5f, tempY = -0.1f;
+	if (Player_1 == ImageType) tempX = +0.5f, tempY = 0.2f;
 	// Player 2
-	if (Player_2 == ImageType) tempX = +0.5f, tempY = -0.3f;
-	// My Player
-	if (MyPlayer == ImageType) tempX = +0.5f, tempY = -0.3f;
+	if (Player_2 == ImageType) tempX = +0.5f, tempY = -0.05f;
+	// Player 3
+	if (Player_3 == ImageType) tempX = +0.5f, tempY = -0.3f;
+	// Player 4
+	if (Player_4 == ImageType) tempX = +0.5f, tempY = -0.55f;
 	// Charactor Information
 	if (UI_PlayerInfo == ImageType) tempX = -0.6f, tempY = +0.85f;
 	// Traplist UI
@@ -148,13 +150,13 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 	// Back_Button
 	if (Back_Button == ImageType) tempX = -0.7f, tempY = 0.7f;
 	// Stage Num 1
-	if (Num_1 == ImageType) tempX = -0.5f, tempY = 0.22f;
+	if (StageNum_1 == ImageType) tempX = -0.5f, tempY = 0.22f;
 	// Stage Num 2
-	if (Num_2 == ImageType) tempX = -0.5f, tempY = 0.22f;
+	if (StageNum_2 == ImageType) tempX = -0.5f, tempY = 0.22f;
 	// Stage Num 3
-	if (Num_3 == ImageType) tempX = -0.5f, tempY = 0.22f;
-	// Stage Num 4
-	if (Num_4 == ImageType) tempX = -0.5f, tempY = 0.22f;
+	if (StageNum_3 == ImageType) tempX = -0.5f, tempY = 0.22f;
+	// ID Num 1
+
 	// HpBar UI
 	if (UI_HpBar <= ImageType && ImageType <= UI_HpBar + 9) tempX = -0.735f + (float)(ImageType - UI_HpBar) * 0.051f, tempY = 0.897f;
 	// Bullet UI 0~4 

@@ -33,6 +33,8 @@ void network_manager::init_data()
 	ZeroMemory(&m_orcPool, sizeof(m_orcPool));
 	ZeroMemory(&m_strongorcPool, sizeof(m_strongorcPool));
 	ZeroMemory(&m_riderPool, sizeof(m_riderPool));
+	
+	for (int i = 0; i < 4; ++i) m_myRoomInfo.players_id[i] = -1;
 
 	m_vec_gameRoom.reserve(20);
 	m_vec_trapPool.reserve(50);
@@ -233,6 +235,19 @@ void network_manager::PacketProccess(char* buf)
 	case SC_SEND_ROOM_LIST: {
 		sc_packet_room_info *room_info_packet = reinterpret_cast<sc_packet_room_info*>(buf);
 
+		if (m_myRoomInfo.room_number == room_info_packet->room_number) { // 내 방 업데이트
+			for (int i = 0; i < 4; ++i) {
+				m_myRoomInfo.players_id[i] = room_info_packet->players_id[i];
+			}
+			cout << "내방 정보 업데이트 \n";
+			for (int i = 0; i < 4; ++i) {
+				m_myRoomInfo.players_id[i] = room_info_packet->players_id[i];
+				cout << m_myRoomInfo.players_id[i] << endl;
+			}
+		}
+
+
+
 		auto findret = find_if(m_vec_gameRoom.begin(), m_vec_gameRoom.end(), [room_info_packet](GAME_ROOM_C* gr) {
 			return gr->room_number == room_info_packet->room_number;
 		});
@@ -323,7 +338,7 @@ void network_manager::PacketProccess(char* buf)
 			m_trap_pool[trap_info_packet->trap_index].trap_type = trap_info_packet->trap_type;
 			m_trap_pool[trap_info_packet->trap_index].trap4x4pos = trap_info_packet->trap_pos;
 
-			cout << "Server에서 받은 Trap ID : " << trap_info_packet->trap_index;
+			cout << "Server에서 받은 Trap ID : " << trap_info_packet->trap_index << endl;
 		}
 		break;
 	}
@@ -343,6 +358,10 @@ void network_manager::PacketProccess(char* buf)
 			m_myRoomInfo.players_id[i] = join_room_ok_packet->players_id[i];
 		}
 		cout << "join " << join_room_ok_packet->room_number << " room \n";
+		cout << "내방 정보 업데이트 \n";
+		for (int i = 0; i < 4; ++i) {
+			cout << m_myRoomInfo.players_id[i] << endl;
+		}
 		break;
 	}
 	case SC_PLAYER_STAT_CHANGE: {
@@ -365,6 +384,10 @@ void network_manager::PacketProccess(char* buf)
 			}
 		}
 		else if (game_info_update_packet->wave == -1000) { // portalLife 업데이트
+			m_myRoomInfo.portalLife = game_info_update_packet->portalLife;
+		}
+		else {
+			m_myRoomInfo.wave_count = game_info_update_packet->wave;
 			m_myRoomInfo.portalLife = game_info_update_packet->portalLife;
 		}
 		break;

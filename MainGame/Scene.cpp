@@ -51,14 +51,14 @@ void TitleScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Co
 	m_StageRight = new UI(Device, CommandList, m_GraphicsRootSignature, 0.45f, 0.2f, Stage_Right, 0);
 	m_StartButton = new UI(Device, CommandList, m_GraphicsRootSignature, 0.25f, 0.15f, Start_Button, 0);
 	m_PlayerInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.8f, PlayerInfo, 0);
-	m_Player_1 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.8f, Player_1, 0);
-	m_Player_2 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.8f, Player_2, 0);
-	m_MyPlayer = new UI(Device, CommandList, m_GraphicsRootSignature, 0.35f, 0.8f, MyPlayer, 0);
+	m_Player_1 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.2f, 0.2f, Player_1, 0);
+	m_Player_2 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.2f, 0.2f, Player_2, 0);
+	m_Player_3 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.2f, 0.2f, Player_3, 0);
+	m_Player_4 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.2f, 0.2f, Player_4, 0);
 	m_BackButton = new UI(Device, CommandList, m_GraphicsRootSignature, 0.1f, 0.1f, Back_Button, 0);
-	m_Number_1 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.07f, Num_1, 0);
-	m_Number_2 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.07f, Num_2, 0);
-	m_Number_3 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.07f, Num_3, 0);
-	m_Number_4 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.07f, Num_4, 0);
+	m_Number_1 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.07f, StageNum_1, 0);
+	m_Number_2 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.07f, StageNum_2, 0);
+	m_Number_3 = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.07f, StageNum_3, 0);
 }
 
 void TitleScene::ReleaseObject()
@@ -83,12 +83,10 @@ void TitleScene::ReleaseObject()
 	if (m_PlayerInfo) delete m_PlayerInfo;
 	if (m_Player_1) delete m_Player_1;
 	if (m_Player_2) delete m_Player_2;
-	if (m_MyPlayer) delete m_MyPlayer;
 	if (m_BackButton) delete m_BackButton;
 	if (m_Number_1) delete m_Number_1;
 	if (m_Number_2) delete m_Number_2;
 	if (m_Number_3) delete m_Number_3;
-	if (m_Number_4) delete m_Number_4;
 }
 
 ID3D12RootSignature *TitleScene::CreateGraphicsRootSignature(ID3D12Device *Device)
@@ -280,9 +278,17 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 		if (m_StageRight) m_StageRight->Render(CommandList);
 		if (m_StageSelect) m_StageSelect->Render(CommandList);
 		if (m_StartButton) m_StartButton->Render(CommandList);
-		if (m_Player_1) m_Player_1->Render(CommandList);
-		if (m_Player_2) m_Player_2->Render(CommandList);
-		if (m_MyPlayer) m_MyPlayer->Render(CommandList);
+		
+		if (m_NumID_0) m_NumID_0->Render(CommandList);
+
+		for (int i = 0; i < 4; i++) {
+			if (network_manager::GetInst()->m_myRoomInfo.players_id[i] != -1) {
+				if (i == 0 && m_Player_1) m_Player_1->Render(CommandList);
+				else if (i == 1 && m_Player_2) m_Player_2->Render(CommandList);
+				else if (i == 2 && m_Player_3) m_Player_3->Render(CommandList);
+				else if (i == 3 && m_Player_4) m_Player_4->Render(CommandList);
+			}
+		}
 		if (m_PlayerInfo) m_PlayerInfo->Render(CommandList);
 		if (m_Background) m_Background->Render(CommandList);
 		break;
@@ -387,7 +393,7 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 		break;
 
 	default:
-		//cout << "x: " << MousePos.x << " y: " << MousePos.y << endl;
+		cout << "x: " << MousePos.x << " y: " << MousePos.y << endl;
 		switch (m_state) {
 		case Basic:
 			break;
@@ -454,6 +460,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	for (int i = 0; i < 10; i++) {
 		m_HpBar[i] = new UI(Device, CommandList, m_GraphicsRootSignature, 0.04f, 0.06f, UI_HpBar + i, 1);
 	}
+
 
 	m_CharInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.125f, UI_PlayerInfo, 1);
 	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.3f, 0.125f, UI_TrapList, 1);
