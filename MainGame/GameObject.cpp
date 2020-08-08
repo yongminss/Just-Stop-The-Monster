@@ -1601,13 +1601,11 @@ void Effect::Render(ID3D12GraphicsCommandList *CommandList)
 
 void Trap::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
 {
-	// 함정 활성화
-	if (IsActive) {
-		if (m_AnimationController) m_AnimationController->AdvanceTime(ElapsedTime, NULL);
+	if (m_AnimationController) m_AnimationController->AdvanceTime(ElapsedTime, NULL);
 
-		if (m_Sibling) m_Sibling->Animate(ElapsedTime, Parent);
-		if (m_Child) m_Child->Animate(ElapsedTime, &m_WorldPos);
-	}
+	if (m_Sibling) m_Sibling->Animate(ElapsedTime, Parent);
+	if (m_Child) m_Child->Animate(ElapsedTime, &m_WorldPos);
+
 }
 
 // Monster

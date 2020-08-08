@@ -352,12 +352,12 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 			// Stage Select Before
 			if (MousePos.x > 90 && MousePos.x < 145 && MousePos.y > 215 && MousePos.y < 255) {
 				if (m_StageNumber > 1) m_StageNumber -= 1;
-				cout << "StageNumber Down " << m_StageNumber << endl;
+				//cout << "StageNumber Down " << m_StageNumber << endl;
 			}
 			// Stage Select Next
 			if (MousePos.x > 250 && MousePos.x < 300 && MousePos.y > 215 && MousePos.y < 255) {
 				if (m_StageNumber < 4) m_StageNumber += 1;
-				cout << "StageNumber UP " << m_StageNumber << endl;
+				//cout << "StageNumber UP " << m_StageNumber << endl;
 			}
 
 			break;
@@ -442,9 +442,9 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.3f, 0.125f, UI_TrapList, 1);
 	m_Scope = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.0365f, UI_SCOPE, 1);
 
-	/*for (int i = 0; i < 10; i++) {
-		m_Bullet[i] = new UI(Device, CommandList, m_GraphicsRootSignature, 0.04f, 0.06f, UI_Bullet + i, 1);
-	}*/
+	for (int i = 0; i < 10; i++) {
+		m_Bullet[i] = new UI(Device, CommandList, m_GraphicsRootSignature, 0.1f, 0.15f, UI_Bullet + i, 1);
+	}
 	// 스카이박스
 	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
 
@@ -992,9 +992,9 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		if (m_HpBar[i]) m_HpBar[i]->Render(CommandList);
 	}
 
-	/*for (int i = m_Player->GetPlayerBullet(); i >= 0; i--) {
+	for (int i = m_Player->GetPlayerBullet(); i >= 0; i--) {
 		if (m_Bullet[i]) m_Bullet[i]->Render(CommandList);
-	}*/
+	}
 
 	// 플레이어 렌더링
 	if (m_Player) m_Player->Render(CommandList);
@@ -1042,8 +1042,6 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		if (m_Trap[trap_id]->GetIsBuildTrap() == false) {
 
 			XMFLOAT4X4 world = network_manager::GetInst()->m_trap_pool[i].trap4x4pos;
-
-			//cout << i << "번째 trap의 ID - " << trap_id << endl;
 			
 			m_Trap[trap_id]->is_active = true;
 			m_Trap[trap_id]->SetRight(XMFLOAT3(world._11, world._12, world._13));
@@ -1221,7 +1219,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 			
 			if (WeaponObj != NULL) {
 				XMFLOAT4X4 Respos = WeaponObj->m_TransformPos;
-				cout << WeaponObj->GetFrameName() <<endl;
+				//cout << WeaponObj->GetFrameName() <<endl;
 				XMFLOAT4X4 pos = Matrix4x4::Multiply(Respos, m_Player->m_WorldPos);
 				m_BulletEffect->SetRight(XMFLOAT3(pos._11, pos._12, pos._13));
 				m_BulletEffect->SetUp(XMFLOAT3(pos._21, pos._22, pos._23));
@@ -1337,13 +1335,13 @@ void GameScene::CheckBuildTrap()
 
 				if (m_target->m_nTrapKind == TRAP_FIRE || m_target->m_nTrapKind == TRAP_ARROW) { // 벽타일
 					if (BoundTile.Extents.x < BoundTile.Extents.z) {
-						if (StartPos.x < TilePos.x) {
+						if (StartPos.x < TilePos.x) {   //플레이어스폰기준 우측에 놓을때. 함정이 -x축을 바라봄
 							m_target->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
 							m_target->SetRight(XMFLOAT3(0.0f, 1.0f, 0.0f));
 							m_target->SetUp(XMFLOAT3(-1.0f, 0.0f, 0.0f));
 							TilePos.x -= 15.0f;
 						}
-						else {
+						else {                      // 플레이어스폰기준 좌측에 놓을때. 함정이 +x축을 바라봄
 							m_target->SetLook(XMFLOAT3(0.0f, 0.0f, 1.0f));
 							m_target->SetRight(XMFLOAT3(0.0f, -1.0f, 0.0f));
 							m_target->SetUp(XMFLOAT3(1.0f, 0.0f, 0.0f));
@@ -1351,13 +1349,13 @@ void GameScene::CheckBuildTrap()
 						}
 					}
 					else {
-						if (StartPos.z < TilePos.z) {
+						if (StartPos.z < TilePos.z) {   // 플레이어스폰기준 정면에 놓을때. 함정이 -z축을 바라봄
 							m_target->SetLook(XMFLOAT3(0.0f, 1.0f, 0.0f));
 							m_target->SetRight(XMFLOAT3(1.0f, 0.0f, 0.0f));
 							m_target->SetUp(XMFLOAT3(0.0f, 0.0f, -1.0f));
 							TilePos.z -= 15.0f;
 						}
-						else {
+						else {                     // 플레이어스폰기준 후방에 놓을때. +z축을 바라봄
 							m_target->SetLook(XMFLOAT3(0.0f, -1.0f, 0.0f));
 							m_target->SetRight(XMFLOAT3(1.0f, 0.0f, 0.0f));
 							m_target->SetUp(XMFLOAT3(0.0f, 0.0f, 1.0f));
@@ -1639,7 +1637,6 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 				if (m_Trap[i]->is_active == false && m_Trap[i]->m_nTrapKind == TRAP_NEEDLE) {
 					m_Trap[i]->is_active = true;
 					m_Trap[i]->BuildTrap(true);
-					m_Trap[i]->ActiveTrap(true);
 					m_target = m_Trap[i];
 					break;
 				}
@@ -1695,7 +1692,6 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 				if (m_Trap[i]->is_active == false && m_Trap[i]->m_nTrapKind == TRAP_FIRE) {
 					m_Trap[i]->is_active = true;
 					m_Trap[i]->BuildTrap(true);
-					m_Trap[i]->ActiveTrap(true);
 					m_target = m_Trap[i];
 					break;
 				}
@@ -1751,7 +1747,6 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 				if (m_Trap[i]->is_active == false && m_Trap[i]->m_nTrapKind == TRAP_SLOW) {
 					m_Trap[i]->is_active = true;
 					m_Trap[i]->BuildTrap(true);
-					m_Trap[i]->ActiveTrap(true);
 					m_target = m_Trap[i];
 					break;
 				}
@@ -1807,7 +1802,6 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 				if (m_Trap[i]->is_active == false && m_Trap[i]->m_nTrapKind == TRAP_ARROW) {
 					m_Trap[i]->is_active = true;
 					m_Trap[i]->BuildTrap(true);
-					m_Trap[i]->ActiveTrap(true);
 					m_target = m_Trap[i];
 					break;
 				}

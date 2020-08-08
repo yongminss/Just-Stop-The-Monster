@@ -502,7 +502,6 @@ void TrapInstancingShader::BuildTrap(UINT Type)
 		Obj->SetChild(Model, false);
 		Obj->SetScale(140.f, 140.f, 140.f);
 		Obj->BuildTrap(true);
-		Obj->ActiveTrap(true);
 		Obj->SetEnable(1);
 		//Obj->SetTrapKind(Type);
 		m_Trap.emplace_back(Obj);
