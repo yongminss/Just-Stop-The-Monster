@@ -449,17 +449,17 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
 
 	// 스테이지
-	m_Stage_01 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage01.bin", NULL, false);
-	m_Stage_01->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
+	/*m_Stage_01 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage01.bin", NULL, false);
+	m_Stage_01->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));*/
 
 	m_Stage_02 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage02.bin", NULL, false);
 	m_Stage_02->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
 
-	m_Stage_03 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_03.bin", NULL, false);
-	m_Stage_03->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
+	/*m_Stage_03 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_03.bin", NULL, false);
+	m_Stage_03->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));*/
 
-	m_Stage_04 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage04.bin", NULL, false);
-	m_Stage_04->SetPostion(XMFLOAT3(-0.f, -50.f, 0.f));
+	/*m_Stage_04 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage04.bin", NULL, false);
+	m_Stage_04->SetPostion(XMFLOAT3(-0.f, -50.f, 0.f));*/
 
 	// Trap Objects
 	for (int i = 0; i < MAX_TRAP; ++i) {

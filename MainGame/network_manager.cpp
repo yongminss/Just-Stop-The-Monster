@@ -117,11 +117,9 @@ void network_manager::test_connect(HWND & hwnd)
 
 void network_manager::ReadBuffer(SOCKET sock)
 {
-	int in_packet_size = 0;
-	int saved_packet_size = 0;
 
 	DWORD iobyte, ioflag = 0;
-	int ret = WSARecv(m_serverSocket, &m_recv_buf, 1, &iobyte, &ioflag, NULL, NULL);
+	int ret = WSARecv(sock, &m_recv_buf, 1, &iobyte, &ioflag, NULL, NULL);
 	if (ret != 0) {
 		int err_no = WSAGetLastError();
 		if (WSA_IO_PENDING != err_no)
@@ -131,7 +129,6 @@ void network_manager::ReadBuffer(SOCKET sock)
 
 	unsigned short size = 0;
 	char* ptr = reinterpret_cast<char*>(m_buffer);
-	char packet_buffer[10000];
 
 	while (iobyte != 0)
 	{
@@ -139,6 +136,7 @@ void network_manager::ReadBuffer(SOCKET sock)
 		if (in_packet_size == 0) in_packet_size = size;
 		if (iobyte + saved_packet_size >= in_packet_size)
 		{
+			cout << size << ", " << (int)ptr[2] << endl;
 			memcpy(packet_buffer + saved_packet_size, ptr, in_packet_size - saved_packet_size);
 			PacketProccess(packet_buffer);
 			ptr += in_packet_size - saved_packet_size;

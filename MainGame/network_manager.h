@@ -109,6 +109,11 @@ public:
 	HWND async_handle;
 	bool first_recv;
 
+	int saved_packet_size = 0;
+	int in_packet_size = 0;
+	char packet_buffer[MAX_BUFFER];
+
+
 
 public:
 	bool IsConnect() { return m_OtherInfo.is_connect; }
