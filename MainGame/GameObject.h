@@ -473,6 +473,10 @@ public:
 	bool is_active = false;
 	bool is_collision = false;
 
+	bool is_ArrowShoot = false;
+
+	int m_Arrowstack = 0;
+
 	int m_id = -1;
 
 	char m_nTrapKind;

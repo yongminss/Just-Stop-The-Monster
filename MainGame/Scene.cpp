@@ -255,6 +255,7 @@ void TitleScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 	case Select_Room:
 		if (m_BackButton) m_BackButton->Render(CommandList);
+
 		for (GAME_ROOM_C* a : network_manager::GetInst()->m_vec_gameRoom) {
 			if (cnt == 0) m_Room_1->Render(CommandList);
 			if (cnt == 1) m_Room_2->Render(CommandList);
@@ -329,9 +330,27 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 				m_state = Wait_Room;
 			}
 			// Join Room
-			if (MousePos.x > 240 && MousePos.x < 590 && MousePos.y > 70 && MousePos.y < 120)
-				if (network_manager::GetInst()->m_vec_gameRoom.size() != NULL) {
+			if (MousePos.x > 260 && MousePos.x < 590 && MousePos.y > 110 && MousePos.y < 194)
+				if (network_manager::GetInst()->m_vec_gameRoom.size() == 1) {
 					network_manager::GetInst()->send_request_join_room(network_manager::GetInst()->m_vec_gameRoom[0]->room_number);
+					m_state = Wait_Room;
+
+				}
+			if (MousePos.x > 260 && MousePos.x < 590 && MousePos.y > 210 && MousePos.y < 300)
+				if (network_manager::GetInst()->m_vec_gameRoom.size() == 2) {
+					network_manager::GetInst()->send_request_join_room(network_manager::GetInst()->m_vec_gameRoom[1]->room_number);
+					m_state = Wait_Room;
+
+				}
+			if (MousePos.x > 260 && MousePos.x < 590 && MousePos.y > 320 && MousePos.y < 400)
+				if (network_manager::GetInst()->m_vec_gameRoom.size() == 2) {
+					network_manager::GetInst()->send_request_join_room(network_manager::GetInst()->m_vec_gameRoom[2]->room_number);
+					m_state = Wait_Room;
+
+				}
+			if (MousePos.x > 260 && MousePos.x < 590 && MousePos.y > 425 && MousePos.y < 505)
+				if (network_manager::GetInst()->m_vec_gameRoom.size() == 2) {
+					network_manager::GetInst()->send_request_join_room(network_manager::GetInst()->m_vec_gameRoom[3]->room_number);
 					m_state = Wait_Room;
 
 				}
@@ -465,6 +484,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	for (int i = 0; i < MAX_TRAP; ++i) {
 		m_Trap.emplace_back(new Trap());
 		GameObject *TrapObj = NULL;
+		GameObject *SpearObj = NULL;
 		if (i < MAX_TRAP / 4) {
 			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
 			m_Trap.back()->m_nTrapKind = TRAP_NEEDLE;
@@ -480,6 +500,8 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 		else {
 			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Arrow.bin", NULL, false);
 			m_Trap.back()->m_nTrapKind = TRAP_ARROW;
+			SpearObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Spear.bin", NULL, false);
+			m_Trap.back()->SetChild(SpearObj, false);
 		}
 		m_Trap.back()->SetChild(TrapObj, false);
 		m_Trap.back()->m_id = i;
@@ -945,6 +967,24 @@ void GameScene::Animate(float ElapsedTime)
 		XMFLOAT3 p_pos = m_Player->GetPosition();
 	}
 
+	/*for (int i = 0; i < MAX_TRAP; ++i) {
+		if (m_Trap[i]->m_nTrapKind == TRAP_ARROW && m_Trap[i]->is_active == true) {
+			XMFLOAT3 TrapRange1 = m_Trap[i]->GetPosition();
+			TrapRange1 = Vector3::Add(TrapRange1, Vector3::ScalarProduct(m_Trap[i]->GetUp(), 300.f));
+			XMFLOAT3 TrapRange2 = Vector3::Add(TrapRange1, Vector3::ScalarProduct(m_Trap[i]->GetLook(), 50.f));
+			if (TrapRange1.x < TrapRange2.x) {
+	
+			}
+			GameObject *SprObj = NULL;
+			SprObj = m_Trap[i]->FindFrame("Trap_Spear");
+			SprObj->SetPostion(Vector3::Add(SprObj->GetPosition(), Vector3::ScalarProduct(SprObj->GetUp(), 10.f)));
+			if ((SprObj->GetPosition().y - m_Trap[i]->GetPosition().y) > 300.0f) {
+				SprObj->SetPostion(XMFLOAT3(0.0f, 0.0f, 0.0f));
+			}
+		}
+	}*/
+
+
 	// Ohter Player
 	if (network_manager::GetInst()->IsConnect()) {
 		XMFLOAT4X4 Transform = network_manager::GetInst()->m_OtherInfo.Transform;
@@ -1028,7 +1068,6 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		int trap_id = m_Trap[network_manager::GetInst()->m_trap_pool[i].id]->m_id;
 		
 		if (m_Trap[trap_id]->GetIsBuildTrap() == false) {
-
 			XMFLOAT4X4 world = network_manager::GetInst()->m_trap_pool[i].trap4x4pos;
 			
 			m_Trap[trap_id]->is_active = true;
@@ -1036,8 +1075,38 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 			m_Trap[trap_id]->SetUp(XMFLOAT3(world._21, world._22, world._23));
 			m_Trap[trap_id]->SetLook(XMFLOAT3(world._31, world._32, world._33));
 			m_Trap[trap_id]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
+
+			if (m_Trap[trap_id]->m_nTrapKind == TRAP_ARROW) {
+
+					if (m_Trap[trap_id]->is_ArrowShoot != true) {
+
+
+						if (network_manager::GetInst()->m_trap_pool[i].wallTrapOn == true) {
+							m_Trap[trap_id]->is_ArrowShoot = true;
+
+						}
+						else
+							continue;
+					}
+					cout << "i 번째 화살 애니메이션" << endl;
+					GameObject *SprObj = NULL;
+					SprObj = m_Trap[trap_id]->FindFrame("Trap_Spear");
+					SprObj->SetPostion(Vector3::Add(SprObj->GetPosition(), Vector3::ScalarProduct(SprObj->GetUp(), 800.f*m_ElapsedTime)));
+					if ((SprObj->GetPosition().y - m_Trap[trap_id]->GetPosition().y) > 300.0f) {
+						SprObj->SetPostion(XMFLOAT3(0.0f, 0.0f, 0.0f));
+						m_Trap[trap_id]->m_Arrowstack++;
+						if (m_Trap[trap_id]->m_Arrowstack > 4) {
+							m_Trap[trap_id]->is_ArrowShoot = false;
+							m_Trap[trap_id]->m_Arrowstack = 0;
+							network_manager::GetInst()->m_trap_pool[i].wallTrapOn = false;
+						}
+					}
+				}
+
+
 		}
 	}
+
 
 	for (int i = 0; i < MAX_TRAP; ++i) {
 		if (m_Trap[i]->is_active == false) continue;
@@ -1215,7 +1284,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 				XMFLOAT3 position = Vector3::Add(XMFLOAT3(pos._41, pos._42, pos._43), Vector3::ScalarProduct(m_BulletEffect->GetRight(), 8));
 				position = Vector3::Add(position, Vector3::ScalarProduct(m_BulletEffect->GetLook(), 15));
 				m_BulletEffect->SetPostion(position);
-
+	
 				m_BulletEffect->Render(CommandList);
 			}
 		}

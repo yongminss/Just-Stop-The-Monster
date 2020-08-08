@@ -61,6 +61,7 @@ void network_manager::init_pool()
 
 	for (short i = 0; i < MAX_TRAP; ++i) {
 		m_trap_pool[i].enable = false;
+		m_trap_pool[i].wallTrapOn = false;
 	}
 	this->init_mon_pool();
 }
@@ -158,25 +159,25 @@ void network_manager::ReadBuffer(SOCKET sock)
 
 	while (iobyte != 0)
 	{
-		if (in_packet_size == 0)
-		{
-			in_packet_size = temp_size[0];
-		}
-		if (iobyte + saved_packet_size >= in_packet_size)
-		{
-			memcpy(m_buffer + saved_packet_size, temp, in_packet_size - saved_packet_size);
-			PacketProccess(m_buffer);
-			temp += in_packet_size - saved_packet_size;
-			iobyte -= in_packet_size - saved_packet_size;
-			in_packet_size = 0;
-			saved_packet_size = 0;
-		}
-		else
-		{
-			memcpy(m_buffer + saved_packet_size, temp, iobyte);
-			saved_packet_size += iobyte;
-			iobyte = 0;
-		}
+	if (in_packet_size == 0)
+	{
+	in_packet_size = temp_size[0];
+	}
+	if (iobyte + saved_packet_size >= in_packet_size)
+	{
+	memcpy(m_buffer + saved_packet_size, temp, in_packet_size - saved_packet_size);
+	PacketProccess(m_buffer);
+	temp += in_packet_size - saved_packet_size;
+	iobyte -= in_packet_size - saved_packet_size;
+	in_packet_size = 0;
+	saved_packet_size = 0;
+	}
+	else
+	{
+	memcpy(m_buffer + saved_packet_size, temp, iobyte);
+	saved_packet_size += iobyte;
+	iobyte = 0;
+	}
 	}*/
 }
 
@@ -199,7 +200,7 @@ void network_manager::PacketProccess(char* buf)
 		sc_packet_pos *pos_packet = reinterpret_cast<sc_packet_pos*>(buf);
 		//cout << "id: " << pos_packet->id << endl;
 		if (pos_packet->mover_id == m_my_info.id) { // 자기자신 위치
-			//m_my_info.Transform = pos_packet->world_pos;
+													//m_my_info.Transform = pos_packet->world_pos;
 			cout << "내 위치 받기 확인" << endl;
 		}
 		else if (pos_packet->mover_id == m_OtherInfo.id) { // 다른 플레이어 위치
@@ -216,7 +217,7 @@ void network_manager::PacketProccess(char* buf)
 		if (new_id != m_my_info.id) {
 			m_OtherInfo.id = new_id;
 			//m_OtherInfo.is_connect = true;
-			cout << "다른 플레이어 풋 확인"<< new_id << endl;
+			cout << "다른 플레이어 풋 확인" << new_id << endl;
 		}
 		break;
 	}
@@ -315,7 +316,7 @@ void network_manager::PacketProccess(char* buf)
 	}
 	case SC_TRAP_INFO: {
 		sc_packet_trap_info *trap_info_packet = reinterpret_cast<sc_packet_trap_info*>(buf);
-		if (trap_info_packet->trap_index >= 0 && trap_info_packet->trap_index < 50) {
+		if (trap_info_packet->trap_index >= 0 && trap_info_packet->trap_index < MAX_TRAP) {
 			cout << "new trap" << trap_info_packet->trap_index << endl;
 			m_trap_pool[trap_info_packet->trap_index].enable = true;
 			m_trap_pool[trap_info_packet->trap_index].id = trap_info_packet->trap_local_id;
@@ -323,6 +324,14 @@ void network_manager::PacketProccess(char* buf)
 			m_trap_pool[trap_info_packet->trap_index].trap4x4pos = trap_info_packet->trap_pos;
 
 			cout << "Server에서 받은 Trap ID : " << trap_info_packet->trap_index;
+		}
+		break;
+	}
+	case SC_WALLTRAP_ON: {
+		sc_packet_wallTrapOn *walltrap_on_packet = reinterpret_cast<sc_packet_wallTrapOn*>(buf);
+		if (walltrap_on_packet->trap_index >= 0 && walltrap_on_packet->trap_index < MAX_TRAP) {
+			m_trap_pool[walltrap_on_packet->trap_index].wallTrapOn = true;
+			cout << walltrap_on_packet->trap_index << "번 벽함정 on \n";
 		}
 		break;
 	}
@@ -457,9 +466,9 @@ void network_manager::send_packet(void * buf)
 
 	int ret = WSASend(m_serverSocket, send_over->wsabuf, 1, 0, 0, &send_over->over, 0);
 	if (0 != ret) {
-		int err_no = WSAGetLastError();
-		if (WSA_IO_PENDING != err_no)
-			socket_err_display("WSASend Error :", err_no);
+	int err_no = WSAGetLastError();
+	if (WSA_IO_PENDING != err_no)
+	socket_err_display("WSASend Error :", err_no);
 	}*/
 
 	DWORD iobytes;

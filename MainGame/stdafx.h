@@ -179,7 +179,7 @@ namespace Vector3
 	{
 		XMFLOAT3 xmf3Result;
 		XMStoreFloat3(&xmf3Result, XMVector3Length(XMLoadFloat3(&xmf3Vector)));
-		return(xmf3Result.x);
+		return(sqrt((xmf3Result.x * xmf3Result.x) + (xmf3Result.y * xmf3Result.y) + (xmf3Result.z * xmf3Result.z)));
 	}
 
 	inline float Angle(XMVECTOR& xmvVector1, XMVECTOR& xmvVector2)
@@ -215,7 +215,7 @@ namespace Vector3
 	{
 		XMFLOAT3 xmf3Result;
 		XMStoreFloat3(&xmf3Result, XMVector3Length(XMLoadFloat3(&xmf3Vector1) - XMLoadFloat3(&xmf3Vector2)));
-		return(xmf3Result.x);
+		return(sqrt((xmf3Result.x * xmf3Result.x) + (xmf3Result.y * xmf3Result.y) + (xmf3Result.z * xmf3Result.z)));
 	}
 }
 

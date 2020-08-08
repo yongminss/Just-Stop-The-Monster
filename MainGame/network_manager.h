@@ -33,6 +33,7 @@ struct GAME_ROOM_C {
 
 struct TRAPINFO_C {
 	volatile bool enable;
+	volatile bool wallTrapOn;
 	short id;
 	char trap_type;
 	DirectX::XMFLOAT3 trap_pos;
