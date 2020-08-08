@@ -448,18 +448,24 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	// 스카이박스
 	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
 
-	// 스테이지
-	/*m_Stage_01 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage01.bin", NULL, false);
-	m_Stage_01->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));*/
-
-	m_Stage_02 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage02.bin", NULL, false);
-	m_Stage_02->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
-
-	/*m_Stage_03 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage_03.bin", NULL, false);
-	m_Stage_03->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));*/
-
-	/*m_Stage_04 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage04.bin", NULL, false);
-	m_Stage_04->SetPostion(XMFLOAT3(-0.f, -50.f, 0.f));*/
+	switch (m_MapNum) {
+	case 1:
+		m_Stage_01 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage01.bin", NULL, false);
+		m_Stage_01->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
+		break;
+	case 2:
+		m_Stage_02 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage02.bin", NULL, false);
+		m_Stage_02->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
+		break;
+	case 3:
+		m_Stage_03 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage03.bin", NULL, false);
+		m_Stage_03->SetPostion(XMFLOAT3(0.f, -50.f, 0.f));
+		break;
+	case 4:
+		m_Stage_04 = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Stage04.bin", NULL, false);
+		m_Stage_04->SetPostion(XMFLOAT3(-0.f, -50.f, 0.f));
+		break;
+	}
 
 	// Trap Objects
 	for (int i = 0; i < MAX_TRAP; ++i) {
@@ -1232,6 +1238,27 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		shoot_time = 0.f;
 		is_shoot -= 1;
 	}
+
+	if (is_Reload == 0 || is_Reload == 2) {
+		if (18 <= m_Player->GetNowAnimationNum() && m_Player->GetNowAnimationNum() <= 26) {
+			int bul = m_Player->GetPlayerBullet();
+			if (bul > 3) {
+				m_Player->SetPlayerBullet(9);
+				is_Reload -= 1;
+			}
+			else {
+				m_Player->SetPlayerBullet(bul + 5);
+				is_Reload -= 1;
+			}
+		}
+	}
+	if (is_Reload > -1) {
+		Reload_time += m_ElapsedTime * 10;
+		if (Reload_time > 10.0f) {
+			Reload_time = 0.0f;
+			is_Reload -= 1;
+		}
+	}
 }
 
 void GameScene::CheckTile()
@@ -1426,118 +1453,125 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			//m_TrapType = -1;
 		}
 		else {
-			Camera *pCamera = m_Player->GetCamera();
-			XMFLOAT3 StartPos = pCamera->GetPosition();
-			XMFLOAT3 EndPos;
-			EndPos = Vector3::Normalize(pCamera->GetLook());
-
-			float ResultDistance = 10000;
-			int HitIndex = 0;
-
-			GameObject *MonObj = new GameObject();
-			GameObject *ResultObj = new GameObject();
-
-			for (int i = 0; i < m_Orc.size(); ++i) {
-				MonObj = m_Orc[i]->CheckMonster(StartPos, EndPos);
-				if (MonObj != NULL) {
-					if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
-						ResultObj = MonObj;
-						ResultDistance = ResultObj->GetMesh()->m_fDistance;
-						HitIndex = i;
-					}
-				}
-			}
-			MonObj = NULL;
-			for (int i = 0; i < m_StrongOrc.size(); ++i) {
-				MonObj = m_StrongOrc[i]->CheckMonster(StartPos, EndPos);
-				if (MonObj != NULL) {
-					if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
-						ResultObj = MonObj;
-						ResultDistance = ResultObj->GetMesh()->m_fDistance;
-						HitIndex = i;
-					}
-				}
-			}
-			MonObj = NULL;
-			for (int i = 0; i < m_WolfRider.size(); ++i) {
-				MonObj = m_WolfRider[i]->CheckMonster(StartPos, EndPos);
-				if (MonObj != NULL) {
-					if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
-						ResultObj = MonObj;
-						ResultDistance = ResultObj->GetMesh()->m_fDistance;
-						HitIndex = i;
-					}
-				}
-			}
-
-			GameObject *TileObj = new GameObject();
-
-			switch (m_MapNum) {
-			case 1:
-				TileObj = m_Stage_01->CheckTileBound(StartPos, EndPos, false);
-				break;
-			case 2:
-				TileObj = m_Stage_02->CheckTileBound(StartPos, EndPos, false);
-				break;
-			case 3:
-				TileObj = m_Stage_03->CheckTileBound(StartPos, EndPos, false);
-				break;
-			case 4:
-				TileObj = m_Stage_04->CheckTileBound(StartPos, EndPos, false);
-				break;
-			}
-
-			if ((TileObj == NULL && ResultObj != NULL) || (TileObj != NULL && ResultObj != NULL && TileObj->GetMesh()->m_fDistance > ResultDistance)) {
-				if (strstr(ResultObj->GetFrameName(), "Head")) {
-					switch (ResultObj->m_Type) {
-					case TYPE_ORC:
-					{
-						m_Orc[HitIndex]->m_RedHit = true;
-						network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, true);
-					}
-					break;
-					case TYPE_STRONGORC:
-					{
-						m_StrongOrc[HitIndex]->m_RedHit = true;
-						network_manager::GetInst()->send_shoot(m_StrongOrc[HitIndex]->m_id, true);
-					}
-					break;
-					case TYPE_RIDER:
-					{
-						m_WolfRider[HitIndex]->m_RedHit = true;
-						network_manager::GetInst()->send_shoot(m_WolfRider[HitIndex]->m_id, true);
-					}
-					break;
-					}
-				}
-				else {
-					switch (ResultObj->m_Type) {
-					case TYPE_ORC:
-					{
-						m_Orc[HitIndex]->m_RedHit = true;
-						network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, false);
-					}
-					break;
-					case TYPE_STRONGORC:
-					{
-						m_StrongOrc[HitIndex]->m_RedHit = true;
-						network_manager::GetInst()->send_shoot(m_StrongOrc[HitIndex]->m_id, false);
-					}
-					break;
-					case TYPE_RIDER:
-					{
-						m_WolfRider[HitIndex]->m_RedHit = true;
-						network_manager::GetInst()->send_shoot(m_WolfRider[HitIndex]->m_id, false);
-					}
-					break;
-					}
-				}
-			}
-
-			if (m_Player->GetNowAnimationNum() < 9 || m_Player->GetNowAnimationNum() > 28) {
+			int bul = m_Player->GetPlayerBullet();
+			if (m_Player->GetNowAnimationNum() < 9 && m_Player->GetNextAnimationNum() < 9 && bul > -1) {
 				is_shoot = 4;
 				m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
 				m_Player->SetEnable(9);
+				m_Player->SetPlayerBullet(--bul);
+
+				Camera *pCamera = m_Player->GetCamera();
+				XMFLOAT3 StartPos = pCamera->GetPosition();
+				XMFLOAT3 EndPos;
+				EndPos = Vector3::Normalize(pCamera->GetLook());
+
+				float ResultDistance = 10000;
+				int HitIndex = 0;
+
+				GameObject *MonObj = new GameObject();
+				GameObject *ResultObj = new GameObject();
+
+				for (int i = 0; i < m_Orc.size(); ++i) {
+					MonObj = m_Orc[i]->CheckMonster(StartPos, EndPos);
+					if (MonObj != NULL) {
+						if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
+							ResultObj = MonObj;
+							ResultDistance = ResultObj->GetMesh()->m_fDistance;
+							HitIndex = i;
+						}
+					}
+				}
+				MonObj = NULL;
+				for (int i = 0; i < m_StrongOrc.size(); ++i) {
+					MonObj = m_StrongOrc[i]->CheckMonster(StartPos, EndPos);
+					if (MonObj != NULL) {
+						if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
+							ResultObj = MonObj;
+							ResultDistance = ResultObj->GetMesh()->m_fDistance;
+							HitIndex = i;
+						}
+					}
+				}
+				MonObj = NULL;
+				for (int i = 0; i < m_WolfRider.size(); ++i) {
+					MonObj = m_WolfRider[i]->CheckMonster(StartPos, EndPos);
+					if (MonObj != NULL) {
+						if (ResultObj == NULL || MonObj->GetMesh()->m_fDistance < ResultDistance) {
+							ResultObj = MonObj;
+							ResultDistance = ResultObj->GetMesh()->m_fDistance;
+							HitIndex = i;
+						}
+					}
+				}
+
+				GameObject *TileObj = new GameObject();
+
+				switch (m_MapNum) {
+				case 1:
+					TileObj = m_Stage_01->CheckTileBound(StartPos, EndPos, false);
+					break;
+				case 2:
+					TileObj = m_Stage_02->CheckTileBound(StartPos, EndPos, false);
+					break;
+				case 3:
+					TileObj = m_Stage_03->CheckTileBound(StartPos, EndPos, false);
+					break;
+				case 4:
+					TileObj = m_Stage_04->CheckTileBound(StartPos, EndPos, false);
+					break;
+				}
+
+				if ((TileObj == NULL && ResultObj != NULL) || (TileObj != NULL && ResultObj != NULL && TileObj->GetMesh()->m_fDistance > ResultDistance)) {
+					if (strstr(ResultObj->GetFrameName(), "Head")) {
+						switch (ResultObj->m_Type) {
+						case TYPE_ORC:
+						{
+							m_Orc[HitIndex]->m_RedHit = true;
+							network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, true);
+						}
+						break;
+						case TYPE_STRONGORC:
+						{
+							m_StrongOrc[HitIndex]->m_RedHit = true;
+							network_manager::GetInst()->send_shoot(m_StrongOrc[HitIndex]->m_id, true);
+						}
+						break;
+						case TYPE_RIDER:
+						{
+							m_WolfRider[HitIndex]->m_RedHit = true;
+							network_manager::GetInst()->send_shoot(m_WolfRider[HitIndex]->m_id, true);
+						}
+						break;
+						}
+					}
+					else {
+						switch (ResultObj->m_Type) {
+						case TYPE_ORC:
+						{
+							m_Orc[HitIndex]->m_RedHit = true;
+							network_manager::GetInst()->send_shoot(m_Orc[HitIndex]->m_id, false);
+						}
+						break;
+						case TYPE_STRONGORC:
+						{
+							m_StrongOrc[HitIndex]->m_RedHit = true;
+							network_manager::GetInst()->send_shoot(m_StrongOrc[HitIndex]->m_id, false);
+						}
+						break;
+						case TYPE_RIDER:
+						{
+							m_WolfRider[HitIndex]->m_RedHit = true;
+							network_manager::GetInst()->send_shoot(m_WolfRider[HitIndex]->m_id, false);
+						}
+						break;
+						}
+					}
+				}
+			}
+			else if (m_Player->GetNowAnimationNum() < 9 && m_Player->GetNextAnimationNum() < 9 && bul == -1) {
+				is_Reload = 4;
+				m_Player->SetPlayerAnimateType(ANIMATION_TYPE_RELOAD);
+				m_Player->SetEnable(18);
 			}
 		}
 		break;
@@ -1587,8 +1621,11 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		break;
 		case 'r':
 		case 'R':
-			m_Player->SetPlayerAnimateType(ANIMATION_TYPE_RELOAD);
-			m_Player->SetEnable(18);
+			if (m_Player->GetPlayerBullet() < 9 && m_Player->GetNextAnimationNum() < 9 && m_Player->GetNowAnimationNum() < 9) {
+				is_Reload = 4;
+				m_Player->SetPlayerAnimateType(ANIMATION_TYPE_RELOAD);
+				m_Player->SetEnable(18);
+			}
 			break;
 
 			// 함정 설치
@@ -1819,14 +1856,23 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		case '5':
 		{
 			int hp = m_Player->GetPlayerLife();
-			m_Player->SetPlayerLife(--hp);
+			if (hp > 0)
+				m_Player->SetPlayerLife(--hp);
+			int bul = m_Player->GetPlayerBullet();
+			if (bul > 0)
+				m_Player->SetPlayerBullet(--bul);
 		}
 		break;
+
 
 		case '6':
 		{
 			int hp = m_Player->GetPlayerLife();
-			m_Player->SetPlayerLife(++hp);
+			if (hp < 9)
+				m_Player->SetPlayerLife(++hp);
+			int bul = m_Player->GetPlayerBullet();
+			if (bul < 9)
+				m_Player->SetPlayerBullet(++bul);
 		}
 		break;
 

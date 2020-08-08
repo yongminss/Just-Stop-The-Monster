@@ -52,6 +52,7 @@ private:
 	GameScene					*m_GameScene = NULL;
 	
 	int							SceneState = 0;
+	int							m_GameStage = 0;
 
 	// Server에 사용할 Timer
 	double						m_CheckTime = 0;

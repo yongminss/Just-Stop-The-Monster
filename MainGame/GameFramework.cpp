@@ -382,8 +382,12 @@ void GameFramework::FrameAdvance()
 
 	if (m_TitleScene) {
 		bool GameStart = m_TitleScene->IsStartGame();
-		if (true == GameStart) SceneState = GameState;
+		if (true == GameStart) {
+			SceneState = GameState;
+			m_GameStage = m_TitleScene->GetGameStage();
+		}
 	}
+
 	// Scene을 Rendering 하는 영역
 	switch (SceneState)
 	{
@@ -405,9 +409,10 @@ void GameFramework::FrameAdvance()
 			m_TitleScene = NULL;
 			if (m_GameScene == NULL) {
 				m_GameScene = new GameScene();
+				m_GameScene->SetStageNum(m_GameStage);
 				m_GameScene->BuildObject(m_Device, m_CommandList);
 				m_Timer.Reset();
-				network_manager::GetInst()->send_change_state_packet(PLAYER_STATE_playing_game, 1);
+				network_manager::GetInst()->send_change_state_packet(PLAYER_STATE_playing_game, m_GameStage);
 			}
 		}
 		// 여기서 패킷을 보냄

@@ -82,6 +82,8 @@ public:
 
 	bool IsStartGame() { return m_StartGame; }
 
+	int GetGameStage() { return m_StageNumber; }
+
 };
 
 #define MAX_LIGHTS			16
@@ -237,5 +239,11 @@ public:
 	int is_shoot = -1;
 
 	float shoot_time = 0.f;
+
+	void SetStageNum(int num) { m_MapNum = num; }
+
+	int is_Reload = -1;
+
+	float Reload_time = 0.f;
 
 };
