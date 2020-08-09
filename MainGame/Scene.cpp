@@ -950,6 +950,7 @@ void GameScene::Animate(float ElapsedTime)
 			if (TileObject != NULL) {
 				BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
 				BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
+				
 				XMFLOAT3 BoundDistance = Vector3::Subtract(BoundTile.Center, BoundPlayer.Center);
 				if (BoundTile.Extents.x < BoundTile.Extents.z) { // 세로벽
 					if (BoundDistance.x < 0.f) { //왼쪽 벽 충돌체크
@@ -970,7 +971,91 @@ void GameScene::Animate(float ElapsedTime)
 				}
 			}
 		}
+
+		//m_Player->GetCamera()->SetOffset(XMFLOAT3(0.0f, 70.0f, -150.0f));
+
+		//Camera *pCamera =;
+
+		//if (m_Player->GetCamera()) {
+		//	m_Player->GetCamera()->Update(m_Player->GetPosition(), ElapsedTime);
+		//	m_Player->GetCamera()->RegenerateViewMatrix();
+		//}
+		XMFLOAT3 StartPos = m_Player->GetCamera()->GetPosition();
+		cout << "Cam Pos x: " << StartPos.x  << " y: "<< StartPos.y << " z: " << StartPos.z << endl;
+		XMFLOAT3 EndPos;
+		EndPos = Vector3::Normalize(Vector3::Subtract(m_Player->GetPosition(), StartPos));
+
+
+		GameObject *TileObject = new GameObject;
+		BoundingBox BoundCam = m_Player->GetCamera()->GetCamBound();
+		BoundCam.Transform(BoundCam, XMLoadFloat4x4(&Matrix4x4::Inverse(m_Player->GetCamera()->GetViewMatrix())));
+
+		
+
+		switch (m_MapNum) {
+		case 1:
+			TileObject = m_Stage_02->CheckCamBlock(StartPos, EndPos);//m_Stage_02->IsStageIntersect(BoundCam);
+			break;
+		case 2:
+			TileObject = m_Stage_03->IsStageIntersect(BoundCam);
+			break;
+		case 3:
+			TileObject = m_Stage_04->IsStageIntersect(BoundCam);
+			break;
+		}
+		//if (TileObject != NULL) {
+		//
+		//	BoundingBox BoundTile = TileObject->GetMesh()->GetBounds();
+		//	BoundTile.Transform(BoundTile, XMLoadFloat4x4(&TileObject->m_WorldPos));
+		//
+		//	XMFLOAT3 BoundCamDistance = Vector3::Subtract(BoundTile.Center, BoundCam.Center);
+		//
+		//	m_Player->GetCamera()->SetOffset(XMFLOAT3(0.0f, 70.0f, +30.0f));
+		//	
+		//	if (BoundTile.Extents.x < BoundTile.Extents.z) { // 세로벽
+		//		
+		//		if(StartPos.x <=  BoundTile.Center.x + BoundTile.Extents.x && BoundTile.Center.x - BoundTile.Extents.x <= m_Player->GetPosition().x)
+		//			m_Player->GetCamera()->SetOffset(XMFLOAT3(0.0f, 70.0f, +30.0f));
+		//
+		//		if (StartPos.x >= BoundTile.Center.x - BoundTile.Extents.x && BoundTile.Center.x + BoundTile.Extents.x >= m_Player->GetPosition().x)
+		//			m_Player->GetCamera()->SetOffset(XMFLOAT3(0.0f, 70.0f, +30.0f));
+		//		if (BoundCamDistance.x < 0.f) { //왼쪽 벽 충돌체크
+		//			//m_Player->GetCamera()->SetPosition(Vector3::Add(XMFLOAT3(0.0f, 0.0f, BoundTile.Extents.z + BoundCam.Extents.z - BoundCamDistance.z ), m_Player->GetCamera()->GetPosition()));
+		//			cout << "왼벽 충돌" << endl;
+		//			//cout << "BoundDistance x: " << BoundCamDistance.x << " y: " << BoundCamDistance.y << " z: " << BoundCamDistance.z << endl;
+		//			//cout << "cam pos x: " << m_Player->GetCamera()->GetPosition().x << " y: " << m_Player->GetCamera()->GetPosition().y << " z: " << m_Player->GetCamera()->GetPosition().z << endl;
+		//		}
+		//		else {						//오른쪽 벽 충돌체크
+		//			//m_Player->GetCamera()->SetPosition(Vector3::Add(XMFLOAT3(-BoundTile.Extents.x - BoundCam.Extents.x + BoundCamDistance.x, 0.0f, 0.0f), m_Player->GetCamera()->GetPosition()));
+		//			cout << "오른벽 충돌" << endl;
+		//		}
+		//		//cout << "x 벽 충돌중" << endl;
+		//	}
+		//	else {	//가로벽
+		//		if (StartPos.z <= BoundTile.Center.z + BoundTile.Extents.z && BoundTile.Center.z + BoundTile.Extents.z <= m_Player->GetPosition().z)
+		//			m_Player->GetCamera()->SetOffset(XMFLOAT3(0.0f, 70.0f, +30.0f));
+		//		
+		//		if (StartPos.z >= BoundTile.Center.z - BoundTile.Extents.z && BoundTile.Center.z + BoundTile.Extents.z >= m_Player->GetPosition().z)
+		//			m_Player->GetCamera()->SetOffset(XMFLOAT3(0.0f, 70.0f, +30.0f));
+		//
+		//		if (BoundCamDistance.z < 0.f) { //후방 벽 충돌체크
+		//			//m_Player->GetCamera()->SetPosition(Vector3::Add(XMFLOAT3(0.0f, 0.0f, BoundTile.Extents.z + BoundCam.Extents.z + BoundCamDistance.z), m_Player->GetCamera()->GetPosition()));
+		//			cout << "후벽 충돌" << endl;
+		//		}
+		//		else {						//전방 벽 충돌체크
+		//			//m_Player->GetCamera()->SetPosition(Vector3::Add(XMFLOAT3(0.0f, 0.0f, -BoundTile.Extents.z - BoundCam.Extents.z + BoundCamDistance.z), m_Player->GetCamera()->GetPosition()));
+		//			cout << "전방벽 충돌" << endl;
+		//		}
+		//	}
+		//}
+		//else {
+		//	cout << "충돌안된 Cam Pos x: " << StartPos.x << " y: " << StartPos.y << " z: " << StartPos.z << endl;
+		//	//cout << "Offset x: " << m_Player->GetCamera()->GetOffset().x << " y: " << m_Player->GetCamera()->GetOffset().y << " z: " << m_Player->GetCamera()->GetOffset().z << endl;
+		//	//cout << "충돌처리 안됨" << endl;
+		//}
+		
 		m_Player->Update(ElapsedTime);
+		
 		XMFLOAT3 p_pos = m_Player->GetPosition();
 	}
 

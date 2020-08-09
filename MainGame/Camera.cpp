@@ -19,6 +19,9 @@ Camera::Camera()
 	m_Offset = XMFLOAT3(0.f, 0.f, 0.f);
 	m_TimeLeg = 0.05f;
 	m_Player = NULL;
+
+	m_CamBound.Center = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	m_CamBound.Extents = XMFLOAT3(2.0f, 2.0f, 2.0f);
 }
 
 Camera::~Camera()
@@ -174,6 +177,8 @@ void Camera::Update(XMFLOAT3& LookAt, float ElapsedTime)
 		Rotate._11 = Right.x, Rotate._12 = Right.y, Rotate._13 = Right.z;
 		Rotate._21 = Up.x, Rotate._22 = Up.y, Rotate._23 = Up.z;
 		Rotate._31 = Look.x, Rotate._32 = Look.y, Rotate._33 = Look.z;
+
+		//
 
 		XMFLOAT3 Offset = Vector3::TransformCoord(m_Offset, Rotate);
 		XMFLOAT3 Position = Vector3::Add(m_Player->GetPosition(), Offset);

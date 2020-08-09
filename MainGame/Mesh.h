@@ -75,6 +75,8 @@ public:
 
 	float			m_fDistance;
 
+	bool			m_IsRender = true;
+
 protected:
 	char			m_strMeshName[64] = { 0 };
 

@@ -23,6 +23,8 @@ protected:
 	XMFLOAT3			m_Look;
 	XMFLOAT3			m_Position;
 
+	BoundingBox			m_CamBound;
+
 	float				m_Pitch;
 	float				m_Yaw;
 	float				m_Roll;
@@ -49,6 +51,7 @@ public:
 	XMFLOAT4X4 & GetViewMatrix() { return(m_View); }
 	XMFLOAT4X4& GetProjectionMatrix() { return(m_Projection); }
 
+	BoundingBox GetCamBound() { return m_CamBound; }
 
 	void SetViewport(float TopLeftX, float TopLeftY, float Width, float Height, float MinDepth, float MaxDepth);
 	void SetScissorRect(LONG Left, LONG Top, LONG Right, LONG Bottom);

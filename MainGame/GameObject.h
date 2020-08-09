@@ -377,6 +377,8 @@ public:
 
 	GameObject *IsStageIntersect(BoundingBox BodyBound);
 
+	GameObject *CheckCamBlock(XMFLOAT3 startpos, XMFLOAT3 endpos);
+
 	GameObject *CheckMonster(XMFLOAT3 startpos, XMFLOAT3 endpos);
 
 	GameObject *CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool IsFloor);

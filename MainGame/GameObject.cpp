@@ -970,6 +970,27 @@ GameObject *GameObject::IsStageIntersect(BoundingBox BodyBound)
 	return NULL;
 }
 
+GameObject *GameObject::CheckCamBlock(XMFLOAT3 startpos, XMFLOAT3 endpos)
+{
+	if (m_Mesh) {
+		// º® Å¸ÀÏ
+		if (strstr(m_FrameName, "Normal") || strstr(m_FrameName, "None")) {
+			BoundingBox TileBound = m_Mesh->GetBounds();
+			TileBound.Transform(TileBound, XMLoadFloat4x4(&m_WorldPos));
+			if (TileBound.Intersects(XMLoadFloat3(&startpos), XMLoadFloat3(&endpos), m_Mesh->m_fDistance) == true) {
+				m_Mesh->m_IsRender = false;
+				return this;
+			}
+		}
+	}
+	if (m_Sibling)
+		return m_Sibling->CheckCamBlock(startpos, endpos);
+	if (m_Child)
+		return m_Child->CheckCamBlock(startpos, endpos);
+
+	return NULL;
+}
+
 GameObject *GameObject::CheckMonster(XMFLOAT3 startpos, XMFLOAT3 endpos)
 {
 	if (m_Mesh) {
@@ -1133,19 +1154,23 @@ void GameObject::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
 
 void GameObject::Render(ID3D12GraphicsCommandList *CommandList)
 {
-	OnPrepareRender();
-	UpdateShaderVariable(CommandList, &m_WorldPos);
+	
+		OnPrepareRender();
+		UpdateShaderVariable(CommandList, &m_WorldPos);
 
-	if (m_nMaterial > 0) {
-		for (int i = 0; i < m_nMaterial; ++i) {
-			if (m_Material[i]) {
-				if (m_Material[i]->m_Shader)
-					m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
-				m_Material[i]->UpdateShaderVariable(CommandList);
+		if (m_nMaterial > 0) {
+			for (int i = 0; i < m_nMaterial; ++i) {
+				if (m_Material[i]) {
+					if (m_Material[i]->m_Shader)
+						m_Material[i]->m_Shader->OnPrepareRender(CommandList, 0);
+					m_Material[i]->UpdateShaderVariable(CommandList);
+				}
+				if (m_Mesh->m_IsRender) {
+					m_Mesh->Render(CommandList, i);
+				}
 			}
-			m_Mesh->Render(CommandList, i);
 		}
-	}
+	
 	if (m_Sibling) m_Sibling->Render(CommandList);
 	if (m_Child) m_Child->Render(CommandList);
 }
