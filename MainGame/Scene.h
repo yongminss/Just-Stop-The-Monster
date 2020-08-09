@@ -156,7 +156,7 @@ private:
 	UI							*m_TrapListUi = NULL;
 	UI							*m_Scope = NULL;
 	UI							*m_HpBar[10];
-	UI							*m_Bullet[10];
+	UI							*m_Bullet[30];
 	UI							*m_victory = NULL;
 	UI							*m_gameover = NULL;
 

@@ -484,8 +484,8 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.3f, 0.125f, UI_TrapList, 1);
 	m_Scope = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.0365f, UI_SCOPE, 1);
 
-	for (int i = 0; i < 10; i++) {
-		m_Bullet[i] = new UI(Device, CommandList, m_GraphicsRootSignature, 0.1f, 0.15f, UI_Bullet + i, 1);
+	for (int i = 0; i < 30; i++) {
+		m_Bullet[i] = new UI(Device, CommandList, m_GraphicsRootSignature, 0.1f, 0.13f, UI_Bullet + i, 1);
 	}
 	m_victory = new UI(Device, CommandList, m_GraphicsRootSignature, 0.5f, 0.2f, UI_Victory, 1);
 	m_gameover = new UI(Device, CommandList, m_GraphicsRootSignature, 0.5f, 0.175f, UI_Gameover, 1);
@@ -1512,21 +1512,21 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		is_shoot -= 1;
 	}
 
-	if (is_Reload == 0 || is_Reload == 2) {
+	if (is_Reload == 0 || is_Reload == 2 || is_Reload == 4) {
 		if (18 <= m_Player->GetNowAnimationNum() && m_Player->GetNowAnimationNum() <= 26) {
 			int bul = m_Player->GetPlayerBullet();
-			if (bul > 3) {
-				m_Player->SetPlayerBullet(9);
+			if (bul > 18) {
+				m_Player->SetPlayerBullet(29);
 				is_Reload -= 1;
 			}
 			else {
-				m_Player->SetPlayerBullet(bul + 5);
+				m_Player->SetPlayerBullet(bul + 10);
 				is_Reload -= 1;
 			}
 		}
 	}
 	if (is_Reload > -1) {
-		Reload_time += m_ElapsedTime * 10;
+		Reload_time += m_ElapsedTime * 15;
 		if (Reload_time > 10.0f) {
 			Reload_time = 0.0f;
 			is_Reload -= 1;
@@ -1941,8 +1941,8 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 		break;
 		case 'r':
 		case 'R':
-			if (m_Player->GetPlayerBullet() < 9 && m_Player->GetNextAnimationNum() < 9 && m_Player->GetNowAnimationNum() < 9) {
-				is_Reload = 4;
+			if (m_Player->GetPlayerBullet() < 29 && m_Player->GetNextAnimationNum() < 9 && m_Player->GetNowAnimationNum() < 9) {
+				is_Reload = 6;
 				m_Player->SetPlayerAnimateType(ANIMATION_TYPE_RELOAD);
 				m_Player->SetEnable(18);
 			}

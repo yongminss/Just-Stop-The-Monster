@@ -1478,7 +1478,27 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	case UI_Bullet + 7:
 	case UI_Bullet + 8:
 	case UI_Bullet + 9:
-		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_Bullet.dds", 0);
+	case UI_Bullet + 10:
+	case UI_Bullet + 11:
+	case UI_Bullet + 12:
+	case UI_Bullet + 13:
+	case UI_Bullet + 14:
+	case UI_Bullet + 15:
+	case UI_Bullet + 16:
+	case UI_Bullet + 17:
+	case UI_Bullet + 18:
+	case UI_Bullet + 19:
+	case UI_Bullet + 20:
+	case UI_Bullet + 21:
+	case UI_Bullet + 22:
+	case UI_Bullet + 23:
+	case UI_Bullet + 24:
+	case UI_Bullet + 25:
+	case UI_Bullet + 26:
+	case UI_Bullet + 27:
+	case UI_Bullet + 28:
+	case UI_Bullet + 29:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/bullet_ui.dds", 0);
 		break;
 
 	default:

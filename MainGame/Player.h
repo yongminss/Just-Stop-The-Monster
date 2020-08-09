@@ -22,7 +22,7 @@ protected:
 	bool			m_MoveRight = false;
 
 	int				m_PlayerLife = 200;
-	int				m_BulletCount = 9;
+	int				m_BulletCount = 29;
 
 	HWND			m_hWnd = NULL;
 	POINT			m_OldCursorPos{};
