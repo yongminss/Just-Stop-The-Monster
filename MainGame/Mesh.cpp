@@ -155,7 +155,13 @@ TextureMesh::TextureMesh(ID3D12Device *Device, ID3D12GraphicsCommandList *Comman
 	if (StageNum_2 == ImageType) tempX = -0.5f, tempY = 0.22f;
 	// Stage Num 3
 	if (StageNum_3 == ImageType) tempX = -0.5f, tempY = 0.22f;
-	// ID Num 1
+	// game victory
+	if (ImageType == UI_Victory) tempY = 0.7f;
+	// game over
+	if (ImageType == UI_Gameover) tempY = 0.6f;
+	// wave
+	if (ImageType == UI_wave01 || ImageType == UI_wave02 || ImageType == UI_wave03 || ImageType == UI_wave04 || ImageType == UI_wave05 ||
+		ImageType == UI_wave06 || ImageType == UI_wave07 || ImageType == UI_wave08 || ImageType == UI_wave09 || ImageType == UI_wave10) tempX = +0.75f, tempY = +0.9f;
 
 	// HpBar UI
 	if (UI_HpBar <= ImageType && ImageType <= UI_HpBar + 9) tempX = -0.735f + (float)(ImageType - UI_HpBar) * 0.051f, tempY = 0.897f;

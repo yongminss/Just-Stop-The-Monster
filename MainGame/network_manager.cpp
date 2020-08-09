@@ -33,8 +33,6 @@ void network_manager::init_data()
 	ZeroMemory(&m_orcPool, sizeof(m_orcPool));
 	ZeroMemory(&m_strongorcPool, sizeof(m_strongorcPool));
 	ZeroMemory(&m_riderPool, sizeof(m_riderPool));
-	
-	for (int i = 0; i < 4; ++i) m_myRoomInfo.players_id[i] = -1;
 
 	m_vec_gameRoom.reserve(20);
 	m_vec_trapPool.reserve(50);
@@ -294,7 +292,7 @@ void network_manager::PacketProccess(char* buf)
 		m_my_info.hp = 200;
 		m_my_info.gold = 500;
 		m_myRoomInfo.portalLife = 20;
-		m_myRoomInfo.wave_count = 0;
+		m_myRoomInfo.wave_count = 1;
 		init_pool();
 	}
 	case SC_MONSTER_POS: {
@@ -372,13 +370,17 @@ void network_manager::PacketProccess(char* buf)
 		else if (stat_change_packet->gold == -1000) { // hp업데이트
 			m_my_info.hp = stat_change_packet->hp;
 		}
+		else { // hp업데이트
+			m_my_info.hp = stat_change_packet->hp;
+			m_my_info.gold = stat_change_packet->gold;
+		}
 		break;
 	}
 	case SC_GAME_INFO_UPDATE: {
 		sc_packet_game_info_update *game_info_update_packet = reinterpret_cast<sc_packet_game_info_update*>(buf);
 		if (game_info_update_packet->portalLife == -1000) { // wave 업데이트
 			m_myRoomInfo.wave_count = game_info_update_packet->wave;
-			cout << "wave update" << endl;
+			cout << "wave update " << m_myRoomInfo.wave_count << endl;
 			for (short i = 0; i < MAX_MONSTER; ++i) {
 				//m_monster_pool[i].isLive = false;
 			}
@@ -397,12 +399,16 @@ void network_manager::PacketProccess(char* buf)
 		sc_packet_game_end *game_end_packet = reinterpret_cast<sc_packet_game_end*>(buf);
 		if (game_end_packet->clear == true) { // 클리어
 			cout << "stage clear\n";
+			game_end = true;
 		}
 		else {// 실패
 			cout << "stage fail\n";
 		}
 
 		m_my_info.player_state = PLAYER_STATE_in_lobby;
+		m_OtherInfo.is_connect = false;
+		m_OtherInfo.id = -1;
+
 		break;
 	}
 	case SC_NAMELOGIN_RESULT: {

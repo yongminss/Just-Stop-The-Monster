@@ -83,6 +83,7 @@ public:
 	bool wsa = false;
 
 	int orc_id = 0, sorc_id = 0, wolf_id = 0;
+	bool game_end = false;
 
 	WSADATA m_WSAData;
 	SOCKET m_serverSocket;
@@ -108,7 +109,6 @@ public:
 	MONSTER m_riderPool[MAX_MONSTER];
 
 	HWND async_handle;
-	bool first_recv;
 
 	int saved_packet_size = 0;
 	int in_packet_size = 0;

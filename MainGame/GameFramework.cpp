@@ -457,11 +457,11 @@ void GameFramework::FrameAdvance()
 
 	MoveToNextFrame();
 
-	m_Timer.GetFrameRate(m_FrameRate + 23, 37);
-	size_t Length = _tcslen(m_FrameRate);
+	//m_Timer.GetFrameRate(m_FrameRate + 23, 37);
+	//size_t Length = _tcslen(m_FrameRate);
 
-	_stprintf_s(m_FrameRate + Length, 70 - Length, _T(" "));
-	::SetWindowText(m_hwnd, m_FrameRate);
+	//_stprintf_s(m_FrameRate + Length, 70 - Length, _T(" "));
+	::SetWindowText(m_hwnd, L"Just Stop The Monster !");
 
 	chrono::duration<double> sec = chrono::system_clock::now() - start;
 

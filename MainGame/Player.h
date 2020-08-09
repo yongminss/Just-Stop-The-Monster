@@ -21,7 +21,7 @@ protected:
 	bool			m_MoveLeft = false;
 	bool			m_MoveRight = false;
 
-	int				m_PlayerLife = 9;
+	int				m_PlayerLife = 200;
 	int				m_BulletCount = 9;
 
 	HWND			m_hWnd = NULL;

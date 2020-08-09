@@ -104,6 +104,18 @@ enum {
 	UI_PlayerInfo,
 	UI_TrapList,
 	UI_SCOPE,
+	UI_Victory,
+	UI_Gameover,
+	UI_wave01,
+	UI_wave02,
+	UI_wave03,
+	UI_wave04,
+	UI_wave05,
+	UI_wave06,
+	UI_wave07,
+	UI_wave08,
+	UI_wave09,
+	UI_wave10,
 	UI_HpBar,
 	UI_Bullet = UI_HpBar + 10
 };

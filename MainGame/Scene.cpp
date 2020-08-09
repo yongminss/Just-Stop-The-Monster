@@ -393,7 +393,7 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 		break;
 
 	default:
-		cout << "x: " << MousePos.x << " y: " << MousePos.y << endl;
+		//cout << "x: " << MousePos.x << " y: " << MousePos.y << endl;
 		switch (m_state) {
 		case Basic:
 			break;
@@ -441,7 +441,26 @@ GameScene::GameScene()
 
 GameScene::~GameScene()
 {
+	// Direct 삭제
+	if (m_GraphicsRootSignature) m_GraphicsRootSignature->Release();
+	if (m_cbLight) m_cbLight->Release();
 
+	// GameObject 삭제
+	if (m_Player) m_Player->Release();
+
+	if (m_Stage_02) m_Stage_02->Release();
+
+	m_Trap.clear();
+	vector<Trap*>().swap(m_Trap);
+
+	m_Orc.clear();
+	vector<Monster*>().swap(m_Orc);
+
+	m_StrongOrc.clear();
+	vector<Monster*>().swap(m_StrongOrc);
+
+	m_WolfRider.clear();
+	vector<Monster*>().swap(m_WolfRider);
 }
 
 void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList)
@@ -461,7 +480,6 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 		m_HpBar[i] = new UI(Device, CommandList, m_GraphicsRootSignature, 0.04f, 0.06f, UI_HpBar + i, 1);
 	}
 
-
 	m_CharInfo = new UI(Device, CommandList, m_GraphicsRootSignature, 0.4f, 0.125f, UI_PlayerInfo, 1);
 	m_TrapListUi = new UI(Device, CommandList, m_GraphicsRootSignature, 0.3f, 0.125f, UI_TrapList, 1);
 	m_Scope = new UI(Device, CommandList, m_GraphicsRootSignature, 0.03f, 0.0365f, UI_SCOPE, 1);
@@ -469,8 +487,18 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	for (int i = 0; i < 10; i++) {
 		m_Bullet[i] = new UI(Device, CommandList, m_GraphicsRootSignature, 0.1f, 0.15f, UI_Bullet + i, 1);
 	}
+	m_victory = new UI(Device, CommandList, m_GraphicsRootSignature, 0.5f, 0.2f, UI_Victory, 1);
+	m_gameover = new UI(Device, CommandList, m_GraphicsRootSignature, 0.5f, 0.175f, UI_Gameover, 1);
+
+	
+	for (int i = 0; i < 10; ++i) {
+		m_wave[i] = new UI(Device, CommandList, m_GraphicsRootSignature, 0.25f, 0.25f, UI_wave01 + i, 1);
+	}
 	// 스카이박스
-	for (int i = 0; i < 5; ++i) m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
+	for (int i = 0; i < 5; ++i) {
+		m_SkyBox[i] = new SkyBox(Device, CommandList, m_GraphicsRootSignature, i);
+		if (i == 4) m_SkyBox[i]->SetRotate(0.f, -90.f, 0.f);
+	}
 
 	switch (m_MapNum) {
 	case 1:
@@ -491,7 +519,6 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	for (int i = 0; i < MAX_TRAP; ++i) {
 		m_Trap.emplace_back(new Trap());
 		GameObject *TrapObj = NULL;
-		GameObject *SpearObj = NULL;
 		if (i < MAX_TRAP / 4) {
 			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Needle.bin", NULL, true);
 			m_Trap.back()->m_nTrapKind = TRAP_NEEDLE;
@@ -499,6 +526,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 		else if (i < MAX_TRAP / 2) {
 			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Fire.bin", NULL, false);
 			m_Trap.back()->m_nTrapKind = TRAP_FIRE;
+
 		}
 		else if (i < MAX_TRAP - (MAX_TRAP / 4)) {
 			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Slow.bin", NULL, false);
@@ -507,6 +535,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 		else {
 			TrapObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Arrow.bin", NULL, false);
 			m_Trap.back()->m_nTrapKind = TRAP_ARROW;
+			GameObject *SpearObj = NULL;
 			SpearObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Trap_Spear.bin", NULL, false);
 			m_Trap.back()->SetChild(SpearObj, false);
 		}
@@ -532,7 +561,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_Arrow->BuildObject(Device, CommandList, m_GraphicsRootSignature, 3);*/
 
 	// Monster Object
-	for (int i = 0; i < MAX_MONSTER - 40; ++i) {
+	for (int i = 0; i < 32; ++i) {
 		GameObject *OrcObj = NULL;
 		OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Weak_Infantry.bin", NULL, true);
 		m_Orc.emplace_back(new Monster());
@@ -541,7 +570,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 		m_Orc.back()->SetEnable(2);
 		m_Orc.back()->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
 	}
-	for (int i = 0; i < MAX_MONSTER - 75; ++i) { // Strong Orc
+	for (int i = 0; i < 24; ++i) { // Strong Orc
 		GameObject *OrcObj = NULL;
 		OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_Strong_Infantry.bin", NULL, true);
 		m_StrongOrc.emplace_back(new Monster());
@@ -550,7 +579,7 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 		m_StrongOrc.back()->SetEnable(2);
 		m_StrongOrc.back()->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
 	}
-	for (int i = 0; i < MAX_MONSTER - 80; ++i) { // Wolf Rider
+	for (int i = 0; i < 16; ++i) { // Wolf Rider
 		GameObject *OrcObj = NULL;
 		OrcObj = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Monster_WolfRider.bin", NULL, true);
 		m_WolfRider.emplace_back(new Monster());
@@ -579,8 +608,38 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_OtherPlayerModel = GameObject::LoadGeometryAndAnimationFromFile(Device, CommandList, m_GraphicsRootSignature, "Model/Soldier_Player.bin", NULL, true);
 	m_OtherPlayerModel->SetPostion(XMFLOAT3(-1000.f, -15.f, 0.f));
 
-	m_BulletEffect = new Effect(Device, CommandList, m_GraphicsRootSignature);
-	m_BulletEffect->SetPostion(XMFLOAT3(0.f, 0.f, 0.f));
+	m_BulletEffect = new Effect(Device, CommandList, m_GraphicsRootSignature, 0);
+	m_BulletEffect->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
+
+	/*for (int i = 0; i < 5 * 25; ++i) {
+		m_Fire[i] = new Effect(Device, CommandList, m_GraphicsRootSignature, 1);
+		m_Fire[i]->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
+	}*/
+
+	m_Portal = new Effect(Device, CommandList, m_GraphicsRootSignature, 2);
+
+	switch (m_MapNum) {
+	case 1:
+	{
+		m_Portal->SetRotate(180.f, 0.f, 0.f);
+		m_Portal->SetPostion(XMFLOAT3(0.f, 140.f, 120.f));
+	}
+	break;
+
+	case 2:
+	{
+		m_Portal->SetRotate(0.f, -90.f, 0.f);
+		m_Portal->SetPostion(XMFLOAT3(-170.f, 150.f, 60.f));
+	}
+	break;
+
+	case 3:
+	{
+		m_Portal->SetRotate(0.f, -90.f, 0.f);
+		m_Portal->SetPostion(XMFLOAT3(-170.f, 150.f, 60.f));
+	}
+	break;
+	}
 
 	// Effect
 	//m_FireEffect = new EffectShader();
@@ -931,6 +990,17 @@ void GameScene::Animate(float ElapsedTime)
 	for (int i = 0; i < 5; ++i) if (m_SkyBox[i]) m_SkyBox[i]->Animate(m_Player->GetPosition());
 
 	if (m_Player) {
+		if (m_Player->GetPlayerLife() != network_manager::GetInst()->m_my_info.hp) {
+			m_Player->SetPlayerLife(network_manager::GetInst()->m_my_info.hp);
+			m_Player->SetAnimateType(28, ANIMATION_TYPE_ONCE);
+			m_Player->SetEnable(28);
+		}
+
+		if (m_Player->GetPlayerLife() == 0) {
+			m_Player->SetAnimateType(29, ANIMATION_TYPE_ONCE);
+			m_Player->SetEnable(29);
+		}
+
 		//벽과 충돌검사
 		m_Player->UpdateTransform(NULL);
 		if (m_Player->GetMoveInfo()) {
@@ -981,7 +1051,7 @@ void GameScene::Animate(float ElapsedTime)
 		//	m_Player->GetCamera()->RegenerateViewMatrix();
 		//}
 		XMFLOAT3 StartPos = m_Player->GetCamera()->GetPosition();
-		cout << "Cam Pos x: " << StartPos.x  << " y: "<< StartPos.y << " z: " << StartPos.z << endl;
+		//cout << "Cam Pos x: " << StartPos.x  << " y: "<< StartPos.y << " z: " << StartPos.z << endl;
 		XMFLOAT3 EndPos;
 		EndPos = Vector3::Normalize(Vector3::Subtract(m_Player->GetPosition(), StartPos));
 
@@ -997,10 +1067,10 @@ void GameScene::Animate(float ElapsedTime)
 			TileObject = m_Stage_02->CheckCamBlock(StartPos, EndPos);//m_Stage_02->IsStageIntersect(BoundCam);
 			break;
 		case 2:
-			TileObject = m_Stage_03->IsStageIntersect(BoundCam);
+			TileObject = m_Stage_03->CheckCamBlock(StartPos, EndPos);
 			break;
 		case 3:
-			TileObject = m_Stage_04->IsStageIntersect(BoundCam);
+			TileObject = m_Stage_04->CheckCamBlock(StartPos, EndPos);
 			break;
 		}
 		//if (TileObject != NULL) {
@@ -1054,6 +1124,23 @@ void GameScene::Animate(float ElapsedTime)
 		//	//cout << "충돌처리 안됨" << endl;
 		//}
 		
+		XMFLOAT3 position = m_Player->GetPosition();
+
+		switch (m_MapNum) {
+		case 1:
+		{
+			if (position.z < -10.f)
+				m_Player->SetmPosition(Vector3::Add(XMFLOAT3(0.f, 0.f, 500.f * m_ElapsedTime), m_Player->GetPosition()));
+		}
+		break;
+
+		case 2:
+		{
+			if (position.x < -320.f && position.z >= 0.f && position.z <= 130.f)
+				m_Player->SetmPosition(Vector3::Add(XMFLOAT3(500.f * m_ElapsedTime, 0.f, 0.f), m_Player->GetPosition()));
+		}
+		break;
+		}
 		m_Player->Update(ElapsedTime);
 		
 		XMFLOAT3 p_pos = m_Player->GetPosition();
@@ -1081,10 +1168,11 @@ void GameScene::Animate(float ElapsedTime)
 	if (network_manager::GetInst()->IsConnect()) {
 		XMFLOAT4X4 Transform = network_manager::GetInst()->m_OtherInfo.Transform;
 
-		AnimateState = int(network_manager::GetInst()->m_OtherInfo.AnimateState);
+		AnimateState = network_manager::GetInst()->m_OtherInfo.AnimateState;
 
 		m_OtherPlayerModel->SetTransform(Transform);
 		m_OtherPlayerModel->SetScale(30.f, 30.f, 30.f);
+		if (AnimateState == 27) m_OtherPlayerModel->SetAnimateType(27, ANIMATION_TYPE_ONCE);
 		m_OtherPlayerModel->SetEnable(AnimateState);
 		m_OtherPlayerModel->Animate(ElapsedTime, NULL);
 	}
@@ -1111,9 +1199,11 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	for (int i = 0; i < 5; ++i) if (m_SkyBox[i]) m_SkyBox[i]->Render(CommandList);
 
 	// UI
-	for (int i = m_Player->GetPlayerLife(); i >= 0; i--) {
+	for (int i = m_Player->GetPlayerLife() / 20 - 1; i >= 0; i--) {
 		if (m_HpBar[i]) m_HpBar[i]->Render(CommandList);
 	}
+	if (m_Player->GetPlayerLife() == 10) m_HpBar[0]->Render(CommandList);
+
 
 	for (int i = m_Player->GetPlayerBullet(); i >= 0; i--) {
 		if (m_Bullet[i]) m_Bullet[i]->Render(CommandList);
@@ -1124,9 +1214,15 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	//cout << "x: " << m_Player->GetPosition().x << ", z: " << m_Player->GetPosition().z << endl;
 
 	// UI
+	if (network_manager::GetInst()->game_end == true) if (m_victory) m_victory->Render(CommandList);
+	if (m_Player->GetPlayerLife() <= 0) if (m_gameover) m_gameover->Render(CommandList);
 	if (m_CharInfo) m_CharInfo->Render(CommandList);
-	if (m_TrapListUi) m_TrapListUi->Render(CommandList);
 	if (m_Scope) m_Scope->Render(CommandList);
+	if (m_TrapListUi) m_TrapListUi->Render(CommandList);
+
+
+	if (m_wave[network_manager::GetInst()->m_myRoomInfo.wave_count - 1]) 
+		m_wave[network_manager::GetInst()->m_myRoomInfo.wave_count - 1]->Render(CommandList);
 
 	// GameScene에 등장할 오브젝트 렌더링
 	switch (m_MapNum) {
@@ -1141,6 +1237,44 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		break;
 	}
 
+	// Fire Effect
+	//for (int i = 0; i < 5 * 25; ++i) {
+	//	if (m_Fire[i]) {
+	//		if (m_Fire[i]->is_set == true) {
+	//			m_Fire[i]->Animate(m_ElapsedTime, m_Player->GetCamera()->GetPosition());
+
+	//			XMFLOAT3 position = m_Fire[i]->GetPosition();
+
+	//			if (m_Fire[i]->flag == 0) {
+
+	//				int id = m_Fire[i]->m_flagID;
+
+	//				if (m_Fire[id]->m_dir == 1) position.x -= m_ElapsedTime * 200.f;
+	//				else if (m_Fire[id]->m_dir == 2) position.x += m_ElapsedTime * 200.f;
+	//				else if (m_Fire[id]->m_dir == 3) position.z -= m_ElapsedTime * 200.f;
+	//				else if (m_Fire[id]->m_dir == 4) position.z += m_ElapsedTime * 200.f;
+
+	//				if (Vector3::Distance(position, m_Trap[m_Fire[i]->trap_id]->GetPosition()) > 250.f) m_Fire[i]->flag = 1;
+	//			}
+
+	//			else {
+	//				m_Fire[i]->flag = 0;
+
+	//				int id = m_Fire[i]->m_flagID;
+
+	//				position = m_Trap[m_Fire[i]->trap_id]->GetPosition();
+	//				/*if (m_Fire[id]->m_dir == 1) position.x -= 50.f;
+	//				else if (m_Fire[id]->m_dir == 2) position.x += 50.f;
+	//				else if (m_Fire[id]->m_dir == 3) position.z -= 50.f;
+	//				else position.z += 50.f;*/
+	//				position.y += -15.f + rand() % 30;
+	//			}
+	//			m_Fire[i]->SetPostion(position);
+	//			m_Fire[i]->Render(CommandList);
+	//		}
+	//	}
+	//}
+
 	// Trap Objects
 	for (int i = 0; i < MAX_TRAP; ++i) {
 		if (network_manager::GetInst()->m_trap_pool[i].enable == false) continue;
@@ -1148,14 +1282,6 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 		// 12 - 24 Fire (13)
 		// 25 - 37 Slow (13)
 		// 38 - 49 Arrow (12)
-		//char trap_type = network_manager::GetInst()->m_trap_pool[i].trap_type;
-
-		/*switch (trap_type) {
-		case TRAP_NEEDLE: break;
-		case TRAP_FIRE: render_id += 12; break;
-		case TRAP_SLOW: render_id += 25; break;
-		case TRAP_ARROW: render_id += 38; break;
-		}*/
 
 		int trap_id = m_Trap[network_manager::GetInst()->m_trap_pool[i].id]->m_id;
 		
@@ -1172,7 +1298,6 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 					if (m_Trap[trap_id]->is_ArrowShoot != true) {
 
-
 						if (network_manager::GetInst()->m_trap_pool[i].wallTrapOn == true) {
 							m_Trap[trap_id]->is_ArrowShoot = true;
 
@@ -1180,7 +1305,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 						else
 							continue;
 					}
-					cout << "i 번째 화살 애니메이션" << endl;
+					//cout << "i 번째 화살 애니메이션" << endl;
 					GameObject *SprObj = NULL;
 					SprObj = m_Trap[trap_id]->FindFrame("Trap_Spear");
 					SprObj->SetPostion(Vector3::Add(SprObj->GetPosition(), Vector3::ScalarProduct(SprObj->GetUp(), 800.f*m_ElapsedTime)));
@@ -1198,8 +1323,7 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 
 		}
 	}
-
-
+	// Trap Object
 	for (int i = 0; i < MAX_TRAP; ++i) {
 		if (m_Trap[i]->is_active == false) continue;
 		if (m_Trap[i]) {
@@ -1208,7 +1332,6 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 			m_Trap[i]->Render(CommandList);
 		}
 	}
-
 	// Monster Object
 	Monster_Function(CommandList, m_Orc);
 	Monster_Function(CommandList, m_StrongOrc);
@@ -1356,9 +1479,12 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 					if (m_Shaman) m_Shaman->Render(CommandList);
 					if (m_WolfRider) m_WolfRider->Render(CommandList);*/
 
-					// Ohter Player
-	if (network_manager::GetInst()->IsConnect())
+
+
+	// Ohter Player
+	if (network_manager::GetInst()->IsConnect()) {
 		m_OtherPlayerModel->Render(CommandList);
+	}
 
 	// Effect
 	shoot_time += m_ElapsedTime * 10;
@@ -1405,6 +1531,12 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 			Reload_time = 0.0f;
 			is_Reload -= 1;
 		}
+	}
+
+	// Portal Rendering
+	if (m_Portal) {
+		m_Portal->SetRotate(0.f, 0.f, 10.f * m_ElapsedTime);
+		m_Portal->Render(CommandList);
 	}
 }
 
@@ -1535,6 +1667,8 @@ void GameScene::CheckBuildTrap()
 
 void GameScene::ProcessInput(HWND hWnd)
 {
+	if (m_Player->GetPlayerLife() == 0) return;
+
 	float xDelta = 0.f, yDelta = 0.f;
 	POINT CursourPos;
 
@@ -1554,6 +1688,8 @@ void GameScene::ProcessInput(HWND hWnd)
 
 bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
+	if (m_Player->GetPlayerLife() == 0) return 0;
+
 	switch (nMessageID)
 	{
 	case WM_LBUTTONDOWN:
@@ -1565,6 +1701,56 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 				if (m_target->GetIsTrapAccess() == true && m_target->GetIsBuildTrap() == true && m_target->is_collision == false) {
 
 					network_manager::GetInst()->send_install_trap(m_target->m_id, m_target->m_nTrapKind, m_target->m_WorldPos);
+
+					//if (m_target->m_nTrapKind == TRAP_FIRE) {
+
+					//	int mul = 0;
+
+					//	for (int i = 0; i < 10 * 25; i += 10) {
+					//		if (m_Fire[i]->is_set == false) break;
+					//		++mul;
+					//	}
+					//	
+					//	int fire_id = mul * 10;
+
+					//	XMFLOAT3 right = m_target->GetRight();
+
+					//	// 함정이 -x축을 바라볼 때
+					//	if (right.y == 1) {
+					//		m_Fire[fire_id]->m_dir = 1;
+					//	}
+					//	// 함정이 +x축을 바라볼 때
+					//	else if (right.y == -1) {
+					//		m_Fire[fire_id]->m_dir = 2;
+					//	}
+					//	else
+					//	{
+					//		XMFLOAT3 Up = m_target->GetUp();
+					//		// 함정이 -z축을 바라볼 때
+					//		if (Up.z == -1) m_Fire[fire_id]->m_dir = 3;
+					//		else m_Fire[fire_id]->m_dir = 4;
+					//	}
+
+					//	int range = 0;
+
+					//	for (int i = fire_id; i < fire_id + 5; ++i) {
+					//		m_Fire[i]->is_set = true;
+					//		m_Fire[i]->m_flagID = fire_id;
+					//		m_Fire[i]->m_dir = m_Fire[fire_id]->m_dir;
+					//		m_Fire[i]->trap_id = m_target->m_id;
+					//		XMFLOAT3 position = m_target->GetPosition();
+					//		if (m_Fire[fire_id]->m_dir == 1 || m_Fire[fire_id]->m_dir == 2) {
+					//			position.x -= 200.f - (range * 50);
+					//		}
+					//		else {
+					//			position.z -= 200.f - (range * 50);
+					//		}
+					//		position.y = 0.f + rand() % 30;
+					//		m_Fire[i]->SetPostion(position);
+
+					//		++range;
+					//	}
+					//}
 
 					m_target->BuildTrap(false);
 					m_target = NULL;
@@ -1589,7 +1775,7 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		}
 		else {
 			int bul = m_Player->GetPlayerBullet();
-			if (m_Player->GetNowAnimationNum() < 9 && m_Player->GetNextAnimationNum() < 9 && bul > -1) {
+			if (m_Player->GetNowAnimationNum() < 18 && m_Player->GetNextAnimationNum() < 18 && bul > -1) {
 				is_shoot = 4;
 				m_Player->SetPlayerAnimateType(ANIMATION_TYPE_SHOOT);
 				m_Player->SetEnable(9);
@@ -1722,6 +1908,8 @@ bool GameScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 
 bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
+	if (m_Player->GetPlayerLife() == 0) return 0;
+
 	switch (nMessageID)
 	{
 	case WM_KEYDOWN:
@@ -2009,6 +2197,7 @@ bool GameScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM w
 				//m_Player->SetMoveRoll(true);
 				m_Player->SetAnimateType(27, ANIMATION_TYPE_ONCE);
 				m_Player->SetEnable(27);
+				network_manager::GetInst()->send_my_world_pos_packet(m_Player->m_TransformPos, 27);
 			}
 			break;
 		default:

@@ -157,6 +157,11 @@ private:
 	UI							*m_Scope = NULL;
 	UI							*m_HpBar[10];
 	UI							*m_Bullet[10];
+	UI							*m_victory = NULL;
+	UI							*m_gameover = NULL;
+
+	UI							*m_wave[10];
+
 	// Map
 	SkyBox						*m_SkyBox[5];
 
@@ -188,6 +193,7 @@ private:
 
 	// Effect
 	Effect						*m_BulletEffect = NULL;
+	Effect						*m_Portal = NULL;
 
 	// Other Player
 	GameObject					*m_OtherPlayerModel = NULL;

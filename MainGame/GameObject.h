@@ -235,6 +235,8 @@ public:
 
 	int					m_nNextAnimation = -1;
 
+	bool				is_Alive = true;
+
 public:
 	void SetAnimationSet(int nAnimationSet);
 	void SetAnimationEnable(int nAnimationSet);
@@ -264,6 +266,7 @@ public:
 	XMFLOAT4X4						m_TransformPos;
 
 	char m_Type;
+	bool is_animate = true;
 
 protected:
 	D3D12_GPU_DESCRIPTOR_HANDLE		m_CbvGPUDescriptorHandle;
@@ -316,6 +319,15 @@ public:
 
 		if (m_Sibling) m_Sibling->SetMonsterType(type);
 		if (m_Child) m_Child->SetMonsterType(type);
+	}
+
+	bool GetIsAlive() {
+		if(m_AnimationController) return m_AnimationController->is_Alive;
+
+		if (m_Sibling) m_Sibling->GetIsAlive();
+		if (m_Child) m_Child->GetIsAlive();
+
+		//return true;
 	}
 
 	char* GetFrameName() { return m_FrameName; }
@@ -447,15 +459,17 @@ class Effect : public GameObject
 {
 public:
 	Effect() {}
-	Effect(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature);
+	Effect(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT type);
 	~Effect() {}
 
-private:
-	float flag = 1.f;
-	float scale = 1.f;
-
 public:
-	virtual void Animate(float ElapsedTime, XMFLOAT4X4 *Parent = NULL);
+	bool is_set = false;
+	int flag = 0;
+	int m_flagID = -1;
+	int m_dir = 0;
+	int trap_id = 0;
+
+	virtual void Animate(float ElapsedTime, XMFLOAT3 camera);
 	virtual void Render(ID3D12GraphicsCommandList *CommandList);
 };
 

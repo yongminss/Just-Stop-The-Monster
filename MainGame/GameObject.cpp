@@ -478,6 +478,9 @@ void AnimationController::AdvanceTime(float ElapsedTime, AnimationCallbackHandle
 			if ((m_nNextAnimation == -1 && pAnimationSet->m_nType == ANIMATION_TYPE_ONCE)) {
 				m_nNextAnimation = 0;
 			}
+			if (m_nNowAnimation == 29 && m_nNextAnimation == -1) {
+				is_Alive = false;
+			}
 			// RELOAD 타입이 끝까지 애니메이션 실행 후 다음 애니메이션이 -1이면, NextAnimation은 idle
 			if (m_nNextAnimation == -1 && pAnimationSet->m_nType == ANIMATION_TYPE_RELOAD && pAnimationSet->m_bReloadEnd == true) {
 				m_nNextAnimation = 0;
@@ -974,6 +977,7 @@ GameObject *GameObject::CheckCamBlock(XMFLOAT3 startpos, XMFLOAT3 endpos)
 {
 	if (m_Mesh) {
 		// 벽 타일
+		m_Mesh->m_IsRender = true;
 		if (strstr(m_FrameName, "Normal") || strstr(m_FrameName, "None")) {
 			BoundingBox TileBound = m_Mesh->GetBounds();
 			TileBound.Transform(TileBound, XMLoadFloat4x4(&m_WorldPos));
@@ -1027,11 +1031,13 @@ GameObject *GameObject::CheckTileBound(XMFLOAT3 startpos, XMFLOAT3 endpos, bool 
 		}
 		else {
 			// 벽 타일
-			if (strstr(m_FrameName, "Normal")) {
-				BoundingBox TileBound = m_Mesh->GetBounds();
-				TileBound.Transform(TileBound, XMLoadFloat4x4(&m_WorldPos));
-				if (TileBound.Intersects(XMLoadFloat3(&startpos), XMLoadFloat3(&endpos), m_Mesh->m_fDistance) == true) {
-					TileObject = this;
+			if (m_Mesh->m_IsRender) {
+				if (strstr(m_FrameName, "Normal")) {
+					BoundingBox TileBound = m_Mesh->GetBounds();
+					TileBound.Transform(TileBound, XMLoadFloat4x4(&m_WorldPos));
+					if (TileBound.Intersects(XMLoadFloat3(&startpos), XMLoadFloat3(&endpos), m_Mesh->m_fDistance) == true) {
+						TileObject = this;
+					}
 				}
 			}
 		}
@@ -1147,7 +1153,7 @@ GameObject *GameObject::GetPlayerWeapon()
 void GameObject::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
 {
 	if (m_AnimationController) m_AnimationController->AdvanceTime(ElapsedTime, NULL);
-
+	
 	if (m_Sibling) m_Sibling->Animate(ElapsedTime, Parent);
 	if (m_Child) m_Child->Animate(ElapsedTime, &m_WorldPos);
 }
@@ -1400,6 +1406,55 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	case IDNum_0:
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/n_0black.dds", 0);
 		break;
+
+	case UI_Victory:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_victory.dds", 0);
+		break;
+
+	case UI_Gameover:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_gameover.dds", 0);
+		break;
+
+	case UI_wave01:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Wave_1.dds", 0);
+		break;
+
+	case UI_wave02:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Wave_2.dds", 0);
+		break;
+
+	case UI_wave03:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Wave_3.dds", 0);
+		break;
+
+	case UI_wave04:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Wave_4.dds", 0);
+		break;
+
+	case UI_wave05:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Wave_5.dds", 0);
+		break;
+
+	case UI_wave06:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Wave_6.dds", 0);
+		break;
+
+	case UI_wave07:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Wave_7.dds", 0);
+		break;
+
+	case UI_wave08:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Wave_8.dds", 0);
+		break;
+
+	case UI_wave09:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Wave_9.dds", 0);
+		break;
+
+	case UI_wave10:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Wave_10.dds", 0);
+		break;
+
 	case UI_HpBar:
 	case UI_HpBar + 1:
 	case UI_HpBar + 2:
@@ -1412,6 +1467,7 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	case UI_HpBar + 9:
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_HP_Bar.dds", 0);
 		break;
+
 	case UI_Bullet:
 	case UI_Bullet + 1:
 	case UI_Bullet + 2:
@@ -1424,6 +1480,7 @@ UI::UI(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootS
 	case UI_Bullet + 9:
 		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/UI_Bullet.dds", 0);
 		break;
+
 	default:
 		break;
 	}
@@ -1578,16 +1635,41 @@ void SkyBox::Render(ID3D12GraphicsCommandList *CommandList)
 }
 
 
-Effect::Effect(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature)
+Effect::Effect(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3D12RootSignature *GraphicsRootSignature, UINT type)
 {
 	TextureMesh *ObjMesh = NULL;
 
-	ObjMesh = new TextureMesh(Device, CommandList, 20.f, 20.f, 20.f, 0.f, 0.f, 0.f, 0);
+	switch (type) {
+	case 0:
+		ObjMesh = new TextureMesh(Device, CommandList, 20.f, 20.f, 20.f, 0.f, 0.f, 0.f, 0);
+		break;
+
+	case 1:
+		ObjMesh = new TextureMesh(Device, CommandList, 50.f, 50.f, 50.f, 0.f, 0.f, 0.f, 0);
+		break;
+
+	case 2:
+		ObjMesh = new TextureMesh(Device, CommandList, 200.f, 200.f, 200.f, 0.f, 0.f, 0.f, 0);
+		break;
+	}
+
 	SetMesh(ObjMesh);
 
 	Texture *ObjTexture = new Texture(1, RESOURCE_TEXTURE2D, 0);
 
-	ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/GunEffect.dds", 0);
+	switch (type) {
+	case 0:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/GunEffect.dds", 0);
+		break;
+
+	case 1:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/FireEffect.dds", 0);
+		break;
+
+	case 2:
+		ObjTexture->LoadTextureFromFile(Device, CommandList, L"Image/Portal.dds", 0);
+		break;
+	}
 
 	EffectShader *ObjShader = new EffectShader();
 	ObjShader->CreateShader(Device, CommandList, GraphicsRootSignature);
@@ -1606,9 +1688,19 @@ Effect::Effect(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList, ID3
 	ObjMaterial = NULL;
 }
 
-void Effect::Animate(float ElapsedTime, XMFLOAT4X4 *Parent)
+void Effect::Animate(float ElapsedTime, XMFLOAT3 camera)
 {
+	XMFLOAT3 look = Vector3::Subtract(GetPosition(), camera);
+	look = Vector3::Normalize(look);
+	SetLook(look);
+	SetUp(XMFLOAT3(0.f, 1.f, 0.f));
+	XMFLOAT3 right = Vector3::CrossProduct(GetUp(), look, true);
+	SetRight(right);
+	/*XMVECTOR nowLook = XMLoadFloat3(&GetLook());
 
+	XMMATRIX Rotate = XMMatrixRotationAxis(nowLook, 80);
+
+	m_WorldPos = Matrix4x4::Multiply(m_WorldPos, Rotate);*/
 }
 
 void Effect::Render(ID3D12GraphicsCommandList *CommandList)

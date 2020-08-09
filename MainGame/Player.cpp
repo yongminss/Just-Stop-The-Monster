@@ -240,10 +240,11 @@ void Player::Update(float ElapsedTime)
 		m_Camera->RegenerateViewMatrix();
 	}
 	// Player가 이동 중이면 Move 함수 호출 -> 이동이 끝나면 IDLE 상태로 애니메이션 전환
-	if (GetMoveInfo()) 
+	if (GetMoveInfo() && GetPlayerLife() != 0) 
 		Move(ElapsedTime);
 	else 
 		SetEnable(0);
+
 	Animate(ElapsedTime);
 	
 	//cout << "Position : " << m_TransformPos._41 << ", " << m_TransformPos._42 << ", " << m_TransformPos._43 << endl;
