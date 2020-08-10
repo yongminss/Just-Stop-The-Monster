@@ -611,6 +611,11 @@ void GameScene::BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *Com
 	m_BulletEffect = new Effect(Device, CommandList, m_GraphicsRootSignature, 0);
 	m_BulletEffect->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
 
+	for (int i = 0; i < 50; ++i) {
+		m_Fire[i] = new Effect(Device, CommandList, m_GraphicsRootSignature, 1);
+		m_Fire[i]->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
+	}
+
 	/*for (int i = 0; i < 5 * 25; ++i) {
 		m_Fire[i] = new Effect(Device, CommandList, m_GraphicsRootSignature, 1);
 		m_Fire[i]->SetPostion(XMFLOAT3(0.f, -1000.f, 0.f));
@@ -990,15 +995,18 @@ void GameScene::Animate(float ElapsedTime)
 	for (int i = 0; i < 5; ++i) if (m_SkyBox[i]) m_SkyBox[i]->Animate(m_Player->GetPosition());
 
 	if (m_Player) {
-		if (m_Player->GetPlayerLife() != network_manager::GetInst()->m_my_info.hp) {
+		if (m_Player->GetPlayerLife() > network_manager::GetInst()->m_my_info.hp) {
 			m_Player->SetPlayerLife(network_manager::GetInst()->m_my_info.hp);
 			m_Player->SetAnimateType(28, ANIMATION_TYPE_ONCE);
 			m_Player->SetEnable(28);
 		}
+		else if (m_Player->GetPlayerLife() < network_manager::GetInst()->m_my_info.hp)
+			m_Player->SetPlayerLife(network_manager::GetInst()->m_my_info.hp);
 
 		if (m_Player->GetPlayerLife() == 0) {
 			m_Player->SetAnimateType(29, ANIMATION_TYPE_ONCE);
 			m_Player->SetEnable(29);
+			network_manager::GetInst()->send_my_world_pos_packet(m_Player->m_TransformPos, 29);
 		}
 
 		//벽과 충돌검사
@@ -1294,6 +1302,42 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 			m_Trap[trap_id]->SetLook(XMFLOAT3(world._31, world._32, world._33));
 			m_Trap[trap_id]->SetPostion(XMFLOAT3(world._41, world._42, world._43));
 
+			if (m_Trap[trap_id]->m_nTrapKind == TRAP_FIRE) {
+				int fire_id = 0;
+				fire_id = (trap_id - 25) * 2;
+			
+				/*for (int j = 0; j < 50; ++j) {
+					if (m_Fire[j]->is_set == true) continue;
+					fire_id = j;
+					break;
+				}*/
+
+				if (m_Fire[fire_id]->is_set == false) {
+
+					XMFLOAT3 right = m_Trap[trap_id]->GetRight();
+
+					if (right.y == 1) m_Fire[fire_id]->m_dir = 1;
+					else if (right.y == -1) m_Fire[fire_id]->m_dir = 2;
+					else {
+						XMFLOAT3 up = m_Trap[trap_id]->GetUp();
+						if (up.z == -1) m_Fire[fire_id]->m_dir = 3;
+						else m_Fire[fire_id]->m_dir = 4;
+					}
+					int temp = 0;
+					for (int j = fire_id; j < fire_id + 2; ++j) {
+						m_Fire[j]->is_set = true;
+						m_Fire[j]->m_flagID = fire_id;
+						m_Fire[j]->trap_id = m_Trap[trap_id]->m_id;
+						XMFLOAT3 position = m_Trap[trap_id]->GetPosition();
+						if (m_Fire[fire_id]->m_dir == 1 || m_Fire[fire_id]->m_dir == 2) position.x -= temp * 80.f;
+						else position.z -= temp * 80.f;
+						m_Fire[j]->SetPostion(position);
+						++temp;
+					}
+				}
+			}
+			
+
 			if (m_Trap[trap_id]->m_nTrapKind == TRAP_ARROW) {
 
 					if (m_Trap[trap_id]->is_ArrowShoot != true) {
@@ -1336,6 +1380,30 @@ void GameScene::Render(ID3D12GraphicsCommandList *CommandList)
 	Monster_Function(CommandList, m_Orc);
 	Monster_Function(CommandList, m_StrongOrc);
 	Monster_Function(CommandList, m_WolfRider);
+
+	// Fire Effect
+	for (int i = 0; i < 50; ++i) {
+		if (m_Fire[i]) {
+			if (m_Fire[i]->is_set == false) continue;
+
+			XMFLOAT3 position = m_Fire[i]->GetPosition();
+
+			int id = m_Fire[i]->m_flagID;
+
+			if (m_Fire[id]->m_dir == 1) position.x -= m_ElapsedTime * 200.f;
+			if (m_Fire[id]->m_dir == 2) position.x += m_ElapsedTime * 200.f;
+			if (m_Fire[id]->m_dir == 3) position.z -= m_ElapsedTime * 200.f;
+			if (m_Fire[id]->m_dir == 4) position.z += m_ElapsedTime * 200.f;
+			position.y += m_ElapsedTime * 10.f;
+
+			if (Vector3::Distance(position, m_Trap[m_Fire[i]->trap_id]->GetPosition()) > 300.f)
+				m_Fire[i]->SetPostion(Vector3::Add(m_Trap[m_Fire[i]->trap_id]->GetPosition(), XMFLOAT3(0.f, -20.f + rand() % 40, 0.f)));
+			else m_Fire[i]->SetPostion(position);
+
+			m_Fire[i]->Animate(m_ElapsedTime, m_Player->GetCamera()->GetPosition());
+			m_Fire[i]->Render(CommandList);
+		}
+	}
 
 	/*if (m_Needle) m_Needle->Render(CommandList);
 	if (m_Fire) m_Fire->Render(CommandList);

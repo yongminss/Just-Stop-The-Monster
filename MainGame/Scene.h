@@ -194,6 +194,7 @@ private:
 	// Effect
 	Effect						*m_BulletEffect = NULL;
 	Effect						*m_Portal = NULL;
+	Effect						*m_Fire[50];
 
 	// Other Player
 	GameObject					*m_OtherPlayerModel = NULL;
@@ -219,7 +220,6 @@ private:
 	bool	m_bClick = false;
 
 public:
-	bool temp = false;
 
 	void BuildObject(ID3D12Device *Device, ID3D12GraphicsCommandList *CommandList);
 	void ReleaseObject();

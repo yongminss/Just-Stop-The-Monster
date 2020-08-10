@@ -335,8 +335,6 @@ void network_manager::PacketProccess(char* buf)
 			m_trap_pool[trap_info_packet->trap_index].id = trap_info_packet->trap_local_id;
 			m_trap_pool[trap_info_packet->trap_index].trap_type = trap_info_packet->trap_type;
 			m_trap_pool[trap_info_packet->trap_index].trap4x4pos = trap_info_packet->trap_pos;
-
-			cout << "Server에서 받은 Trap ID : " << trap_info_packet->trap_index << endl;
 		}
 		break;
 	}
