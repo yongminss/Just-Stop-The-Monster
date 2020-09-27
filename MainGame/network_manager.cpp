@@ -46,7 +46,7 @@ void network_manager::init_socket()
 	m_serverSocket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, 0);
 
 	m_recv_buf.len = MAX_BUFFER;
-	m_recv_buf.buf = m_buffer;
+	m_recv_buf.buf = mBuffer;
 
 	/*m_my_info.Transform._11 = 1.f, m_my_info.Transform._12 = 0.f, m_my_info.Transform._13 = 0.f, m_my_info.Transform._14 = 0.f;
 	m_my_info.Transform._21 = 0.f, m_my_info.Transform._22 = 1.f, m_my_info.Transform._23 = 0.f, m_my_info.Transform._24 = 0.f;
@@ -110,7 +110,7 @@ void network_manager::test_connect(HWND & hwnd)
 	WSAAsyncSelect(m_serverSocket, async_handle, WM_SOCKET, FD_READ || FD_CLOSE);
 
 	m_recv_buf.len = MAX_BUFFER;
-	m_recv_buf.buf = m_buffer;
+	m_recv_buf.buf = mBuffer;
 
 	send_wsabuf.len = MAX_BUFFER;
 	send_wsabuf.buf = send_buffer;
@@ -119,66 +119,42 @@ void network_manager::test_connect(HWND & hwnd)
 void network_manager::ReadBuffer(SOCKET sock)
 {
 
-	DWORD iobyte, ioflag = 0;
-	int ret = WSARecv(sock, &m_recv_buf, 1, &iobyte, &ioflag, NULL, NULL);
+	DWORD recvByte, ioflag = 0;
+	int ret = WSARecv(sock, &m_recv_buf, 1, &recvByte, &ioflag, NULL, NULL);
 	if (ret != 0) {
 		int err_no = WSAGetLastError();
 		if (WSA_IO_PENDING != err_no)
 			socket_err_display("WSASend Error :", err_no);
 	}
-	//cout << "iobyte: " << iobyte << endl;
 
-	unsigned short size = 0;
-	char* ptr = reinterpret_cast<char*>(m_buffer);
+	unsigned short packetSize = 0;
+	char* packetBuf = reinterpret_cast<char*>(mBuffer);
 
-	while (iobyte != 0)
+	while (recvByte != 0)
 	{
-		memcpy(&size, ptr, sizeof(unsigned short));
-		if (in_packet_size == 0) in_packet_size = size;
-		if (iobyte + saved_packet_size >= in_packet_size)
+		memcpy(&packetSize, packetBuf, sizeof(unsigned short));
+		if (headPacketSize == 0)
+		{
+			headPacketSize = packetSize;
+		}
+		if (recvByte + savePacketSize >= headPacketSize)
 		{
 			//cout << size << ", " << (int)ptr[2] << endl;
-			memcpy(packet_buffer + saved_packet_size, ptr, in_packet_size - saved_packet_size);
-			PacketProccess(packet_buffer);
-			ptr += in_packet_size - saved_packet_size;
-			iobyte -= in_packet_size - saved_packet_size;
-			in_packet_size = 0;
-			saved_packet_size = 0;
+			memcpy(tempBuf + savePacketSize, packetBuf, headPacketSize - savePacketSize);
+			PacketProccess(tempBuf);
+			packetBuf += headPacketSize - savePacketSize;
+			recvByte -= headPacketSize - savePacketSize;
+			headPacketSize = 0;
+			savePacketSize = 0;
 		}
 		else
 		{
-			memcpy(packet_buffer + saved_packet_size, ptr, iobyte);
-			saved_packet_size += iobyte;
-			iobyte = 0;
+			memcpy(tempBuf + savePacketSize, packetBuf, recvByte);
+			savePacketSize += recvByte;
+			recvByte = 0;
 		}
 	}
 
-
-	/*unsigned short * temp_size = reinterpret_cast<unsigned short*>(m_buffer);
-	char * temp = reinterpret_cast<char*>(m_buffer);
-
-	while (iobyte != 0)
-	{
-	if (in_packet_size == 0)
-	{
-	in_packet_size = temp_size[0];
-	}
-	if (iobyte + saved_packet_size >= in_packet_size)
-	{
-	memcpy(m_buffer + saved_packet_size, temp, in_packet_size - saved_packet_size);
-	PacketProccess(m_buffer);
-	temp += in_packet_size - saved_packet_size;
-	iobyte -= in_packet_size - saved_packet_size;
-	in_packet_size = 0;
-	saved_packet_size = 0;
-	}
-	else
-	{
-	memcpy(m_buffer + saved_packet_size, temp, iobyte);
-	saved_packet_size += iobyte;
-	iobyte = 0;
-	}
-	}*/
 }
 
 void network_manager::PacketProccess(char* buf)
@@ -452,8 +428,8 @@ void network_manager::recvThread()
 		}
 		//cout << "iobyte: " << iobyte << endl;
 
-		unsigned short * temp_size = reinterpret_cast<unsigned short*>(m_buffer);
-		char * temp = reinterpret_cast<char*>(m_buffer);
+		unsigned short * temp_size = reinterpret_cast<unsigned short*>(mBuffer);
+		char * temp = reinterpret_cast<char*>(mBuffer);
 
 		while (iobyte != 0)
 		{
@@ -463,8 +439,8 @@ void network_manager::recvThread()
 			}
 			if (iobyte + saved_packet_size >= in_packet_size)
 			{
-				memcpy(m_buffer + saved_packet_size, temp, in_packet_size - saved_packet_size);
-				PacketProccess(m_buffer);
+				memcpy(mBuffer + saved_packet_size, temp, in_packet_size - saved_packet_size);
+				PacketProccess(mBuffer);
 				temp += in_packet_size - saved_packet_size;
 				iobyte -= in_packet_size - saved_packet_size;
 				in_packet_size = 0;
@@ -472,7 +448,7 @@ void network_manager::recvThread()
 			}
 			else
 			{
-				memcpy(m_buffer + saved_packet_size, temp, iobyte);
+				memcpy(mBuffer + saved_packet_size, temp, iobyte);
 				saved_packet_size += iobyte;
 				iobyte = 0;
 			}

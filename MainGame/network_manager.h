@@ -91,7 +91,7 @@ public:
 
 	WSABUF m_recv_buf;	// 최초에 recv한 데이터 받아올 버퍼
 	WSABUF send_wsabuf;
-	char m_buffer[MAX_BUFFER];
+	char mBuffer[MAX_BUFFER];
 	char send_buffer[MAX_BUFFER];
 
 	PLAYER_INFO m_my_info;
@@ -110,9 +110,9 @@ public:
 
 	HWND async_handle;
 
-	int saved_packet_size = 0;
-	int in_packet_size = 0;
-	char packet_buffer[MAX_BUFFER];
+	int savePacketSize = 0;
+	int headPacketSize = 0;
+	char tempBuf[MAX_BUFFER];
 
 
 
